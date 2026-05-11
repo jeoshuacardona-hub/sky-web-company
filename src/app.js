@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const mongoose = require('mongoose');
+const expressLayouts = require('express-ejs-layouts');
 const seedService = require('./services/seedService');
 
 dotenv.config();
@@ -16,6 +17,8 @@ app.set('trust proxy', 1);
 // --- MIDDLEWARE ---
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+app.use(expressLayouts);
+app.set('layout', 'layouts/main');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
