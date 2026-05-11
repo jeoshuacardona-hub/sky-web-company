@@ -1,4 +1,3 @@
-<%- include('layouts/main') %>
 <div class="row">
   <div class="col-12">
     <div class="card">
@@ -17,7 +16,6 @@
                 <th>Empresa</th>
                 <th>Estado</th>
                 <th>Valor</th>
-                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -31,9 +29,6 @@
                     </span>
                   </td>
                   <td>$<%= customer.value %></td>
-                  <td>
-                    <button class="btn btn-sm btn-outline-secondary">Editar</button>
-                  </div>
                 </tr>
               <% }) %>
             </tbody>
