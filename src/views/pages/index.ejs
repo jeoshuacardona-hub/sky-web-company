@@ -1,5 +1,3 @@
-<%- include('layouts/main') %>
-<!-- El contenido de index.ejs ya está aquí -->
 <div class="row">
   <div class="col-xxl-8 mb-6 order-0">
     <div class="card">
@@ -11,7 +9,7 @@
               Estás en el centro de mando de tu empresa. Desde aquí puedes gestionar todo el flujo de trabajo,
               monitorear el crecimiento y optimizar tus servicios web.
             </p>
-            <a href="javascript:;" class="btn btn-sm btn-outline-primary">Ver Reportes</a>
+            <a href="/customers" class="btn btn-sm btn-outline-primary">Ver Clientes</a>
           </div>
         </div>
         <div class="col-sm-5 text-center text-sm-left">
@@ -27,46 +25,24 @@
       <div class="col-lg-6 col-md-12 col-6 mb-6">
         <div class="card h-100">
           <div class="card-body">
-            <div class="card-title d-flex align-items-start justify-content-between mb-4">
-              <div class="avatar flex-shrink-0">
-                <img src="/assets/img/icons/unicons/chart-success.png" alt="chart success" class="rounded" />
-              </div>
-              <div class="dropdown">
-                <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
-                  <a class="dropdown-item" href="javascript:void(0);">Ver Más</a>
-                  <a class="dropdown-item" href="javascript:void(0);">Eliminar</a>
-                </div>
-              </div>
-            </div>
-            <p class="mb-1">Ganancias</p>
-            <h4 class="card-title mb-3">$12,628</h4>
-            <small class="text-success fw-medium"><i class="icon-base bx bx-up-arrow-alt"></i> +72.80%</small>
+            <p class="mb-1">Clientes</p>
+            <h4 class="card-title mb-3"><%= stats.customers %></h4>
           </div>
         </div>
       </div>
       <div class="col-lg-6 col-md-12 col-6 mb-6">
         <div class="card h-100">
           <div class="card-body">
-            <div class="card-title d-flex align-items-start justify-content-between mb-4">
-              <div class="avatar flex-shrink-0">
-                <img src="/assets/img/icons/unicons/wallet-info.png" alt="wallet info" class="rounded" />
-              </div>
-              <div class="dropdown">
-                <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6">
-                  <a class="dropdown-item" href="javascript:void(0);">Ver Más</a>
-                  <a class="dropdown-item" href="javascript:void(0);">Eliminar</a>
-                </div>
-              </div>
-            </div>
-            <p class="mb-1">Ventas</p>
-            <h4 class="card-title mb-3">$4,679</h4>
-            <small class="text-success fw-medium"><i class="icon-base bx bx-up-arrow-alt"></i> +28.42%</small>
+            <p class="mb-1">Tareas Pendientes</p>
+            <h4 class="card-title mb-3"><%= stats.tasks %></h4>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 col-md-12 col-6 mb-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <p class="mb-1">Negocios Cerrados</p>
+            <h4 class="card-title mb-3"><%= stats.revenue %></h4>
           </div>
         </div>
       </div>
