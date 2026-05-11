@@ -1,0 +1,25 @@
+<%- include('layouts/main') %>
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title">Configuración de Cuenta</h5>
+      </div>
+      <div class="card-body">
+        <form action="/profile/update" method="POST">
+          <div class="row">
+            <div class="col-md-6 mb-4">
+              <label class="form-label">Nombre Completo</label>
+              <input type="text" class="form-control" name="fullName" value="Admin Sky Web" />
+            </div>
+            <div class="col-md-6 mb-4">
+              <label class="form-label">Correo Electrónico</label>
+              <input type="email" class="form-control" name="email" value="admin@skywebcompany.com" />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
