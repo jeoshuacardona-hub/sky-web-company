@@ -34,26 +34,23 @@ app.use(function(req, res, next) {
     next();
 });
 
-// Rutas
 const authRoutes = require('./routes/authRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const leadRoutes = require('./routes/leadRoutes');
 const callRoutes = require('./routes/callRoutes');
 const businessRoutes = require('./routes/businessRoutes');
+const calendarRoutes = require('./routes/calendarRoutes');
 
-// Registrar rutas
 app.use(dashboardRoutes);
 app.use(authRoutes);
 app.use(leadRoutes);
 app.use(callRoutes);
 app.use(businessRoutes);
+app.use(calendarRoutes);
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
         console.log('Connected to MongoDB');
         app.listen(PORT, '0.0.0.0', () => console.log('Server started on port ' + PORT));
     })
-    .catch(function(err) { 
-        console.error('MongoDB Connection Error:', err); 
-        process.exit(1); 
-    });
+    .catch(function(err) { console.error('MongoDB Connection Error:', err); process.exit(1); });

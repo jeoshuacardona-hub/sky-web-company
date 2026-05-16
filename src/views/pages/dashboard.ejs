@@ -1,0 +1,70 @@
+<style>
+.stat-card { background:#fff; border-radius:12px; padding:20px; border:1px solid #f0f0f0; display:flex; align-items:center; gap:16px; flex:1; min-width:200px; }
+.stat-icon { width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.chart-container { background:#fff; border-radius:12px; border:1px solid #f0f0f0; padding:20px; margin-bottom:20px; }
+</style>
+
+<div class="d-flex flex-wrap gap-3 mb-4">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#696cff22;"><i class="bx bx-target-lock" style="font-size:24px;color:#696cff;"></i></div>
+    <div><p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Total Leads</p><p class="mb-0" style="font-size:24px;font-weight:700;"><%= stats.totalLeads %></p></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#e8eaff;"><i class="bx bx-user-plus" style="font-size:24px;color:#696cff;"></i></div>
+    <div><p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Nuevos</p><p class="mb-0" style="font-size:24px;font-weight:700;color:#696cff;"><%= stats.newLeads %></p></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#e8faef;"><i class="bx bx-check-circle" style="font-size:24px;color:#166534;"></i></div>
+    <div><p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Convertidos</p><p class="mb-0" style="font-size:24px;font-weight:700;color:#166534;"><%= stats.convertedLeads %></p></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#fff0ee;"><i class="bx bx-dollar-circle" style="font-size:24px;color:#b32020;"></i></div>
+    <div><p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Valor Pipeline</p><p class="mb-0" style="font-size:24px;font-weight:700;color:#b32020;">$<%= stats.pipelineValue ? stats.pipelineValue.toLocaleString() : 0 %></p></div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-8">
+    <div class="chart-container">
+      <h6 class="mb-3" style="font-weight:700;">Pipeline de Leads por Estado</h6>
+      <canvas id="leadsChart" height="120"></canvas>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="chart-container">
+      <h6 class="mb-3" style="font-weight:700;">Tareas por Estado</h6>
+      <canvas id="tasksChart" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Gráfico de Leads
+new Chart(document.getElementById('leadsChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Nuevo', 'Contactado', 'Calificado', 'Convertido', 'Perdido'],
+        datasets: [{
+            label: 'Leads',
+            data: [<%= leadsByStatus.new %>, <%= leadsByStatus.contacted %>, <%= leadsByStatus.qualified || 0 %>, <%= leadsByStatus.converted %>, <%= leadsByStatus.lost %>],
+            backgroundColor: ['#696cff', '#03c3ec', '#71dd37', '#ffab00', '#ff3e1d'],
+            borderRadius: 6
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+
+// Gráfico de Tareas
+new Chart(document.getElementById('tasksChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Pendientes', 'Cerradas'],
+        datasets: [{
+            data: [<%= tasksByStatus.todo %>, <%= tasksByStatus.done %>],
+            backgroundColor: ['#696cff', '#71dd37']
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+});
+</script>
