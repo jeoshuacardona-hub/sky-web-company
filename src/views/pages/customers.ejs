@@ -1,264 +1,127 @@
 <style>
-.pipeline-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-@media (max-width: 992px) { .pipeline-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 576px) { .pipeline-grid { grid-template-columns: 1fr; } }
-.pipeline-col { min-width: 0; }
-.customer-card { background:#fff; border-radius:10px; border:1px solid #f0f0f0; padding:14px; margin-bottom:10px; cursor:pointer; transition:box-shadow 0.15s, transform 0.15s; }
-.customer-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.08); transform:translateY(-2px); }
-.avatar-sm { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; }
-.value-tag { font-size:11px; font-weight:600; color:#696cff; background:#f0f0ff; padding:2px 8px; border-radius:20px; }
-.add-card-btn { width:100%; border:1.5px dashed #d0d0d8; border-radius:10px; padding:10px; background:transparent; color:#8a8d9f; font-size:13px; cursor:pointer; transition:all 0.15s; text-align:center; }
-.add-card-btn:hover { border-color:#696cff; color:#696cff; background:#f5f5ff; }
-.stat-pill { background:#f5f5ff; border-radius:10px; padding:12px 20px; display:flex; align-items:center; gap:12px; flex:1; min-width:0; }
-.col-body { background:#f9f9fb; border:1px solid #f0f0f0; border-top:none; border-radius:0 0 10px 10px; padding:10px; min-height:160px; }
+.customer-card { background:#fff; border-radius:12px; border:1px solid #f0f0f0; padding:16px; margin-bottom:10px; transition:box-shadow 0.15s; }
+.customer-card:hover { box-shadow:0 4px 14px rgba(0,0,0,0.07); }
+.avatar-sm { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; }
+.stat-sm { background:#fff; border-radius:12px; padding:14px 18px; border:1px solid #f0f0f0; display:flex; align-items:center; gap:12px; }
+.badge-prospect { background:#e8eaff; color:#4a50d4; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.badge-qualified { background:#fff0d6; color:#b36800; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.badge-closed_won { background:#e8faef; color:#166534; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.badge-closed_lost { background:#fff0ee; color:#b32020; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
 </style>
 
 <%
-const stages = [
-  { key:'prospect',    label:'Prospecto',       color:'#8a8d9f', bg:'#f5f5f5' },
-  { key:'qualified',   label:'Calificado',      color:'#696cff', bg:'#f0f0ff' },
-  { key:'proposal',    label:'Propuesta',        color:'#03c3ec', bg:'#e8f9fd' },
-  { key:'negotiation', label:'Negociacion',     color:'#ffab00', bg:'#fff8e6' },
-  { key:'closed-won',  label:'Cerrado Ganado',  color:'#71dd37', bg:'#f0faeb' },
-  { key:'closed-lost', label:'Cerrado Perdido', color:'#ff3e1d', bg:'#fff0ee' }
-];
-const colorMap = ['#696cff','#03c3ec','#71dd37','#ff3e1d','#ffab00','#20c997'];
+var colorMap = ['#696cff','#03c3ec','#71dd37','#ff3e1d','#ffab00','#20c997'];
 function getInitials(name){ if(!name)return'?'; return name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2); }
 function getColor(str){ var h=0; for(var i=0;i<(str||'').length;i++) h=str.charCodeAt(i)+((h<<5)-h); return colorMap[Math.abs(h)%colorMap.length]; }
-var totalValue = customers.reduce(function(s,c){return s+(c.value||0);},0);
-var wonValue = customers.filter(function(c){return c.status==='closed-won';}).reduce(function(s,c){return s+(c.value||0);},0);
-var wonCount = customers.filter(function(c){return c.status==='closed-won';}).length;
+var statusMap = { prospect:'Prospecto', qualified:'Calificado', proposal:'Propuesta', negotiation:'Negociación', closed_won:'Ganado', closed_lost:'Perdido' };
+var statusCls = { prospect:'badge-prospect', qualified:'badge-qualified', closed_won:'badge-closed_won', closed_lost:'badge-closed_lost' };
+var totalValue = customers.reduce(function(acc, c){ return acc + (c.value || 0); }, 0);
 %>
 
-<div class="d-flex flex-wrap gap-3 mb-4 align-items-stretch">
-  <div class="stat-pill">
+<div class="d-flex flex-wrap gap-3 mb-4">
+  <div class="stat-sm">
     <div style="width:38px;height:38px;border-radius:10px;background:#696cff22;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <i class="bx bx-group" style="font-size:20px;color:#696cff;"></i>
+      <i class="bx bx-briefcase" style="font-size:20px;color:#696cff;"></i>
     </div>
     <div>
-      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#8a8d9f;">Total Clientes</p>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Total Clientes</p>
       <p class="mb-0" style="font-size:22px;font-weight:700;"><%= customers.length %></p>
     </div>
   </div>
-  <div class="stat-pill">
-    <div style="width:38px;height:38px;border-radius:10px;background:#71dd3722;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <i class="bx bx-trophy" style="font-size:20px;color:#71dd37;"></i>
+  <div class="stat-sm">
+    <div style="width:38px;height:38px;border-radius:10px;background:#e8faef;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-dollar-circle" style="font-size:20px;color:#166534;"></i>
     </div>
     <div>
-      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#8a8d9f;">Cerrados Ganados</p>
-      <p class="mb-0" style="font-size:22px;font-weight:700;color:#71dd37;"><%= wonCount %></p>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Valor Pipeline</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#166534;">$<%= totalValue.toLocaleString() %></p>
     </div>
-  </div>
-  <div class="stat-pill">
-    <div style="width:38px;height:38px;border-radius:10px;background:#03c3ec22;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <i class="bx bx-dollar" style="font-size:20px;color:#03c3ec;"></i>
-    </div>
-    <div>
-      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#8a8d9f;">Valor Pipeline</p>
-      <p class="mb-0" style="font-size:22px;font-weight:700;">$<%= totalValue.toLocaleString('es-CO') %></p>
-    </div>
-  </div>
-  <div class="stat-pill">
-    <div style="width:38px;height:38px;border-radius:10px;background:#ffab0022;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <i class="bx bx-check-circle" style="font-size:20px;color:#ffab00;"></i>
-    </div>
-    <div>
-      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#8a8d9f;">Valor Ganado</p>
-      <p class="mb-0" style="font-size:22px;font-weight:700;color:#ffab00;">$<%= wonValue.toLocaleString('es-CO') %></p>
-    </div>
-  </div>
-  <div class="d-flex align-items-center ms-auto">
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
-      <i class="bx bx-plus me-1"></i> Nuevo Cliente
-    </button>
   </div>
 </div>
 
-<div class="pipeline-grid">
-  <% stages.forEach(function(stage) {
-    var sc = customers.filter(function(c){ return c.status === stage.key; });
-    var sv = sc.reduce(function(s,c){ return s+(c.value||0); }, 0);
-  %>
-  <div class="pipeline-col">
-    <div style="background:<%= stage.bg %>;border-radius:10px 10px 0 0;padding:12px 16px;border:1px solid <%= stage.color %>33;border-bottom:none;">
-      <div class="d-flex align-items-center justify-content-between">
-        <div class="d-flex align-items-center gap-2">
-          <span style="width:8px;height:8px;border-radius:50%;background:<%= stage.color %>;display:inline-block;flex-shrink:0;"></span>
-          <span style="font-size:13px;font-weight:700;color:<%= stage.color %>;"><%= stage.label %></span>
-        </div>
-        <span style="font-size:11px;font-weight:700;background:<%= stage.color %>22;color:<%= stage.color %>;padding:2px 8px;border-radius:20px;"><%= sc.length %></span>
-      </div>
-      <% if(sv>0){ %><p class="mb-0 mt-1" style="font-size:11px;color:<%= stage.color %>;opacity:0.75;">$<%= sv.toLocaleString('es-CO') %></p><% } %>
+<div class="card" style="border-radius:12px;border:1px solid #f0f0f0;box-shadow:0 2px 12px rgba(0,0,0,0.04);">
+  <div class="card-header py-3 px-4" style="background:#fff;border-bottom:1px solid #f0f0f0;border-radius:12px 12px 0 0;">
+    <div>
+      <h6 class="mb-0" style="font-weight:700;">Pipeline de Clientes</h6>
+      <p class="mb-0" style="font-size:12px;color:#8a8d9f;">Oportunidades agendadas y en proceso</p>
     </div>
-    <div class="col-body">
-      <% if(sc.length===0){ %>
-        <div style="text-align:center;padding:24px 0;color:#c5c7d4;">
-          <i class="bx bx-inbox" style="font-size:28px;display:block;margin-bottom:6px;"></i>
-          <span style="font-size:12px;">Sin clientes</span>
-        </div>
-      <% } %>
-      <% sc.forEach(function(customer) {
-        var initials = getInitials(customer.name);
-        var color = getColor(customer.name);
-        var nextStages = stages.filter(function(s){ return s.key !== stage.key; });
-      %>
-        <div class="customer-card"
-          data-id="<%= customer._id %>"
-          data-name="<%= customer.name %>"
-          data-email="<%= customer.email || '' %>"
-          data-phone="<%= customer.phone || '' %>"
-          data-company="<%= customer.company || '' %>"
-          data-status="<%= customer.status %>"
-          data-value="<%= customer.value || 0 %>"
-          data-notes="<%= (customer.notes || '').replace(/"/g, '&quot;') %>"
-          onclick="openDetail(this)">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <div class="avatar-sm" style="background:<%= color %>22;color:<%= color %>;"><%= initials %></div>
-            <div style="min-width:0;flex:1;">
-              <p class="mb-0" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= customer.name %></p>
-              <p class="mb-0" style="font-size:11px;color:#8a8d9f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= customer.company || customer.email || '&#8212;' %></p>
-            </div>
+  </div>
+
+  <% if (customers.length === 0) { %>
+    <div style="text-align:center;padding:56px 0;">
+      <i class="bx bx-briefcase" style="font-size:48px;color:#c5c7d4;display:block;margin-bottom:12px;"></i>
+      <p style="font-weight:600;color:#5d596c;margin-bottom:4px;">Pipeline vacío</p>
+      <p style="font-size:13px;color:#c5c7d4;">Agenda reuniones desde Llamadas para ver clientes aquí</p>
+    </div>
+  <% } %>
+
+  <div class="px-4 py-3">
+    <% customers.forEach(function(c) {
+      var initials = getInitials(c.name);
+      var color = getColor(c.name);
+      var statusLabel = statusMap[c.status] || c.status;
+      var badgeClass = statusCls[c.status] || 'badge-prospect';
+    %>
+    <div class="customer-card" id="customer-<%= c._id %>">
+      <div class="d-flex align-items-start gap-3">
+        <div class="avatar-sm mt-1" style="background:<%= color %>22;color:<%= color %>;"><%= initials %></div>
+        <div style="flex:1;min-width:0;">
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+            <p class="mb-0" style="font-size:14px;font-weight:700;"><%= c.name %></p>
+            <span class="<%= badgeClass %>"><%= statusLabel %></span>
           </div>
-          <% if(customer.phone){ %>
-            <p class="mb-2" style="font-size:12px;color:#5d596c;"><i class="bx bx-phone" style="font-size:13px;"></i> <%= customer.phone %></p>
+          <div class="d-flex gap-3 flex-wrap mb-2">
+            <% if (c.company) { %><span style="font-size:12px;color:#8a8d9f;"><i class="bx bx-buildings" style="font-size:12px;"></i> <%= c.company %></span><% } %>
+            <% if (c.phone) { %><span style="font-size:12px;color:#5d596c;"><i class="bx bx-phone" style="font-size:12px;"></i> <%= c.phone %></span><% } %>
+            <% if (c.value) { %><span style="font-size:12px;color:#166534;font-weight:600;"><i class="bx bx-dollar" style="font-size:12px;"></i> $<%= c.value.toLocaleString() %></span><% } %>
+          </div>
+          <% if (c.notes) { %>
+            <p style="font-size:12px;color:#8a8d9f;margin:0;"><strong>Notas:</strong> <%= c.notes %></p>
           <% } %>
-          <div class="d-flex align-items-center justify-content-between">
-            <% if(customer.value){ %><span class="value-tag">$<%= (customer.value||0).toLocaleString('es-CO') %></span><% }else{ %><span></span><% } %>
-            <div class="dropdown" onclick="event.stopPropagation()">
-              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" style="font-size:11px;padding:3px 8px;border-radius:6px;" data-bs-toggle="dropdown">Mover</button>
-              <ul class="dropdown-menu dropdown-menu-end" style="font-size:12px;min-width:150px;">
-                <% nextStages.forEach(function(s) { %>
-                  <li>
-                    <form action="/customers/update/<%= customer._id %>" method="POST">
-                      <input type="hidden" name="status" value="<%= s.key %>">
-                      <button type="submit" class="dropdown-item" style="color:<%= s.color %>;font-weight:600;">
-                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:<%= s.color %>;margin-right:6px;"></span><%= s.label %>
-                      </button>
-                    </form>
-                  </li>
-                <% }); %>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                  <form action="/customers/delete/<%= customer._id %>" method="POST" onsubmit="return confirm('Eliminar este cliente?')">
-                    <button type="submit" class="dropdown-item text-danger"><i class="bx bx-trash me-1"></i>Eliminar</button>
-                  </form>
-                </li>
-              </ul>
-            </div>
-          </div>
         </div>
-      <% }); %>
-      <button class="add-card-btn" onclick="openAddWithStatus('<%= stage.key %>')">
-        <i class="bx bx-plus"></i> Agregar
-      </button>
-    </div>
-  </div>
-  <% }); %>
-</div>
-
-<!-- Modal Detalle -->
-<div class="modal fade" id="customerDetailModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
-      <div class="modal-header border-0 pb-0 px-4 pt-4">
-        <div class="d-flex align-items-center gap-3">
-          <div id="detailAvatar" class="avatar-sm" style="width:44px;height:44px;font-size:16px;"></div>
-          <div>
-            <h5 class="modal-title mb-0" id="detailName" style="font-weight:700;"></h5>
-            <p class="text-muted mb-0" style="font-size:13px;" id="detailCompany"></p>
-          </div>
+        <div class="d-flex flex-column gap-2 flex-shrink-0">
+          <% if (c.status !== 'closed_lost' && c.status !== 'closed_won') { %>
+          <select class="form-select form-select-sm" style="width:auto;font-size:12px;" onchange="updatePipelineStatus('<%= c._id %>', this.value)">
+            <option value="prospect" <%= c.status==='prospect'?'selected':'' %>>Prospecto</option>
+            <option value="qualified" <%= c.status==='qualified'?'selected':'' %>>Calificado</option>
+            <option value="proposal" <%= c.status==='proposal'?'selected':'' %>>Propuesta</option>
+            <option value="negotiation" <%= c.status==='negotiation'?'selected':'' %>>Negociación</option>
+            <option value="closed_won" <%= c.status==='closed_won'?'selected':'' %>>Ganado</option>
+            <option value="closed_lost" <%= c.status==='closed_lost'?'selected':'' %>>Perdido</option>
+          </select>
+          <% } %>
+          <button class="btn btn-sm btn-outline-danger" style="padding:3px 8px;font-size:12px;" onclick="eliminarDePipeline('<%= c._id %>', '<%= c.name %>')">
+            <i class="bx bx-trash"></i> Eliminar (Ir a Seguimiento)
+          </button>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body px-4 pt-3">
-        <div class="row g-2 mb-3">
-          <div class="col-6"><div style="background:#f9f9fb;border-radius:10px;padding:12px;"><p style="font-size:11px;color:#8a8d9f;margin-bottom:4px;font-weight:600;text-transform:uppercase;">Email</p><p style="font-size:13px;margin:0;" id="detailEmail">&#8212;</p></div></div>
-          <div class="col-6"><div style="background:#f9f9fb;border-radius:10px;padding:12px;"><p style="font-size:11px;color:#8a8d9f;margin-bottom:4px;font-weight:600;text-transform:uppercase;">Telefono</p><p style="font-size:13px;margin:0;" id="detailPhone">&#8212;</p></div></div>
-          <div class="col-6"><div style="background:#f9f9fb;border-radius:10px;padding:12px;"><p style="font-size:11px;color:#8a8d9f;margin-bottom:4px;font-weight:600;text-transform:uppercase;">Valor</p><p style="font-size:13px;margin:0;font-weight:700;color:#696cff;" id="detailValue">&#8212;</p></div></div>
-          <div class="col-6"><div style="background:#f9f9fb;border-radius:10px;padding:12px;"><p style="font-size:11px;color:#8a8d9f;margin-bottom:4px;font-weight:600;text-transform:uppercase;">Estado</p><p style="font-size:13px;margin:0;" id="detailStatus">&#8212;</p></div></div>
-        </div>
-        <div style="background:#f9f9fb;border-radius:10px;padding:12px;">
-          <p style="font-size:11px;color:#8a8d9f;margin-bottom:4px;font-weight:600;text-transform:uppercase;">Notas</p>
-          <p style="font-size:13px;margin:0;" id="detailNotes">Sin notas</p>
-        </div>
-      </div>
-      <div class="modal-footer border-0 px-4 pb-4 pt-2">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- Modal Nuevo Cliente -->
-<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
-      <div class="modal-header border-0 pb-0 px-4 pt-4">
-        <div><h5 class="modal-title mb-0" style="font-weight:700;">Nuevo Cliente</h5><p class="text-muted mb-0" style="font-size:13px;">Agrega un cliente al pipeline</p></div>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form action="/customers/add" method="POST">
-        <div class="modal-body px-4 pt-3">
-          <div class="row g-3">
-            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Nombre *</label><input type="text" name="name" class="form-control" placeholder="Maria Lopez" required /></div>
-            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Empresa</label><input type="text" name="company" class="form-control" placeholder="Empresa S.A.S" /></div>
-            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Email</label><input type="email" name="email" class="form-control" placeholder="maria@empresa.com" /></div>
-            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Telefono</label><input type="text" name="phone" class="form-control" placeholder="+57 300 000 0000" /></div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:13px;">Estado</label>
-              <select name="status" id="addStatusSelect" class="form-select">
-                <option value="prospect">Prospecto</option>
-                <option value="qualified">Calificado</option>
-                <option value="proposal">Propuesta</option>
-                <option value="negotiation">Negociacion</option>
-                <option value="closed-won">Cerrado Ganado</option>
-                <option value="closed-lost">Cerrado Perdido</option>
-              </select>
-            </div>
-            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Valor Estimado ($)</label><input type="number" name="value" class="form-control" placeholder="0" /></div>
-            <div class="col-12"><label class="form-label fw-semibold" style="font-size:13px;">Notas</label><textarea name="notes" class="form-control" rows="3" placeholder="Informacion adicional..."></textarea></div>
-          </div>
-        </div>
-        <div class="modal-footer border-0 px-4 pb-4 pt-2">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary px-4">Guardar Cliente</button>
-        </div>
-      </form>
-    </div>
+    <% }); %>
   </div>
 </div>
 
 <script>
-var stageLabels = {prospect:'Prospecto',qualified:'Calificado',proposal:'Propuesta',negotiation:'Negociacion','closed-won':'Cerrado Ganado','closed-lost':'Cerrado Perdido'};
-var colorMap = ['#696cff','#03c3ec','#71dd37','#ff3e1d','#ffab00','#20c997'];
-function getColor(str){ var h=0; for(var i=0;i<(str||'').length;i++) h=str.charCodeAt(i)+((h<<5)-h); return colorMap[Math.abs(h)%colorMap.length]; }
-function getInitials(name){ if(!name)return'?'; return name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2); }
-
-function openDetail(el) {
-  var name = el.dataset.name;
-  var email = el.dataset.email;
-  var phone = el.dataset.phone;
-  var company = el.dataset.company;
-  var status = el.dataset.status;
-  var value = parseInt(el.dataset.value) || 0;
-  var notes = el.dataset.notes;
-  var color = getColor(name);
-  var av = document.getElementById('detailAvatar');
-  av.style.background = color + '22';
-  av.style.color = color;
-  av.textContent = getInitials(name);
-  document.getElementById('detailName').textContent = name;
-  document.getElementById('detailCompany').textContent = company || '—';
-  document.getElementById('detailEmail').textContent = email || '—';
-  document.getElementById('detailPhone').textContent = phone || '—';
-  document.getElementById('detailValue').textContent = value > 0 ? '$' + value.toLocaleString('es-CO') : '—';
-  document.getElementById('detailStatus').textContent = stageLabels[status] || status;
-  document.getElementById('detailNotes').textContent = notes || 'Sin notas';
-  new bootstrap.Modal(document.getElementById('customerDetailModal')).show();
+async function updatePipelineStatus(customerId, status) {
+  try {
+    var res = await fetch('/api/pipeline/' + customerId + '/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: status })
+    });
+    var data = await res.json();
+    if (data.success) location.reload();
+  } catch(e) { alert('Error actualizando.'); }
 }
 
-function openAddWithStatus(status) {
-  document.getElementById('addStatusSelect').value = status;
-  new bootstrap.Modal(document.getElementById('addCustomerModal')).show();
+async function eliminarDePipeline(id, name) {
+  if (!confirm('¿Eliminar ' + name + ' del Pipeline?\nSe enviará automáticamente a Seguimiento para no perder el lead.')) return;
+  try {
+    var res = await fetch('/api/pipeline/' + id + '/delete', { method: 'POST' });
+    var data = await res.json();
+    if (data.success) {
+      alert(data.message);
+      location.reload();
+    }
+  } catch(e) { alert('Error eliminando.'); }
 }
 </script>
