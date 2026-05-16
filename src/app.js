@@ -41,6 +41,15 @@ const userRoutes = require('./routes/userRoutes');
 const debugRoutes = require('./routes/debugRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 
+// RUTA RAÍZ - Redirige a dashboard
+app.get('/', (req, res) => {
+    if (req.session.user) {
+        res.redirect('/dashboard');
+    } else {
+        res.redirect('/login');
+    }
+});
+
 app.use(authRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use(leadRoutes);
