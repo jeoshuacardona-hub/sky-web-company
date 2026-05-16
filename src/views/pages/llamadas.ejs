@@ -1,7 +1,8 @@
 <style>
-.lead-call-card { background:#fff; border-radius:10px; border:1px solid #f0f0f0; padding:16px; margin-bottom:10px; transition:box-shadow 0.15s; }
+.lead-call-card { background:#fff; border-radius:12px; border:1px solid #f0f0f0; padding:18px; margin-bottom:10px; transition:box-shadow 0.15s, opacity 0.3s; }
 .lead-call-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.07); }
-.avatar-sm { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; }
+.lead-call-card.removing { opacity:0; transform:translateX(20px); transition:all 0.35s; }
+.avatar-sm { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; }
 .status-new { background:#e8eaff; color:#4a50d4; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
 .status-contacted { background:#fff0d6; color:#b36800; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
 .outcome-option { border:2px solid #f0f0f0; border-radius:12px; padding:16px 8px; cursor:pointer; transition:all 0.15s; text-align:center; height:100%; }
@@ -11,6 +12,9 @@
 .outcome-option.selected-rejected { border-color:#ff3e1d!important; background:#fff0ee!important; }
 .outcome-option.selected-no_answer { border-color:#8a8d9f!important; background:#f5f5f5!important; }
 .stat-sm { background:#fff; border-radius:12px; padding:14px 18px; border:1px solid #f0f0f0; display:flex; align-items:center; gap:12px; }
+.progress-bar-wrap { background:#f0f0f0; border-radius:20px; height:6px; width:100%; margin-top:6px; }
+.progress-bar-fill { height:6px; border-radius:20px; background:linear-gradient(90deg,#696cff,#03c3ec); transition:width 0.4s; }
+.batch-divider { border-radius:12px; background:#f5f5ff; border:1.5px dashed #696cff44; padding:16px; text-align:center; margin-bottom:12px; }
 </style>
 
 <%
@@ -19,6 +23,7 @@ function getInitials(name){ if(!name)return'?'; return name.split(' ').map(funct
 function getColor(str){ var h=0; for(var i=0;i<(str||'').length;i++) h=str.charCodeAt(i)+((h<<5)-h); return colorMap[Math.abs(h)%colorMap.length]; }
 %>
 
+<!-- Stats -->
 <div class="d-flex flex-wrap gap-3 mb-4">
   <div class="stat-sm">
     <div style="width:38px;height:38px;border-radius:10px;background:#696cff22;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -47,74 +52,151 @@ function getColor(str){ var h=0; for(var i=0;i<(str||'').length;i++) h=str.charC
       <p class="mb-0" style="font-size:22px;font-weight:700;color:#71dd37;"><%= scheduledToday %></p>
     </div>
   </div>
-  <div class="stat-sm">
-    <div style="width:38px;height:38px;border-radius:10px;background:#ffab0022;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <i class="bx bx-list-ul" style="font-size:20px;color:#ffab00;"></i>
-    </div>
-    <div>
-      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">En Lista</p>
-      <p class="mb-0" style="font-size:22px;font-weight:700;color:#ffab00;"><%= leads.length %></p>
-    </div>
-  </div>
-</div>
-
-<div class="card" style="border-radius:12px;border:1px solid #f0f0f0;box-shadow:0 2px 12px rgba(0,0,0,0.04);">
-  <div class="card-header d-flex align-items-center justify-content-between py-3 px-4" style="background:#fff;border-bottom:1px solid #f0f0f0;border-radius:12px 12px 0 0;">
-    <div>
-      <h6 class="mb-0" style="font-weight:700;">Lista de Llamadas</h6>
-      <p class="mb-0" style="font-size:12px;color:#8a8d9f;">Leads pendientes de contactar</p>
-    </div>
-    <a href="/leads" class="btn btn-sm btn-outline-secondary">Ver todos los leads</a>
-  </div>
-
-  <% if (leads.length === 0) { %>
-    <div style="text-align:center;padding:56px 0;">
-      <i class="bx bx-check-circle" style="font-size:48px;color:#71dd37;display:block;margin-bottom:12px;"></i>
-      <p style="font-weight:600;color:#5d596c;margin-bottom:4px;">Lista al dia</p>
-      <p style="font-size:13px;color:#c5c7d4;margin:0;">No hay leads pendientes de llamar</p>
-    </div>
-  <% } %>
-
-  <div class="px-4 py-3">
-    <% leads.forEach(function(lead) {
-      var initials = getInitials(lead.name);
-      var color = getColor(lead.name);
-      var lastCall = callMap[lead._id.toString()];
-    %>
-    <div class="lead-call-card" id="lead-card-<%= lead._id %>">
-      <div class="d-flex align-items-center gap-3">
-        <div class="avatar-sm" style="background:<%= color %>22;color:<%= color %>;"><%= initials %></div>
-        <div style="flex:1;min-width:0;">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <p class="mb-0" style="font-size:14px;font-weight:700;"><%= lead.name %></p>
-            <span class="<%= lead.status === 'new' ? 'status-new' : 'status-contacted' %>">
-              <%= lead.status === 'new' ? 'Sin llamar' : 'Contactado' %>
-            </span>
-            <% if (lastCall) { %>
-              <span style="font-size:11px;color:#c5c7d4;">Ultimo: <%= new Date(lastCall.createdAt).toLocaleDateString('es-CO', {day:'2-digit',month:'short'}) %></span>
-            <% } %>
-          </div>
-          <div class="d-flex gap-3 mt-1 flex-wrap">
-            <% if (lead.company) { %><span style="font-size:12px;color:#8a8d9f;"><i class="bx bx-buildings" style="font-size:12px;"></i> <%= lead.company %></span><% } %>
-            <% if (lead.phone) { %><span style="font-size:12px;color:#5d596c;font-weight:500;"><i class="bx bx-phone" style="font-size:12px;"></i> <%= lead.phone %></span><% } %>
-            <% if (lead.email) { %><span style="font-size:12px;color:#8a8d9f;"><i class="bx bx-envelope" style="font-size:12px;"></i> <%= lead.email %></span><% } %>
-          </div>
-        </div>
-        <button class="btn btn-primary btn-sm flex-shrink-0"
-          data-id="<%= lead._id %>"
-          data-name="<%= lead.name %>"
-          data-phone="<%= lead.phone || '' %>"
-          data-company="<%= lead.company || '' %>"
-          onclick="abrirModal(this)">
-          <i class="bx bx-phone me-1"></i> Llamar
-        </button>
+  <div class="stat-sm" style="flex:1;min-width:200px;">
+    <div style="width:100%;">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Progreso del bloque</p>
+        <span id="batchProgress" style="font-size:12px;font-weight:700;color:#696cff;">0/10</span>
       </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
     </div>
-    <% }); %>
   </div>
 </div>
 
-<!-- Modal -->
+<!-- Header principal -->
+<div class="card mb-3" style="border-radius:12px;border:1px solid #f0f0f0;box-shadow:0 2px 12px rgba(0,0,0,0.04);">
+  <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-3 py-3 px-4">
+    <div>
+      <h6 class="mb-0" style="font-weight:700;" id="batchTitle">Bloque actual</h6>
+      <p class="mb-0" style="font-size:12px;color:#8a8d9f;" id="batchSubtitle">Clasifica cada lead para avanzar al siguiente bloque</p>
+    </div>
+    <button class="btn btn-primary" id="nextLeadBtn" onclick="cargarNuevoLead()">
+      <i class="bx bx-phone-call me-1"></i> Llamar nuevo cliente
+    </button>
+  </div>
+</div>
+
+<!-- Estado vacío inicial -->
+<div id="emptyState" style="display:none;text-align:center;padding:60px 0;">
+  <i class="bx bx-check-circle" style="font-size:56px;color:#71dd37;display:block;margin-bottom:14px;"></i>
+  <p style="font-weight:700;font-size:18px;color:#5d596c;margin-bottom:6px;">Bloque completado</p>
+  <p style="font-size:13px;color:#c5c7d4;margin-bottom:20px;">Clasificaste todos los leads de este bloque</p>
+  <button class="btn btn-primary px-4" onclick="cargarSiguienteBloque()">
+    <i class="bx bx-refresh me-1"></i> Cargar siguientes 10 leads
+  </button>
+</div>
+
+<!-- Lista de leads del bloque actual -->
+<div id="currentBatch"></div>
+
+<!-- Leads restantes (ocultos) — datos para JS -->
+<script>
+var allLeads = <%- JSON.stringify(leads.map(function(l){ return { id: l._id, name: l.name, phone: l.phone || '', email: l.email || '', company: l.company || '', status: l.status }; })) %>;
+var BATCH_SIZE = 10;
+var currentBatchStart = 0;
+var currentBatch = [];
+var completedInBatch = 0;
+var selectedOutcome = null;
+
+var colorMap = ['#696cff','#03c3ec','#71dd37','#ff3e1d','#ffab00','#20c997'];
+function getColor(str){ var h=0; for(var i=0;i<(str||'').length;i++) h=str.charCodeAt(i)+((h<<5)-h); return colorMap[Math.abs(h)%colorMap.length]; }
+function getInitials(name){ if(!name)return'?'; return name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2); }
+
+function renderBatch(leads) {
+  currentBatch = leads;
+  completedInBatch = 0;
+  updateProgress();
+  var html = '';
+  leads.forEach(function(lead) {
+    var color = getColor(lead.name);
+    var initials = getInitials(lead.name);
+    html += '<div class="lead-call-card" id="lcard-' + lead.id + '">' +
+      '<div class="d-flex align-items-center gap-3">' +
+        '<div class="avatar-sm" style="background:' + color + '22;color:' + color + ';">' + initials + '</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div class="d-flex align-items-center gap-2 flex-wrap">' +
+            '<p class="mb-0" style="font-size:14px;font-weight:700;">' + lead.name + '</p>' +
+            '<span class="' + (lead.status === 'new' ? 'status-new' : 'status-contacted') + '">' + (lead.status === 'new' ? 'Sin llamar' : 'Contactado') + '</span>' +
+          '</div>' +
+          '<div class="d-flex gap-3 mt-1 flex-wrap">' +
+            (lead.company ? '<span style="font-size:12px;color:#8a8d9f;"><i class="bx bx-buildings" style="font-size:12px;"></i> ' + lead.company + '</span>' : '') +
+            (lead.phone ? '<span style="font-size:12px;color:#5d596c;font-weight:500;"><i class="bx bx-phone" style="font-size:12px;"></i> ' + lead.phone + '</span>' : '') +
+            (lead.email ? '<span style="font-size:12px;color:#8a8d9f;"><i class="bx bx-envelope" style="font-size:12px;"></i> ' + lead.email + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<button class="btn btn-primary btn-sm flex-shrink-0" onclick="abrirModal(\'' + lead.id + '\',\'' + lead.name.replace(/'/g,"\\'") + '\',\'' + lead.phone + '\',\'' + lead.company.replace(/'/g,"\\'") + '\')">' +
+          '<i class="bx bx-phone me-1"></i> Llamar' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  });
+  document.getElementById('currentBatch').innerHTML = html || '';
+  document.getElementById('emptyState').style.display = leads.length === 0 ? 'block' : 'none';
+  updateBatchTitle();
+}
+
+function cargarSiguienteBloque() {
+  var next = allLeads.slice(currentBatchStart, currentBatchStart + BATCH_SIZE);
+  if (next.length === 0) {
+    document.getElementById('currentBatch').innerHTML = '';
+    document.getElementById('emptyState').style.display = 'block';
+    document.getElementById('batchSubtitle').textContent = 'No hay mas leads disponibles por ahora.';
+    return;
+  }
+  currentBatchStart += BATCH_SIZE;
+  renderBatch(next);
+}
+
+function cargarNuevoLead() {
+  if (currentBatch.length === 0) {
+    cargarSiguienteBloque();
+  } else {
+    document.getElementById('currentBatch').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+}
+
+function updateProgress() {
+  var total = currentBatch.length;
+  var pct = total > 0 ? Math.round((completedInBatch / total) * 100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('batchProgress').textContent = completedInBatch + '/' + total;
+}
+
+function updateBatchTitle() {
+  var from = currentBatchStart - currentBatch.length + 1;
+  var to = currentBatchStart;
+  document.getElementById('batchTitle').textContent = 'Bloque ' + from + ' — ' + to + ' de ' + allLeads.length + ' leads';
+}
+
+function removeLead(leadId) {
+  completedInBatch++;
+  updateProgress();
+  var card = document.getElementById('lcard-' + leadId);
+  if (card) {
+    card.classList.add('removing');
+    setTimeout(function() {
+      card.remove();
+      var remaining = document.querySelectorAll('[id^="lcard-"]').length;
+      if (remaining === 0) {
+        var hasMore = currentBatchStart < allLeads.length;
+        if (hasMore) {
+          document.getElementById('emptyState').style.display = 'block';
+          document.getElementById('currentBatch').innerHTML = '';
+        } else {
+          document.getElementById('emptyState').style.display = 'block';
+          document.getElementById('batchSubtitle').textContent = 'No hay mas leads disponibles.';
+        }
+      }
+    }, 350);
+  }
+  allLeads = allLeads.filter(function(l){ return l.id !== leadId; });
+}
+
+// Cargar primer bloque al arrancar
+cargarSiguienteBloque();
+</script>
+
+<!-- Modal Registrar Llamada -->
 <div class="modal fade" id="callModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
@@ -192,11 +274,13 @@ function getColor(str){ var h=0; for(var i=0;i<(str||'').length;i++) h=str.charC
 
 <script>
 var selectedOutcome = null;
+var activeLeadId = null;
 
-function abrirModal(btn) {
+function abrirModal(id, name, phone, company) {
+  activeLeadId = id;
   selectedOutcome = null;
-  document.getElementById('callLeadId').value = btn.dataset.id;
-  document.getElementById('callModalInfo').textContent = btn.dataset.name + (btn.dataset.phone ? ' - ' + btn.dataset.phone : '') + (btn.dataset.company ? ' | ' + btn.dataset.company : '');
+  document.getElementById('callLeadId').value = id;
+  document.getElementById('callModalInfo').textContent = name + (phone ? ' - ' + phone : '') + (company ? ' | ' + company : '');
   document.getElementById('callNotes').value = '';
   document.getElementById('callValue').value = '';
   document.getElementById('callCallbackDate').value = '';
@@ -239,10 +323,16 @@ async function submitLlamada() {
     var data = await res.json();
     var el = document.getElementById('callResult');
     if (data.success) {
-      var msgs = { scheduled:'Reunion agendada. El lead paso a Pipeline.', callback:'Programado para seguimiento.', rejected:'Lead marcado como no interesado.', no_answer:'Llamada registrada. El lead permanece en la lista.' };
+      var msgs = { scheduled:'Reunion agendada. El lead paso a Pipeline.', callback:'Programado para seguimiento.', rejected:'Lead marcado como no interesado.', no_answer:'Llamada registrada.' };
       el.innerHTML = '<div style="background:#e2f8ef;border-radius:10px;padding:12px;font-size:13px;font-weight:600;color:#1a7a50;margin-top:8px;"><i class="bx bx-check-circle me-1"></i>' + (msgs[data.outcome] || 'Guardado.') + '</div>';
       el.style.display = 'block';
-      setTimeout(function(){ location.reload(); }, 1800);
+      var leadId = activeLeadId;
+      setTimeout(function() {
+        bootstrap.Modal.getInstance(document.getElementById('callModal')).hide();
+        removeLead(leadId);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bx bx-check me-1"></i> Guardar';
+      }, 1200);
     } else {
       el.innerHTML = '<div style="background:#fde8e8;border-radius:10px;padding:12px;font-size:13px;color:#b32020;margin-top:8px;">' + (data.message || 'Error al guardar') + '</div>';
       el.style.display = 'block';

@@ -1,108 +1,178 @@
-<div class="row">
-  <div class="col-12">
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Tablero de Tareas (Task Board)</h5>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
-          <i class="bx bx-plus"></i> Nueva Tarea
-        </button>
-      </div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-4 mb-4">
-            <h6 class="fw-bold mb-3 text-secondary">Pendientes</h6>
-            <% tasks.filter(t => t.status === 'todo').forEach(task => { %>
-              <div class="card mb-3 shadow-sm">
-                <div class="card-body p-3">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <h6 class="mb-1"><%= task.title %></h6>
-                    <form action="/tasks/update" method="POST" class="d-inline">
-                      <input type="hidden" name="id" value="<%= task._id %>">
-                      <input type="hidden" name="status" value="in-progress">
-                      <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bx bx-play"></i></button>
-                    </form>
-                  </div>
-                  <p class="small text-muted mb-2"><%= task.description %></p>
-                  <span class="badge bg-label-secondary"><%= task.priority %></span>
-                </div>
-              </div>
-            <% }) %>
-          </div>
-          <div class="col-md-4 mb-4">
-            <h6 class="fw-bold mb-3 text-primary">En Progreso</h6>
-            <% tasks.filter(t => t.status === 'in-progress').forEach(task => { %>
-              <div class="card mb-3 shadow-sm border-primary">
-                <div class="card-body p-3">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <h6 class="mb-1"><%= task.title %></h6>
-                    <form action="/tasks/update" method="POST" class="d-inline">
-                      <input type="hidden" name="id" value="<%= task._id %>">
-                      <input type="hidden" name="status" value="done">
-                      <button type="submit" class="btn btn-sm btn-outline-success"><i class="bx bx-check"></i></button>
-                    </form>
-                  </div>
-                  <p class="small text-muted mb-2"><%= task.description %></p>
-                  <span class="badge bg-label-primary"><%= task.priority %></span>
-                </div>
-              </div>
-            <% }) %>
-          </div>
-          <div class="col-md-4 mb-4">
-            <h6 class="fw-bold mb-3 text-success">Completadas</h6>
-            <% tasks.filter(t => t.status === 'done').forEach(task => { %>
-              <div class="card mb-3 shadow-sm bg-light">
-                <div class="card-body p-3 text-muted">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <h6 class="mb-1 text-decoration-line-through"><%= task.title %></h6>
-                    <form action="/tasks/update" method="POST" class="d-inline">
-                      <input type="hidden" name="id" value="<%= task._id %>">
-                      <input type="hidden" name="status" value="todo">
-                      <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bx bx-undo"></i></button>
-                    </form>
-                  </div>
-                  <p class="small mb-2"><%= task.description %></p>
-                </div>
-              </div>
-            <% }) %>
-          </div>
-        </div>
-      </div>
+<style>
+.task-card { background:#fff; border-radius:12px; border:1px solid #f0f0f0; padding:16px; margin-bottom:10px; transition:box-shadow 0.15s; }
+.task-card:hover { box-shadow:0 4px 14px rgba(0,0,0,0.07); }
+.priority-high { background:#fff0ee; color:#b32020; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.priority-medium { background:#fff8e6; color:#b36800; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.priority-low { background:#e8faef; color:#166534; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.status-todo { background:#f5f5f5; color:#8a8d9f; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.status-inprogress { background:#e8eaff; color:#4a50d4; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.status-done { background:#e8faef; color:#166534; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.stat-sm { background:#fff; border-radius:12px; padding:14px 18px; border:1px solid #f0f0f0; display:flex; align-items:center; gap:12px; }
+.col-header { border-radius:10px 10px 0 0; padding:12px 16px; border:1px solid transparent; border-bottom:none; }
+.col-body { background:#f9f9fb; border:1px solid #f0f0f0; border-top:none; border-radius:0 0 10px 10px; padding:10px; min-height:120px; }
+</style>
+
+<%
+var todo = tasks.filter(function(t){ return t.status === 'todo'; });
+var inprog = tasks.filter(function(t){ return t.status === 'in-progress'; });
+var done = tasks.filter(function(t){ return t.status === 'done'; });
+var priorityLabel = { low:'Baja', medium:'Media', high:'Alta' };
+var now = new Date();
+%>
+
+<!-- Stats -->
+<div class="d-flex flex-wrap gap-3 mb-4">
+  <div class="stat-sm">
+    <div style="width:38px;height:38px;border-radius:10px;background:#f5f5f522;border:1px solid #f0f0f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-list-ul" style="font-size:20px;color:#8a8d9f;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Pendientes</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;"><%= todo.length %></p>
     </div>
   </div>
+  <div class="stat-sm">
+    <div style="width:38px;height:38px;border-radius:10px;background:#e8eaff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-loader-alt" style="font-size:20px;color:#696cff;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">En Progreso</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#696cff;"><%= inprog.length %></p>
+    </div>
+  </div>
+  <div class="stat-sm">
+    <div style="width:38px;height:38px;border-radius:10px;background:#e8faef;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-check-circle" style="font-size:20px;color:#166534;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Completadas</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#166534;"><%= done.length %></p>
+    </div>
+  </div>
+  <% if (isAdmin) { %>
+  <div class="d-flex align-items-center ms-auto">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+      <i class="bx bx-plus me-1"></i> Nueva Tarea
+    </button>
+  </div>
+  <% } %>
 </div>
 
-<!-- Modal Agregar Tarea -->
+<!-- Kanban -->
+<div class="row g-3">
+
+  <!-- Pendientes -->
+  <div class="col-md-4">
+    <div class="col-header" style="background:#f5f5f5;border-color:#e0e0e0;">
+      <div class="d-flex align-items-center justify-content-between">
+        <span style="font-size:13px;font-weight:700;color:#8a8d9f;">Pendiente</span>
+        <span style="font-size:11px;font-weight:700;background:#e0e0e0;color:#8a8d9f;padding:2px 8px;border-radius:20px;"><%= todo.length %></span>
+      </div>
+    </div>
+    <div class="col-body">
+      <% if(todo.length===0){ %><div style="text-align:center;padding:20px 0;color:#c5c7d4;font-size:12px;"><i class="bx bx-inbox" style="font-size:24px;display:block;margin-bottom:4px;"></i>Sin tareas</div><% } %>
+      <% todo.forEach(function(task) { %>
+        <%- include('../partials/task-card', { task: task, priorityLabel: priorityLabel, now: now, isAdmin: isAdmin }) %>
+      <% }); %>
+    </div>
+  </div>
+
+  <!-- En Progreso -->
+  <div class="col-md-4">
+    <div class="col-header" style="background:#e8eaff;border-color:#696cff33;">
+      <div class="d-flex align-items-center justify-content-between">
+        <span style="font-size:13px;font-weight:700;color:#696cff;">En Progreso</span>
+        <span style="font-size:11px;font-weight:700;background:#696cff22;color:#696cff;padding:2px 8px;border-radius:20px;"><%= inprog.length %></span>
+      </div>
+    </div>
+    <div class="col-body">
+      <% if(inprog.length===0){ %><div style="text-align:center;padding:20px 0;color:#c5c7d4;font-size:12px;"><i class="bx bx-inbox" style="font-size:24px;display:block;margin-bottom:4px;"></i>Sin tareas</div><% } %>
+      <% inprog.forEach(function(task) { %>
+        <%- include('../partials/task-card', { task: task, priorityLabel: priorityLabel, now: now, isAdmin: isAdmin }) %>
+      <% }); %>
+    </div>
+  </div>
+
+  <!-- Completadas -->
+  <div class="col-md-4">
+    <div class="col-header" style="background:#e8faef;border-color:#71dd3733;">
+      <div class="d-flex align-items-center justify-content-between">
+        <span style="font-size:13px;font-weight:700;color:#166534;">Completadas</span>
+        <span style="font-size:11px;font-weight:700;background:#71dd3722;color:#166534;padding:2px 8px;border-radius:20px;"><%= done.length %></span>
+      </div>
+    </div>
+    <div class="col-body">
+      <% if(done.length===0){ %><div style="text-align:center;padding:20px 0;color:#c5c7d4;font-size:12px;"><i class="bx bx-inbox" style="font-size:24px;display:block;margin-bottom:4px;"></i>Sin tareas</div><% } %>
+      <% done.forEach(function(task) { %>
+        <%- include('../partials/task-card', { task: task, priorityLabel: priorityLabel, now: now, isAdmin: isAdmin }) %>
+      <% }); %>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal Nueva Tarea — solo admin -->
+<% if (isAdmin) { %>
 <div class="modal fade" id="addTaskModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Nueva Tarea</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
+      <div class="modal-header border-0 pb-0 px-4 pt-4">
+        <div><h5 class="modal-title mb-0" style="font-weight:700;">Nueva Tarea</h5><p class="text-muted mb-0" style="font-size:13px;">Asigna una tarea a un comercial</p></div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form action="/tasks/add" method="POST">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Título</label>
-            <input type="text" name="title" class="form-control" required />
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Descripción</label>
-            <textarea name="description" class="form-control" rows="3"></textarea>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Prioridad</label>
-            <select name="priority" class="form-select">
-              <option value="low">Baja</option>
-              <option value="medium" selected>Media</option>
-              <option value="high">Alta</option>
-            </select>
+        <div class="modal-body px-4 pt-3">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="font-size:13px;">Titulo *</label>
+              <input type="text" name="title" class="form-control" required placeholder="Ej: Llamar a clientes de Bogota">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="font-size:13px;">Descripcion</label>
+              <textarea name="description" class="form-control" rows="2" placeholder="Instrucciones adicionales..."></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:13px;">Prioridad</label>
+              <select name="priority" class="form-select">
+                <option value="low">Baja</option>
+                <option value="medium" selected>Media</option>
+                <option value="high">Alta</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:13px;">Fecha limite</label>
+              <input type="date" name="dueDate" class="form-control">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="font-size:13px;">Asignar a</label>
+              <select name="assignedTo" class="form-select">
+                <option value="">Sin asignar</option>
+                <% users.forEach(function(u) { %>
+                  <option value="<%= u._id %>"><%= u.fullName || u.username %> (<%= u.role %>)</option>
+                <% }); %>
+              </select>
+            </div>
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer border-0 px-4 pb-4 pt-2">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Crear Tarea</button>
+          <button type="submit" class="btn btn-primary px-4">Crear Tarea</button>
         </div>
       </form>
     </div>
   </div>
 </div>
+<% } %>
+
+<script>
+async function cambiarStatus(id, status) {
+  try {
+    await fetch('/api/tasks/' + id + '/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: status })
+    });
+    location.reload();
+  } catch(e) { alert('Error al actualizar.'); }
+}
+</script>

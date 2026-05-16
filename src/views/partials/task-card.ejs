@@ -1,0 +1,35 @@
+<%
+var isOverdue = task.dueDate && new Date(task.dueDate) < now && task.status !== 'done';
+var dueFmt = task.dueDate ? new Date(task.dueDate).toLocaleDateString('es-CO',{day:'2-digit',month:'short'}) : null;
+%>
+<div class="task-card">
+  <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+    <p class="mb-0" style="font-size:13px;font-weight:700;flex:1;"><%= task.title %></p>
+    <span class="priority-<%= task.priority %>"><%= priorityLabel[task.priority] || task.priority %></span>
+  </div>
+  <% if (task.description) { %>
+    <p style="font-size:12px;color:#8a8d9f;margin-bottom:8px;"><%= task.description %></p>
+  <% } %>
+  <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+    <% if (task.assignedTo) { %>
+      <span style="font-size:11px;color:#8a8d9f;"><i class="bx bx-user" style="font-size:12px;"></i> <%= task.assignedTo.fullName || task.assignedTo.username %></span>
+    <% } %>
+    <% if (dueFmt) { %>
+      <span style="font-size:11px;<%= isOverdue ? 'color:#b32020;font-weight:600;' : 'color:#8a8d9f;' %>"><i class="bx bx-calendar" style="font-size:12px;"></i> <%= dueFmt %><%= isOverdue ? ' ⚠' : '' %></span>
+    <% } %>
+  </div>
+  <div class="d-flex align-items-center justify-content-between gap-2">
+    <select class="form-select form-select-sm" style="width:auto;font-size:12px;border-radius:8px;" onchange="cambiarStatus('<%= task._id %>', this.value)">
+      <option value="todo" <%= task.status==='todo'?'selected':'' %>>Pendiente</option>
+      <option value="in-progress" <%= task.status==='in-progress'?'selected':'' %>>En Progreso</option>
+      <option value="done" <%= task.status==='done'?'selected':'' %>>Completada</option>
+    </select>
+    <% if (isAdmin) { %>
+    <form action="/tasks/delete/<%= task._id %>" method="POST" onsubmit="return confirm('Eliminar esta tarea?')" style="display:inline;">
+      <button type="submit" class="btn btn-sm btn-outline-danger" style="padding:3px 8px;font-size:12px;border-radius:7px;">
+        <i class="bx bx-trash"></i>
+      </button>
+    </form>
+    <% } %>
+  </div>
+</div>
