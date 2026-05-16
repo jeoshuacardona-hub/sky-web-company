@@ -18,14 +18,14 @@ router.get('/calendar', authMiddleware, async (req, res) => {
     const taskFilter = isAdmin ? {} : { assignedTo: req.session.userId };
     
     const meetings = await Meeting.find(meetingFilter)
-        .populate('createdBy', 'username fullName email')
+        .populate('createdBy', 'username fullName')
         .populate('assignedTo', 'username fullName')
         .sort({ date: 1, time: 1 });
     
     const tasks = await Task.find(taskFilter)
         .populate('assignedTo', 'username fullName')
         .populate('customer', 'name')
-        .sort({ dueDate: 1, createdAt: -1 });
+        .sort({ dueDate: 1 });
     
     const users = await User.find({}).select('username fullName email');
     
@@ -38,45 +38,78 @@ router.get('/calendar', authMiddleware, async (req, res) => {
     });
 });
 
-router.get('/calendar/new', authMiddleware, async (req, res) => {
-    const users = await User.find({}).select('username fullName email');
-    res.render('pages/calendar-new', { 
-        isAdmin: req.session.user.role === 'admin',
-        users 
-    });
-});
-
 router.post('/calendar/save', authMiddleware, async (req, res) => {
-    const data = { 
-        ...req.body, 
-        createdBy: req.session.userId 
-    };
+    const { title, date, time, type, description } = req.body;
     
-    if (req.body.assignedTo && req.body.assignedTo !== '') {
-        data.assignedTo = req.body.assignedTo;
+    if (type === 'task') {
+        await Task.create({
+            title,
+            dueDate: new Date(date),
+            description: description || '',
+            assignedTo: req.session.userId,
+            status: 'todo'
+        });
+    } else {
+        await Meeting.create({
+            title,
+            date: new Date(date),
+            time: time || '09:00',
+            description: description || '',
+            createdBy: req.session.userId,
+            type: 'reunion'
+        });
     }
     
-    await Meeting.create(data);
     res.redirect('/calendar');
-});
-
-router.get('/calendar/edit/:id', authMiddleware, async (req, res) => {
-    const meeting = await Meeting.findById(req.params.id)
-        .populate('createdBy', 'username fullName')
-        .populate('assignedTo', 'username fullName');
-    const users = await User.find({}).select('username fullName email');
-    res.render('pages/calendar-edit', { meeting, users });
 });
 
 router.post('/calendar/update/:id', authMiddleware, async (req, res) => {
-    const data = { ...req.body };
-    if (req.body.assignedTo === '') delete data.assignedTo;
-    await Meeting.findByIdAndUpdate(req.params.id, data);
+    const { title, date, time, type, description } = req.body;
+    
+    // Check if it's a meeting or task
+    const meeting = await Meeting.findById(req.params.id);
+    if (meeting) {
+        await Meeting.findByIdAndUpdate(req.params.id, {
+            title,
+            date: new Date(date),
+            time: time || meeting.time,
+            description
+        });
+    } else {
+        const task = await Task.findById(req.params.id);
+        if (task) {
+            await Task.findByIdAndUpdate(req.params.id, {
+                title,
+                dueDate: new Date(date),
+                description
+            });
+        }
+    }
+    
     res.redirect('/calendar');
 });
 
+router.get('/calendar/event/:id', authMiddleware, async (req, res) => {
+    const { type } = req.query;
+    
+    if (type === 'task') {
+        const task = await Task.findById(req.params.id);
+        res.json(task);
+    } else {
+        const meeting = await Meeting.findById(req.params.id);
+        res.json(meeting);
+    }
+});
+
 router.get('/calendar/delete/:id', authMiddleware, async (req, res) => {
-    await Meeting.findByIdAndDelete(req.params.id);
+    const { type } = req.query;
+    
+    if (type === 'task') {
+        await Task.findByIdAndDelete(req.params.id);
+    } else {
+        await Meeting.findByIdAndDelete(req.params.id);
+    }
+    
     res.redirect('/calendar');
 });
 
