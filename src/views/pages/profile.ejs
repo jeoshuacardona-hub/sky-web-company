@@ -120,7 +120,7 @@
         <img src="<%= user.avatar %>" alt="<%= user.fullName %>">
       <% } else { %>
         <div style="width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:48px;font-weight:700;">
-          <%= user.fullName ? user.fullName.split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2) : 'U' %>
+          <%= user.fullName ? user.fullName.split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2) : user.username.substring(0,2).toUpperCase() %>
         </div>
       <% } %>
       <div class="edit-avatar" onclick="document.getElementById('avatarInput').click()">
@@ -138,17 +138,17 @@
   </div>
 </div>
 
-<% if (req.query.success === '1') { %>
+<% if (typeof success !== 'undefined' && success === '1') { %>
   <div class="alert alert-success alert-custom">
     <i class="bx bx-check-circle me-2"></i>¡Perfil actualizado correctamente!
   </div>
 <% } %>
-<% if (req.query.success === 'password_changed') { %>
+<% if (typeof success !== 'undefined' && success === 'password_changed') { %>
   <div class="alert alert-success alert-custom">
     <i class="bx bx-check-circle me-2"></i>¡Contraseña cambiada correctamente!
   </div>
 <% } %>
-<% if (req.query.error === 'password_incorrect') { %>
+<% if (typeof error !== 'undefined' && error === 'password_incorrect') { %>
   <div class="alert alert-danger alert-custom">
     <i class="bx bx-error-circle me-2"></i>La contraseña actual es incorrecta.
   </div>

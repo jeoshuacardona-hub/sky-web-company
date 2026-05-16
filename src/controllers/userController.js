@@ -5,7 +5,14 @@ exports.getProfile = async (req, res, next) => {
     try {
         const user = await User.findById(req.session.userId);
         if (!user) return res.redirect('/login');
-        res.render('pages/profile', { title: 'Mi Perfil', user });
+        
+        // Pasar query params a la vista para mostrar mensajes
+        res.render('pages/profile', { 
+            title: 'Mi Perfil', 
+            user,
+            success: req.query.success,
+            error: req.query.error
+        });
     } catch (error) { next(error); }
 };
 
