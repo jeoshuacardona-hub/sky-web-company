@@ -57,7 +57,6 @@ body { background: #0f172a; color: #fff; }
   <div class="calendar-grid" id="calendarDays"></div>
 </div>
 
-<!-- MODAL FIX: Inline styles to bypass any CSS conflicts -->
 <div id="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:99999; align-items:center; justify-content:center;">
   <div style="background:#1e293b; padding:30px; border-radius:16px; width:90%; max-width:500px; position:relative; box-shadow:0 20px 60px rgba(0,0,0,0.5);">
     <button onclick="closeModal()" style="position:absolute; top:15px; right:15px; background:#334155; border:none; color:#fff; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:18px;">✕</button>
@@ -69,7 +68,8 @@ body { background: #0f172a; color: #fff; }
       <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Hora</label><input type="time" id="time" style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"></div>
       <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Tipo</label><select id="type" style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"><option value="meeting">Reunión</option><option value="task">Tarea</option></select></div>
       <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Descripción</label><textarea id="description" rows="3" style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"></textarea></div>
-      <button type="submit" style="width:100%; padding:12px; background:#667eea; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">💾 Guardar</button>
+      <button type="submit" style="width:100%; padding:12px; background:#667eea; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; margin-bottom:10px;">💾 Guardar</button>
+      <button type="button" id="deleteBtn" onclick="deleteEvent()" style="width:100%; padding:12px; background:#ef4444; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">🗑️ Eliminar</button>
     </form>
   </div>
 </div>
@@ -110,7 +110,8 @@ function openModal(date = null) {
   document.getElementById('modal').style.display = 'flex';
   document.getElementById('eventForm').reset();
   document.getElementById('eventId').value = '';
-  document.getElementById('modalTitle').textContent = ' Nueva Reunión';
+  document.getElementById('modalTitle').textContent = '📅 Nueva Reunión';
+  document.getElementById('deleteBtn').style.display = 'none';
   document.getElementById('date').value = date || new Date().toISOString().split('T')[0];
 }
 
@@ -130,24 +131,47 @@ async function saveEvent(e) {
   };
   try {
     const url = id ? `/calendar/update/${id}` : '/calendar/save';
-    await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
-    location.reload();
+    if (id) {
+      await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+      location.reload();
+    } else {
+      await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+      location.reload();
+    }
   } catch(err) { alert('Error: ' + err.message); }
 }
 
 async function editEvent(id, type) {
   try {
     const res = await fetch(`/calendar/event/${id}?type=${type}`);
+    if (!res.ok) throw new Error('Failed to load');
     const ev = await res.json();
+    if (!ev || !ev._id) throw new Error('Event not found');
     document.getElementById('modalTitle').textContent = '✏️ Editar Evento';
     document.getElementById('eventId').value = ev._id;
-    document.getElementById('title').value = ev.title;
-    document.getElementById('date').value = new Date(ev.date).toISOString().split('T')[0];
+    document.getElementById('title').value = ev.title || '';
+    document.getElementById('date').value = ev.date ? new Date(ev.date).toISOString().split('T')[0] : '';
     document.getElementById('time').value = ev.time || '';
     document.getElementById('type').value = type;
     document.getElementById('description').value = ev.description || '';
+    document.getElementById('deleteBtn').style.display = 'block';
     document.getElementById('modal').style.display = 'flex';
-  } catch(err) { alert('Error cargando evento'); }
+  } catch(err) {
+    console.error('Error:', err);
+    alert('Error cargando evento: ' + err.message);
+  }
+}
+
+async function deleteEvent() {
+  const id = document.getElementById('eventId').value;
+  const type = document.getElementById('type').value;
+  if (!id) return;
+  if (!confirm('¿Eliminar este evento permanentemente?')) return;
+  try {
+    window.location.href = `/calendar/delete/${id}?type=${type}`;
+  } catch(err) {
+    alert('Error eliminando: ' + err.message);
+  }
 }
 
 document.getElementById('modal').addEventListener('click', function(e) { if(e.target === this) closeModal(); });
