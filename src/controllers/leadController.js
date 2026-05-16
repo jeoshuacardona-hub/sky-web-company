@@ -1,5 +1,8 @@
 const Lead = require('../models/Lead');
 const User = require('../models/User');
+const CallLog = require('../models/CallLog');
+const Customer = require('../models/Customer');
+const Task = require('../models/Task');
 
 exports.getLeads = async (req, res, next) => {
     try {
@@ -34,16 +37,6 @@ exports.deleteLead = async (req, res, next) => {
     try {
         await Lead.findByIdAndDelete(req.params.id);
         res.redirect('/leads');
-    } catch (error) { next(error); }
-};
-
-exports.deleteAllLeads = async (req, res, next) => {
-    try {
-        const result = await Lead.deleteMany({});
-        res.json({ 
-            success: true, 
-            message: `Se eliminaron ${result.deletedCount} leads permanentemente.` 
-        });
     } catch (error) { next(error); }
 };
 
@@ -123,14 +116,24 @@ exports.importLeads = async (req, res, next) => {
             count: insertedCount, 
             duplicates: duplicateCount,
             skipped: skippedCount,
-            message: `${insertedCount} leads nuevos importados. ${duplicateCount} actualizados (duplicados). ${skippedCount} omitidos.` 
+            message: `${insertedCount} leads nuevos importados. ${duplicateCount} actualizados. ${skippedCount} omitidos.` 
         });
 
     } catch (error) {
         console.error('Error importando leads:', error);
-        if (error.code === 11000) {
-            return res.status(400).json({ success: false, message: 'Algunos leads ya existen (email o teléfono duplicado).' });
-        }
         next(error);
     }
+};
+
+exports.hardReset = async (req, res, next) => {
+    try {
+        if (req.session.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        await Promise.all([
+            Lead.deleteMany({}),
+            CallLog.deleteMany({}),
+            Customer.deleteMany({}),
+            Task.deleteMany({})
+        ]);
+        res.json({ success: true, message: 'Base de datos reseteada a 0. Todo limpio.' });
+    } catch (error) { next(error); }
 };
