@@ -1,42 +1,140 @@
 <!DOCTYPE html>
-<html lang="en" class="layout-menu-fixed layout-compact" data-assets-path="/assets/" data-template="vertical-menu-template-free">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>Sky Web Company - <%= typeof title !== 'undefined' ? title : 'Dashboard' %></title>
-    <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
-    <link rel="stylesheet" href="/assets/vendor/css/core.css" />
-    <link rel="stylesheet" href="/assets/css/demo.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-    <script src="/assets/vendor/js/helpers.js"></script>
-    <script src="/assets/js/config.js"></script>
-  </head>
-  <body>
-    <div class="layout-wrapper layout-content-navbar">
-      <div class="layout-container">
-        <%- include('../partials/sidebar') %>
-        <div class="layout-page">
-          <%- include('../partials/navbar') %>
-          <div class="content-wrapper">
-            <div class="container-xxl flex-grow-1 container-p-y">
-              <%- body %>
-            </div>
-          </div>
-          <%- include('../partials/footer') %>
-        </div>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Sky Web</title>
+  <link rel="stylesheet" href="/css/apple-design.css">
+  <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+  <style>
+    /* Mobile menu button */
+    .mobile-menu-btn {
+      display: none;
+      position: fixed;
+      top: var(--space-md);
+      left: var(--space-md);
+      z-index: 101;
+      background: var(--apple-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--apple-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-sm);
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+    }
+    
+    @media (max-width: 1024px) {
+      .mobile-menu-btn { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <button class="mobile-menu-btn" onclick="toggleSidebar()">
+    <i class='bx bx-menu' style="font-size: 24px; color: var(--apple-text);"></i>
+  </button>
+
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo"> Sky Web</div>
       </div>
-    </div>
-    <div class="layout-overlay layout-menu-toggle"></div>
-    <script src="/assets/vendor/libs/jquery/jquery.js"></script>
-    <script src="/assets/vendor/libs/popper/popper.js"></script>
-    <script src="/assets/vendor/js/bootstrap.js"></script>
-    <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-    <script src="/assets/vendor/js/menu.js"></script>
-    <script src="/assets/js/main.js"></script>
-    <%- include('../partials/scripts') %>
-  </body>
+      
+      <nav>
+        <ul class="sidebar-nav">
+          <li class="sidebar-nav-item">
+            <a href="/dashboard" class="sidebar-nav-link <%= title === 'Dashboard' ? 'active' : '' %>">
+              <i class='bx bx-home-alt'></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="/leads" class="sidebar-nav-link <%= title === 'Leads' ? 'active' : '' %>">
+              <i class='bx bx-target-lock'></i>
+              <span>Leads</span>
+            </a>
+          </li>
+        </ul>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Gestión Comercial</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item">
+              <a href="/llamadas" class="sidebar-nav-link <%= title === 'Llamadas' ? 'active' : '' %>">
+                <i class='bx bx-phone'></i>
+                <span>Llamadas</span>
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="/seguimiento" class="sidebar-nav-link <%= title === 'Seguimiento' ? 'active' : '' %>">
+                <i class='bx bx-refresh'></i>
+                <span>Seguimiento</span>
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="/pipeline" class="sidebar-nav-link <%= title === 'Pipeline' ? 'active' : '' %>">
+                <i class='bx bx-briefcase-alt'></i>
+                <span>Pipeline</span>
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="/calendar" class="sidebar-nav-link <%= title === 'Calendario' ? 'active' : '' %>">
+                <i class='bx bx-calendar'></i>
+                <span>Calendario</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Cuenta</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item">
+              <a href="/profile" class="sidebar-nav-link <%= title === 'Mi Perfil' ? 'active' : '' %>">
+                <i class='bx bx-user'></i>
+                <span>Mi Perfil</span>
+              </a>
+            </li>
+            <% if (currentUser && currentUser.role === 'admin') { %>
+            <li class="sidebar-nav-item">
+              <a href="/users" class="sidebar-nav-link <%= title === 'Usuarios' ? 'active' : '' %>">
+                <i class='bx bx-group'></i>
+                <span>Usuarios</span>
+              </a>
+            </li>
+            <% } %>
+            <li class="sidebar-nav-item">
+              <a href="/logout" class="sidebar-nav-link">
+                <i class='bx bx-log-out'></i>
+                <span>Cerrar Sesión</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <%- body %>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+    
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const menuBtn = document.querySelector('.mobile-menu-btn');
+      
+      if (window.innerWidth <= 1024 && 
+          !sidebar.contains(e.target) && 
+          !menuBtn.contains(e.target) && 
+          sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
 </html>

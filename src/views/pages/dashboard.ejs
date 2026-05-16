@@ -1,294 +1,45 @@
-<style>
-.stat-card { 
-  background:#fff; 
-  border-radius:16px; 
-  padding:24px; 
-  border:1px solid #f0f0f0;
-  box-shadow:0 2px 8px rgba(0,0,0,0.04);
-  transition:transform 0.2s;
-}
-.stat-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.08); }
-.stat-icon { 
-  width:56px; 
-  height:56px; 
-  border-radius:12px; 
-  display:flex; 
-  align-items:center; 
-  justify-content:center; 
-  flex-shrink:0;
-  margin-bottom:16px;
-}
-.stat-value { font-size:32px; font-weight:700; margin:8px 0; }
-.stat-label { font-size:13px; color:#8a8d9f; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
-.stat-change { font-size:12px; font-weight:600; margin-top:8px; }
-.stat-change.positive { color:#16a34a; }
-.stat-change.negative { color:#dc2626; }
-.chart-container { 
-  background:#fff; 
-  border-radius:16px; 
-  padding:24px; 
-  border:1px solid #f0f0f0;
-  box-shadow:0 2px 8px rgba(0,0,0,0.04);
-  margin-bottom:24px;
-}
-.welcome-card {
-  background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius:16px;
-  padding:32px;
-  color:#fff;
-  margin-bottom:24px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.gauge-container {
-  text-align:center;
-  padding:20px;
-}
-.gauge-value { font-size:48px; font-weight:700; color:#667eea; margin:10px 0; }
-.badge-item {
-  background:#f8f9ff;
-  border-radius:12px;
-  padding:16px;
-  margin:8px 0;
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-</style>
-
-<div class="welcome-card">
+<div class="page-header">
   <div>
-    <h3 style="margin:0 0 8px;font-size:24px;">¡Hola, <%= currentUser.username %>! 👋</h3>
-    <p style="margin:0;opacity:0.9;">Aquí está el resumen de tu actividad hoy</p>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Bienvenido de nuevo, <%= currentUser.fullName || currentUser.username %></p>
   </div>
-  <div style="text-align:right;">
-    <div style="font-size:14px;opacity:0.9;">Actualizado:</div>
-    <div id="lastUpdate" style="font-weight:600;">Ahora mismo</div>
+  <button class="btn btn-primary" onclick="location.href='/leads/new'">
+    <i class='bx bx-plus'></i>
+    Nuevo Lead
+  </button>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card fade-in">
+    <div class="stat-value"><%= stats.totalLeads || 0 %></div>
+    <div class="stat-label">Total Leads</div>
+  </div>
+  <div class="stat-card fade-in" style="animation-delay: 0.1s">
+    <div class="stat-value"><%= stats.newLeads || 0 %></div>
+    <div class="stat-label">Leads Nuevos</div>
+  </div>
+  <div class="stat-card fade-in" style="animation-delay: 0.2s">
+    <div class="stat-value"><%= stats.callsToday || 0 %></div>
+    <div class="stat-label">Llamadas Hoy</div>
+  </div>
+  <div class="stat-card fade-in" style="animation-delay: 0.3s">
+    <div class="stat-value"><%= stats.pendingTasks || 0 %></div>
+    <div class="stat-label">Tareas Pendientes</div>
   </div>
 </div>
 
-<div class="row g-4 mb-4">
-  <div class="col-md-3 col-sm-6">
-    <div class="stat-card">
-      <div class="stat-icon" style="background:#e0e7ff;">
-        <i class="bx bx-target-lock" style="font-size:28px;color:#6366f1;"></i>
-      </div>
-      <div class="stat-label">Total Leads</div>
-      <div class="stat-value" id="totalLeads"><%= stats.totalLeads %></div>
-      <div class="stat-change positive">
-        <i class="bx bx-up-arrow-alt"></i> <span id="leadsChange">Calculando...</span>
-      </div>
+<div class="grid grid-2">
+  <div class="card fade-in" style="animation-delay: 0.4s">
+    <div class="card-header">
+      <h2 class="card-title">Actividad Reciente</h2>
     </div>
+    <p class="text-secondary">Tu actividad aparecerá aquí</p>
   </div>
-  <div class="col-md-3 col-sm-6">
-    <div class="stat-card">
-      <div class="stat-icon" style="background:#dcfce7;">
-        <i class="bx bx-phone" style="font-size:28px;color:#16a34a;"></i>
-      </div>
-      <div class="stat-label">Llamadas Hoy</div>
-      <div class="stat-value" id="callsToday"><%= stats.callsToday %></div>
-      <div class="stat-change positive">
-        <i class="bx bx-up-arrow-alt"></i> <span id="callsChange">En tiempo real</span>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3 col-sm-6">
-    <div class="stat-card">
-      <div class="stat-icon" style="background:#fef3c7;">
-        <i class="bx bx-calendar-check" style="font-size:28px;color:#f59e0b;"></i>
-      </div>
-      <div class="stat-label">Agendados Hoy</div>
-      <div class="stat-value" id="scheduledToday"><%= stats.scheduledToday %></div>
-      <div class="stat-change positive">
-        <i class="bx bx-up-arrow-alt"></i> <span id="scheduledChange">Actualizando...</span>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3 col-sm-6">
-    <div class="stat-card">
-      <div class="stat-icon" style="background:#fee2e2;">
-        <i class="bx bx-dollar-circle" style="font-size:28px;color:#dc2626;"></i>
-      </div>
-      <div class="stat-label">Valor Pipeline</div>
-      <div class="stat-value" id="pipelineValue">$<%= (stats.pipelineValue || 0).toLocaleString() %></div>
-      <div class="stat-change positive">
-        <i class="bx bx-up-arrow-alt"></i> Pipeline activo
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row g-4">
-  <div class="col-lg-8">
-    <div class="chart-container">
-      <h5 style="font-weight:700;margin-bottom:20px;">Pipeline de Leads por Estado</h5>
-      <canvas id="leadsChart" height="100"></canvas>
-    </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="chart-container">
-      <h5 style="font-weight:700;margin-bottom:20px;">Distribución</h5>
-      <div class="gauge-container">
-        <div class="gauge-value"><%= stats.conversionRate || 0 %>%</div>
-        <div style="color:#8a8d9f;font-size:14px;">Tasa de Conversión</div>
-        <div style="margin-top:20px;padding-top:20px;border-top:1px solid #f0f0f0;">
-          <div style="display:flex;justify-content:space-between;margin:8px 0;">
-            <span style="color:#8a8d9f;">Nuevos:</span>
-            <strong id="newLeadsCount"><%= stats.newLeads %></strong>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin:8px 0;">
-            <span style="color:#8a8d9f;">Contactados:</span>
-            <strong id="contactedCount"><%= stats.contactedLeads %></strong>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin:8px 0;">
-            <span style="color:#8a8d9f;">Convertidos:</span>
-            <strong id="convertedCount"><%= stats.convertedLeads %></strong>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row g-4 mt-2">
-  <div class="col-md-6">
-    <div class="chart-container">
-      <h5 style="font-weight:700;margin-bottom:20px;">Actividad Reciente</h5>
-      <div id="recentActivity">
-        <% if (recentCalls && recentCalls.length > 0) { %>
-          <% recentCalls.slice(0, 5).forEach(function(call) { %>
-            <div class="badge-item">
-              <div style="width:40px;height:40px;border-radius:50%;background:<%= call.outcome === 'scheduled' ? '#dcfce7' : call.outcome === 'rejected' ? '#fee2e2' : '#fef3c7' %>;display:flex;align-items:center;justify-content:center;">
-                <i class="bx <%= call.outcome === 'scheduled' ? 'bx-calendar-check' : call.outcome === 'rejected' ? 'bx-x-circle' : 'bx-phone' %>" style="color:<%= call.outcome === 'scheduled' ? '#16a34a' : call.outcome === 'rejected' ? '#dc2626' : '#f59e0b' %>;"></i>
-              </div>
-              <div style="flex:1;">
-                <div style="font-weight:600;font-size:14px;"><%= call.lead ? call.lead.name : 'Lead eliminado' %></div>
-                <div style="font-size:12px;color:#8a8d9f;"><%= call.outcome === 'scheduled' ? 'Agendó reunión' : call.outcome === 'rejected' ? 'No interesado' : 'Volver a llamar' %></div>
-              </div>
-              <div style="font-size:12px;color:#8a8d9f;"><%= new Date(call.createdAt).toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'}) %></div>
-            </div>
-          <% }); %>
-        <% } else { %>
-          <p style="color:#8a8d9f;text-align:center;padding:20px;">No hay actividad reciente</p>
-        <% } %>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-6">
-    <div class="chart-container">
-      <h5 style="font-weight:700;margin-bottom:20px;">Tareas Pendientes</h5>
-      <div class="gauge-container">
-        <div style="display:flex;justify-content:center;gap:20px;margin-bottom:20px;">
-          <div style="text-align:center;">
-            <div style="font-size:36px;font-weight:700;color:#f59e0b;" id="pendingTasks"><%= stats.pendingTasks || 0 %></div>
-            <div style="font-size:12px;color:#8a8d9f;">Pendientes</div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-size:36px;font-weight:700;color:#16a34a;" id="completedTasks"><%= stats.completedTasks || 0 %></div>
-            <div style="font-size:12px;color:#8a8d9f;">Completadas</div>
-          </div>
-        </div>
-        <div style="background:#f0f0f0;border-radius:10px;height:10px;overflow:hidden;">
-          <% var totalTasks = (stats.pendingTasks || 0) + (stats.completedTasks || 0); %>
-          <% var progressPercent = totalTasks > 0 ? (stats.completedTasks / totalTasks) * 100 : 0; %>
-          <div style="background:linear-gradient(90deg, #16a34a, #10b981);height:100%;width:<%= progressPercent %>%;transition:width 0.5s;"></div>
-        </div>
-        <div style="margin-top:10px;font-size:12px;color:#8a8d9f;"><%= Math.round(progressPercent) %>% completado</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Gráfico de Leads
-const leadsCtx = document.getElementById('leadsChart').getContext('2d');
-const leadsChart = new Chart(leadsCtx, {
-  type: 'bar',
-  data: {
-    labels: ['Sin Llamar', 'Contactados', 'Calificados', 'Convertidos', 'Perdidos'],
-    datasets: [{
-      label: 'Leads',
-      data: [<%= stats.newLeads %>, <%= stats.contactedLeads %>, <%= stats.qualifiedLeads || 0 %>, <%= stats.convertedLeads %>, <%= stats.lostLeads || 0 %>],
-      backgroundColor: ['#6366f1', '#0ea5e9', '#f59e0b', '#16a34a', '#dc2626'],
-      borderRadius: 8,
-      borderSkipped: false,
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: true,
-    plugins: {
-      legend: { display: false }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: { color: '#f0f0f0' }
-      },
-      x: {
-        grid: { display: false }
-      }
-    }
-  }
-});
-
-// Actualización en tiempo real cada 10 segundos
-function updateStats() {
-  fetch('/api/stats')
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        // Actualizar números con animación
-        animateValue('totalLeads', parseInt(document.getElementById('totalLeads').textContent), data.stats.totalLeads, 500);
-        animateValue('callsToday', parseInt(document.getElementById('callsToday').textContent), data.stats.callsToday, 500);
-        animateValue('scheduledToday', parseInt(document.getElementById('scheduledToday').textContent), data.stats.scheduledToday, 500);
-        animateValue('newLeadsCount', parseInt(document.getElementById('newLeadsCount').textContent), data.stats.newLeads, 500);
-        animateValue('contactedCount', parseInt(document.getElementById('contactedCount').textContent), data.stats.contactedLeads, 500);
-        animateValue('convertedCount', parseInt(document.getElementById('convertedCount').textContent), data.stats.convertedLeads, 500);
-        
-        // Actualizar timestamp
-        var now = new Date();
-        document.getElementById('lastUpdate').textContent = now.toLocaleTimeString('es-CO');
-      }
-    })
-    .catch(error => console.error('Error actualizando stats:', error));
-}
-
-function animateValue(id, start, end, duration) {
-  if (start === end) return;
-  var range = end - start;
-  var current = start;
-  var increment = end > start ? 1 : -1;
-  var stepTime = Math.abs(Math.floor(duration / range));
-  var obj = document.getElementById(id);
-  var timer = setInterval(function() {
-    current += increment;
-    obj.textContent = current;
-    if (current == end) {
-      clearInterval(timer);
-    }
-  }, Math.max(stepTime, 50));
-}
-
-// Actualizar cada 10 segundos
-setInterval(updateStats, 10000);
-
-// Calcular cambios
-function calculateChanges() {
-  var totalLeads = <%= stats.totalLeads %>;
-  var newLeads = <%= stats.newLeads %>;
-  var convertedLeads = <%= stats.convertedLeads %>;
   
-  if (totalLeads > 0) {
-    var conversionRate = ((convertedLeads / totalLeads) * 100).toFixed(1);
-    document.querySelector('.gauge-value').textContent = conversionRate + '%';
-  }
-  
-  var leadsChange = ((newLeads / (totalLeads - newLeads || 1)) * 100).toFixed(0);
-  document.getElementById('leadsChange').textContent = leadsChange + '% vs ayer';
-}
-
-calculateChanges();
-</script>
+  <div class="card fade-in" style="animation-delay: 0.5s">
+    <div class="card-header">
+      <h2 class="card-title">Próximas Reuniones</h2>
+    </div>
+    <p class="text-secondary">No hay reuniones programadas</p>
+  </div>
+</div>
