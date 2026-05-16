@@ -26,6 +26,32 @@ body { background: #0f172a; color: #fff; }
 .stat-card { background: #1e293b; padding: 16px; border-radius: 12px; text-align: center; }
 .stat-card h3 { font-size: 28px; font-weight: 700; color: #667eea; }
 .stat-card p { color: #94a3b8; font-size: 13px; }
+
+/* 📱 MOBILE OVERRIDES */
+@media (max-width: 768px) {
+  .calendar-header { flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px !important; }
+  .btn-primary { width: 100%; text-align: center; }
+  .calendar-wrapper { margin: 10px !important; }
+  .calendar-nav { flex-direction: column; gap: 10px; align-items: stretch !important; padding: 12px !important; }
+  .calendar-nav h2 { font-size: 18px !important; text-align: center; }
+  .nav-buttons { justify-content: center; }
+  
+  .calendar-grid, .day-header { display: none !important; }
+  .mobile-events { display: block !important; padding: 10px; }
+  .mobile-event { background: #1e293b; border-radius: 10px; padding: 14px; margin-bottom: 10px; border-left: 4px solid #10b981; }
+  .mobile-event.task { border-left-color: #f59e0b; }
+  .mobile-event-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .mobile-event-meta { font-size: 12px; color: #94a3b8; display: flex; flex-wrap: wrap; gap: 8px; }
+  .mobile-event-desc { font-size: 13px; color: #cbd5e1; margin-top: 6px; }
+  
+  #modal { padding: 10px !important; }
+  #modal > div { width: 100% !important; max-width: 100% !important; padding: 20px !important; margin: 0 !important; border-radius: 12px !important; }
+  input, select, textarea, button { font-size: 14px !important; }
+}
+
+@media (min-width: 769px) {
+  .mobile-events { display: none !important; }
+}
 </style>
 
 <div class="calendar-header">
@@ -55,6 +81,9 @@ body { background: #0f172a; color: #fff; }
     <div class="day-header">Mié</div><div class="day-header">Jue</div><div class="day-header">Vie</div><div class="day-header">Sáb</div>
   </div>
   <div class="calendar-grid" id="calendarDays"></div>
+  
+  <!-- 📱 VISTA MÓVIL (Lista vertical) -->
+  <div class="mobile-events" id="mobileEvents"></div>
 </div>
 
 <div id="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:99999; align-items:center; justify-content:center;">
@@ -86,20 +115,50 @@ function renderCalendar() {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+  
   const grid = document.getElementById('calendarDays');
+  const mobileList = document.getElementById('mobileEvents');
   grid.innerHTML = '';
+  mobileList.innerHTML = '';
+  
   const today = new Date();
   const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+  
+  // Desktop Grid
   for (let i = 0; i < firstDay; i++) grid.innerHTML += '<div class="calendar-day other-month"></div>';
+  
+  // Combine & sort all events for mobile list
+  const allEvents = [...meetingsData, ...tasksData].sort((a,b) => new Date(a.date) - new Date(b.date));
+  
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const isToday = isCurrentMonth && day === today.getDate();
     const dayMeetings = meetingsData.filter(m => m.date === dateStr);
     const dayTasks = tasksData.filter(t => t.date === dateStr);
     const dayEvents = [...dayMeetings, ...dayTasks];
+    
     let eventsHtml = dayEvents.slice(0, 3).map(e => `<div class="event-item ${e.type}" onclick="event.stopPropagation(); editEvent('${e._id}', '${e.type}')">${e.time ? e.time+' ' : ''}${e.title}</div>`).join('');
     if (dayEvents.length > 3) eventsHtml += `<div style="font-size:10px;color:#94a3b8;padding:3px;">+${dayEvents.length-3} más</div>`;
     grid.innerHTML += `<div class="calendar-day ${isToday ? 'today' : ''}" onclick="openModal('${dateStr}')"><div class="day-number">${day}</div><div>${eventsHtml}</div></div>`;
+  }
+  
+  // Mobile List
+  if (allEvents.length === 0) {
+    mobileList.innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">No hay eventos este mes</div>';
+  } else {
+    allEvents.forEach(ev => {
+      mobileList.innerHTML += `
+        <div class="mobile-event ${ev.type}" onclick="editEvent('${ev._id}', '${ev.type}')">
+          <div class="mobile-event-title">${ev.title}</div>
+          <div class="mobile-event-meta">
+            <span>📅 ${new Date(ev.date).toLocaleDateString('es-CO')}</span>
+            ${ev.time ? `<span>⏰ ${ev.time}</span>` : ''}
+            <span>${ev.type === 'task' ? '📝 Tarea' : '🤝 Reunión'}</span>
+          </div>
+          ${ev.description ? `<div class="mobile-event-desc">${ev.description}</div>` : ''}
+        </div>
+      `;
+    });
   }
 }
 
@@ -115,9 +174,7 @@ function openModal(date = null) {
   document.getElementById('date').value = date || new Date().toISOString().split('T')[0];
 }
 
-function closeModal() {
-  document.getElementById('modal').style.display = 'none';
-}
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
 async function saveEvent(e) {
   e.preventDefault();
@@ -131,22 +188,17 @@ async function saveEvent(e) {
   };
   try {
     const url = id ? `/calendar/update/${id}` : '/calendar/save';
-    if (id) {
-      await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
-      location.reload();
-    } else {
-      await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
-      location.reload();
-    }
+    await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+    location.reload();
   } catch(err) { alert('Error: ' + err.message); }
 }
 
 async function editEvent(id, type) {
   try {
     const res = await fetch(`/calendar/event/${id}?type=${type}`);
-    if (!res.ok) throw new Error('Failed to load');
+    if (!res.ok) throw new Error('Failed');
     const ev = await res.json();
-    if (!ev || !ev._id) throw new Error('Event not found');
+    if (!ev || !ev._id) throw new Error('Not found');
     document.getElementById('modalTitle').textContent = '✏️ Editar Evento';
     document.getElementById('eventId').value = ev._id;
     document.getElementById('title').value = ev.title || '';
@@ -156,25 +208,17 @@ async function editEvent(id, type) {
     document.getElementById('description').value = ev.description || '';
     document.getElementById('deleteBtn').style.display = 'block';
     document.getElementById('modal').style.display = 'flex';
-  } catch(err) {
-    console.error('Error:', err);
-    alert('Error cargando evento: ' + err.message);
-  }
+  } catch(err) { alert('Error cargando: ' + err.message); }
 }
 
 async function deleteEvent() {
   const id = document.getElementById('eventId').value;
   const type = document.getElementById('type').value;
-  if (!id) return;
-  if (!confirm('¿Eliminar este evento permanentemente?')) return;
-  try {
-    window.location.href = `/calendar/delete/${id}?type=${type}`;
-  } catch(err) {
-    alert('Error eliminando: ' + err.message);
-  }
+  if (!id || !confirm('¿Eliminar?')) return;
+  window.location.href = `/calendar/delete/${id}?type=${type}`;
 }
 
-document.getElementById('modal').addEventListener('click', function(e) { if(e.target === this) closeModal(); });
-document.addEventListener('keydown', function(e) { if(e.key === 'Escape') closeModal(); });
+document.getElementById('modal').addEventListener('click', e => { if(e.target === this) closeModal(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
 document.addEventListener('DOMContentLoaded', renderCalendar);
 </script>
