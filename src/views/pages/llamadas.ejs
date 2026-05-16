@@ -1,480 +1,158 @@
 <style>
-.lead-call-card { 
-  background:#fff; 
-  border-radius:12px; 
-  border:1px solid #e4e6eb; 
-  padding:18px; 
-  margin-bottom:10px; 
-  transition:all 0.2s;
-}
-.lead-call-card:hover { 
-  box-shadow:0 4px 16px rgba(0,0,0,0.08);
-  border-color:#d0d2d7;
-}
-.lead-call-card.removing { 
-  opacity:0; 
-  transform:translateX(20px); 
-  transition:all 0.35s; 
-}
-.avatar-sm { 
-  width:40px; 
-  height:40px; 
-  border-radius:50%; 
-  display:flex; 
-  align-items:center; 
-  justify-content:center; 
-  font-size:14px; 
-  font-weight:700; 
-  flex-shrink:0;
-  text-transform:uppercase;
-}
-.status-new { 
-  background:#e7f3ff; 
-  color:#0866ff; 
-  font-size:11px; 
-  font-weight:600; 
-  padding:4px 12px; 
-  border-radius:20px; 
-}
-.status-contacted { 
-  background:#fff4e5; 
-  color:#f59e0b; 
-  font-size:11px; 
-  font-weight:600; 
-  padding:4px 12px; 
-  border-radius:20px; 
-}
-.outcome-option { 
-  border:2px solid #e4e6eb; 
-  border-radius:12px; 
-  padding:16px 8px; 
-  cursor:pointer; 
-  transition:all 0.15s; 
-  text-align:center; 
-  height:100%;
-  background:#fff;
-}
-.outcome-option:hover { 
-  border-color:#6366f1;
-  background:#f8f9ff;
-}
-.outcome-option.selected-scheduled { 
-  border-color:#16a34a!important; 
-  background:#dcfce7!important; 
-}
-.outcome-option.selected-callback { 
-  border-color:#f59e0b!important; 
-  background:#fef3c7!important; 
-}
-.outcome-option.selected-rejected { 
-  border-color:#dc2626!important; 
-  background:#fee2e2!important; 
-}
-.outcome-option.selected-no_answer { 
-  border-color:#6b7280!important; 
-  background:#f3f4f6!important; 
-}
-.stat-card { 
-  background:#fff; 
-  border-radius:12px; 
-  padding:20px; 
-  border:1px solid #e4e6eb; 
-  display:flex; 
-  align-items:center; 
-  gap:16px;
-  flex:1;
-  min-width:180px;
-}
-.stat-icon {
-  width:48px;
-  height:48px;
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-shrink:0;
-}
-.progress-bar-wrap { 
-  background:#f3f4f6; 
-  border-radius:20px; 
-  height:8px; 
-  width:100%; 
-  overflow:hidden;
-}
-.progress-bar-fill { 
-  height:8px; 
-  border-radius:20px; 
-  background:linear-gradient(90deg,#6366f1,#8b5cf6); 
-  transition:width 0.4s ease;
-}
+.stat-card { background:#fff; border-radius:12px; padding:20px; border:1px solid #e4e6eb; display:flex; align-items:center; gap:16px; flex:1; min-width:180px; }
+.stat-icon { width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.lead-call-card { background:#fff; border-radius:12px; border:1px solid #e4e6eb; padding:18px; margin-bottom:10px; transition:all 0.2s; }
+.lead-call-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.08); }
+.lead-call-card.removing { opacity:0; transform:translateX(20px); transition:all 0.35s; }
+.avatar-sm { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; }
+.status-new { background:#e7f3ff; color:#0866ff; font-size:11px; font-weight:600; padding:4px 12px; border-radius:20px; }
+.status-contacted { background:#fff4e5; color:#f59e0b; font-size:11px; font-weight:600; padding:4px 12px; border-radius:20px; }
+.outcome-option { border:2px solid #e4e6eb; border-radius:12px; padding:16px 8px; cursor:pointer; transition:all 0.15s; text-align:center; height:100%; background:#fff; }
+.outcome-option:hover { border-color:#6366f1; background:#f8f9ff; }
+.outcome-option.selected-scheduled { border-color:#16a34a!important; background:#dcfce7!important; }
+.outcome-option.selected-callback { border-color:#f59e0b!important; background:#fef3c7!important; }
+.outcome-option.selected-rejected { border-color:#dc2626!important; background:#fee2e2!important; }
+.outcome-option.selected-no_answer { border-color:#6b7280!important; background:#f3f4f6!important; }
+.progress-bar-wrap { background:#f3f4f6; border-radius:20px; height:8px; width:100%; overflow:hidden; }
+.progress-bar-fill { height:8px; border-radius:20px; background:linear-gradient(90deg,#6366f1,#8b5cf6); transition:width 0.4s ease; }
 </style>
 
-<%
-var colorMap = ['#6366f1','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#ef4444'];
-function getInitials(name){ 
-  if(!name) return '?'; 
-  var parts = name.trim().split(' ');
-  if(parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return name.substring(0,2).toUpperCase();
-} 
-function getColor(str){ 
-  var h=0; 
-  for(var i=0;i<(str||'').length;i++) h=str.charCodeAt(i)+((h<<5)-h); 
-  return colorMap[Math.abs(h)%colorMap.length]; 
-}
-%>
+<% var colorMap = ['#6366f1','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#ef4444'];
+function getInitials(n){ if(!n)return'?'; var p=n.trim().split(' '); return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():n.substring(0,2).toUpperCase(); }
+function getColor(s){ var h=0; for(var i=0;i<(s||'').length;i++) h=s.charCodeAt(i)+((h<<5)-h); return colorMap[Math.abs(h)%colorMap.length]; } %>
 
 <div class="d-flex flex-wrap gap-3 mb-4">
-  <div class="stat-card">
-    <div class="stat-icon" style="background:#e0e7ff;">
-      <i class="bx bx-target-lock" style="font-size:24px;color:#6366f1;"></i>
-    </div>
-    <div>
-      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#6b7280;">Sin Llamar</p>
-      <p class="mb-0" style="font-size:28px;font-weight:700;color:#111827;" id="statSinLlamar"><%= totalNew || 0 %></p>
-    </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon" style="background:#e0f2fe;">
-      <i class="bx bx-phone" style="font-size:24px;color:#0284c7;"></i>
-    </div>
-    <div>
-      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#6b7280;">Llamadas Hoy</p>
-      <p class="mb-0" style="font-size:28px;font-weight:700;color:#0284c7;" id="statLlamadasHoy"><%= callsToday || 0 %></p>
-    </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon" style="background:#dcfce7;">
-      <i class="bx bx-calendar-check" style="font-size:24px;color:#16a34a;"></i>
-    </div>
-    <div>
-      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#6b7280;">Agendados Hoy</p>
-      <p class="mb-0" style="font-size:28px;font-weight:700;color:#16a34a;" id="statAgendadosHoy"><%= scheduledToday || 0 %></p>
-    </div>
-  </div>
-  <div class="stat-card" style="flex:2;min-width:250px;">
-    <div style="width:100%;">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#6b7280;">Progreso del Bloque</p>
-        <span id="batchProgress" style="font-size:13px;font-weight:700;color:#6366f1;">0/10</span>
-      </div>
-      <div class="progress-bar-wrap">
-        <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
-      </div>
-    </div>
-  </div>
+  <div class="stat-card"><div class="stat-icon" style="background:#e0e7ff;"><i class="bx bx-target-lock" style="font-size:24px;color:#6366f1;"></i></div><div><p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#6b7280;">Sin Llamar</p><p class="mb-0" style="font-size:28px;font-weight:700;color:#111827;" id="statSinLlamar"><%= totalNew || 0 %></p></div></div>
+  <div class="stat-card"><div class="stat-icon" style="background:#e0f2fe;"><i class="bx bx-phone" style="font-size:24px;color:#0284c7;"></i></div><div><p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#6b7280;">Llamadas Hoy</p><p class="mb-0" style="font-size:28px;font-weight:700;color:#0284c7;" id="statLlamadasHoy"><%= callsToday || 0 %></p></div></div>
+  <div class="stat-card"><div class="stat-icon" style="background:#dcfce7;"><i class="bx bx-calendar-check" style="font-size:24px;color:#16a34a;"></i></div><div><p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#6b7280;">Agendados Hoy</p><p class="mb-0" style="font-size:28px;font-weight:700;color:#16a34a;" id="statAgendadosHoy"><%= scheduledToday || 0 %></p></div></div>
+  <div class="stat-card" style="flex:2;min-width:250px;"><div style="width:100%;"><div class="d-flex justify-content-between align-items-center mb-2"><p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#6b7280;">Progreso del Bloque</p><span id="batchProgress" style="font-size:13px;font-weight:700;color:#6366f1;">0/10</span></div><div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div></div></div>
 </div>
 
 <div class="card mb-3" style="border-radius:12px;border:1px solid #e4e6eb;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
   <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-3 py-3 px-4">
-    <div>
-      <h6 class="mb-0" style="font-weight:700;font-size:16px;" id="batchTitle">Bloque actual</h6>
-      <p class="mb-0" style="font-size:13px;color:#6b7280;" id="batchSubtitle">Clasifica cada lead para avanzar</p>
-    </div>
-    <button class="btn btn-primary" id="nextLeadBtn" style="padding:10px 24px;">
-      <i class="bx bx-phone-call me-2"></i>Llamar nuevo cliente
-    </button>
+    <div><h6 class="mb-0" style="font-weight:700;font-size:16px;" id="batchTitle">Bloque actual</h6><p class="mb-0" style="font-size:13px;color:#6b7280;" id="batchSubtitle">Clasifica cada lead para avanzar</p></div>
+    <button class="btn btn-primary" id="nextLeadBtn" style="padding:10px 24px;"><i class="bx bx-phone-call me-2"></i>Llamar nuevo cliente</button>
   </div>
 </div>
 
 <div id="emptyState" style="display:none;text-align:center;padding:80px 0;">
-  <div style="width:100px;height:100px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
-    <i class="bx bx-check" style="font-size:50px;color:#16a34a;"></i>
-  </div>
+  <div style="width:100px;height:100px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><i class="bx bx-check" style="font-size:50px;color:#16a34a;"></i></div>
   <h5 style="font-weight:700;color:#111827;margin-bottom:8px;">Lista completada</h5>
   <p style="font-size:14px;color:#6b7280;margin-bottom:24px;">No hay más leads pendientes por ahora</p>
-  <button class="btn btn-primary px-4" onclick="location.reload()">
-    <i class="bx bx-refresh me-2"></i>Recargar Leads
-  </button>
+  <button class="btn btn-primary px-4" onclick="location.reload()"><i class="bx bx-refresh me-2"></i>Recargar Leads</button>
 </div>
-
 <div id="currentBatch"></div>
 
 <script>
 var allLeads = <%- JSON.stringify(leads.map(function(l){ return { id: l._id, name: l.name, phone: l.phone || '', email: l.email || '', company: l.company || '', status: l.status }; })) %>;
-var BATCH_SIZE = 10;
-var batchStart = 0;
-var currentBatch = [];
-var completedInBatch = 0;
-var selectedOutcome = null;
-var activeLeadId = null;
+var BATCH_SIZE = 10, batchStart = 0, currentBatch = [], completedInBatch = 0, selectedOutcome = null, activeLeadId = null;
 
-function getColor(str){ 
-  var colorMap = ['#6366f1','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#ef4444'];
-  var h=0; 
-  for(var i=0;i<(str||'').length;i++) h=str.charCodeAt(i)+((h<<5)-h); 
-  return colorMap[Math.abs(h)%colorMap.length]; 
-}
+function getColor(s){ var m=['#6366f1','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#ef4444'],h=0; for(var i=0;i<(s||'').length;i++) h=s.charCodeAt(i)+((h<<5)-h); return m[Math.abs(h)%m.length]; }
+function getInitials(n){ if(!n)return'?'; var p=n.trim().split(' '); return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():n.substring(0,2).toUpperCase(); }
 
-function getInitials(name){ 
-  if(!name) return '?'; 
-  var parts = name.trim().split(' ');
-  if(parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return name.substring(0,2).toUpperCase();
-}
-
-function renderBatch(leads) {
-  currentBatch = leads;
-  completedInBatch = 0;
-  updateProgress();
-  
-  if (leads.length === 0) {
-    document.getElementById('currentBatch').innerHTML = '';
-    document.getElementById('emptyState').style.display = 'block';
-    document.getElementById('batchSubtitle').textContent = 'No hay más leads disponibles.';
-    return;
-  }
-  
-  var html = '';
-  leads.forEach(function(lead) {
-    var color = getColor(lead.name);
-    var initials = getInitials(lead.name);
-    html += '<div class="lead-call-card" id="lcard-' + lead.id + '">' +
-      '<div class="d-flex align-items-center gap-3">' +
-        '<div class="avatar-sm" style="background:' + color + '20;color:' + color + ';">' + initials + '</div>' +
-        '<div style="flex:1;min-width:0;">' +
-          '<div class="d-flex align-items-center gap-2 flex-wrap">' +
-            '<h6 class="mb-0" style="font-size:15px;font-weight:700;">' + lead.name + '</h6>' +
-            '<span class="' + (lead.status === 'new' ? 'status-new' : 'status-contacted') + '">' + 
-              (lead.status === 'new' ? 'Sin llamar' : 'Contactado') + 
-            '</span>' +
-          '</div>' +
-          '<div class="d-flex gap-3 mt-2 flex-wrap">' +
-            (lead.company ? '<span style="font-size:13px;color:#6b7280;"><i class="bx bx-buildings me-1"></i>' + lead.company + '</span>' : '') +
-            (lead.phone ? '<span style="font-size:13px;color:#374151;"><i class="bx bx-phone me-1"></i>' + lead.phone + '</span>' : '') +
-            (lead.email ? '<span style="font-size:13px;color:#6b7280;"><i class="bx bx-envelope me-1"></i>' + lead.email + '</span>' : '') +
-          '</div>' +
-        '</div>' +
-        '<button class="btn btn-primary btn-sm flex-shrink-0" onclick="abrirModal(\'' + lead.id + '\',\'' + lead.name.replace(/'/g,"\\'") + '\',\'' + (lead.phone||'').replace(/'/g,"\\'") + '\',\'' + (lead.company||'').replace(/'/g,"\\'") + '\')" style="padding:10px 20px;">' +
-          '<i class="bx bx-phone me-1"></i> Llamar' +
-        '</button>' +
-      '</div>' +
-    '</div>';
+function renderBatch(leads){
+  currentBatch = leads; completedInBatch = 0; updateProgress();
+  if(leads.length===0){ document.getElementById('currentBatch').innerHTML=''; document.getElementById('emptyState').style.display='block'; return; }
+  var html='';
+  leads.forEach(function(l){
+    var c=getColor(l.name), i=getInitials(l.name);
+    html+='<div class="lead-call-card" id="lcard-'+l.id+'"><div class="d-flex align-items-center gap-3"><div class="avatar-sm" style="background:'+c+'20;color:'+c+';">'+i+'</div><div style="flex:1;min-width:0;"><div class="d-flex align-items-center gap-2 flex-wrap"><h6 class="mb-0" style="font-size:15px;font-weight:700;">'+l.name+'</h6><span class="'+(l.status==='new'?'status-new':'status-contacted')+'">'+(l.status==='new'?'Sin llamar':'Contactado')+'</span></div><div class="d-flex gap-3 mt-2 flex-wrap">'+(l.company?'<span style="font-size:13px;color:#6b7280;"><i class="bx bx-buildings me-1"></i>'+l.company+'</span>':'')+(l.phone?'<span style="font-size:13px;color:#374151;"><i class="bx bx-phone me-1"></i>'+l.phone+'</span>':'')+'</div></div><button class="btn btn-primary btn-sm flex-shrink-0" onclick="abrirModal(\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\',\''+(l.phone||'').replace(/'/g,"\\'")+'\',\''+(l.company||'').replace(/'/g,"\\'")+'\')" style="padding:10px 20px;"><i class="bx bx-phone me-1"></i> Llamar</button></div></div>';
   });
-  document.getElementById('currentBatch').innerHTML = html;
-  document.getElementById('emptyState').style.display = 'none';
-  updateBatchTitle();
+  document.getElementById('currentBatch').innerHTML=html;
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('batchTitle').textContent='Bloque '+(batchStart-currentBatch.length+1)+' — '+batchStart+' de '+allLeads.length+' leads';
 }
 
-function loadNextBatch() {
-  if (batchStart >= allLeads.length) {
-    document.getElementById('currentBatch').innerHTML = '';
-    document.getElementById('emptyState').style.display = 'block';
-    document.getElementById('batchSubtitle').textContent = 'No hay más leads disponibles.';
-    return;
-  }
-  var next = allLeads.slice(batchStart, batchStart + BATCH_SIZE);
-  batchStart += BATCH_SIZE;
-  renderBatch(next);
+function loadNextBatch(){
+  if(batchStart>=allLeads.length){ document.getElementById('currentBatch').innerHTML=''; document.getElementById('emptyState').style.display='block'; return; }
+  var next=allLeads.slice(batchStart, batchStart+BATCH_SIZE); batchStart+=BATCH_SIZE; renderBatch(next);
 }
 
-function updateProgress() {
-  var total = currentBatch.length;
-  var pct = total > 0 ? Math.round((completedInBatch / total) * 100) : 0;
-  document.getElementById('progressBar').style.width = pct + '%';
-  document.getElementById('batchProgress').textContent = completedInBatch + '/' + total;
+function updateProgress(){
+  var t=currentBatch.length, p=t>0?Math.round((completedInBatch/t)*100):0;
+  document.getElementById('progressBar').style.width=p+'%';
+  document.getElementById('batchProgress').textContent=completedInBatch+'/'+t;
 }
 
-function updateBatchTitle() {
-  var from = Math.max(1, batchStart - currentBatch.length + 1);
-  var to = batchStart;
-  document.getElementById('batchTitle').textContent = 'Bloque ' + from + ' — ' + to + ' de ' + allLeads.length + ' leads';
+function removeLead(id){
+  completedInBatch++; updateProgress();
+  var card=document.getElementById('lcard-'+id);
+  if(card){ card.classList.add('removing'); setTimeout(function(){ card.remove(); if(document.querySelectorAll('[id^="lcard-"]').length===0){ if(batchStart<allLeads.length) loadNextBatch(); else document.getElementById('emptyState').style.display='block'; } },350); }
+  allLeads=allLeads.filter(function(l){ return l.id!==id; });
 }
 
-function removeLead(leadId) {
-  completedInBatch++;
-  updateProgress();
-  
-  var card = document.getElementById('lcard-' + leadId);
-  if (card) {
-    card.classList.add('removing');
-    setTimeout(function() {
-      card.remove();
-      if (document.querySelectorAll('[id^="lcard-"]').length === 0) {
-        if (batchStart < allLeads.length) {
-          loadNextBatch();
-        } else {
-          document.getElementById('emptyState').style.display = 'block';
-        }
-      }
-    }, 350);
-  }
-  allLeads = allLeads.filter(function(l){ return l.id !== leadId; });
-  
-  var currentSinLlamar = parseInt(document.getElementById('statSinLlamar').textContent) || 0;
-  document.getElementById('statSinLlamar').textContent = Math.max(0, currentSinLlamar - 1);
-}
+document.getElementById('nextLeadBtn').onclick=function(){ if(currentBatch.length===0||completedInBatch>=currentBatch.length) loadNextBatch(); else document.getElementById('currentBatch').scrollIntoView({behavior:'smooth',block:'start'}); };
 
-document.getElementById('nextLeadBtn').onclick = function() {
-  if (currentBatch.length === 0 || completedInBatch >= currentBatch.length) {
-    loadNextBatch();
-  } else {
-    document.getElementById('currentBatch').scrollIntoView({ behavior:'smooth', block:'start' });
-  }
-};
-
-function abrirModal(id, name, phone, company) {
-  activeLeadId = id; 
-  selectedOutcome = null;
-  document.getElementById('callLeadId').value = id;
-  document.getElementById('callModalInfo').textContent = name + (phone ? ' - ' + phone : '') + (company ? ' | ' + company : '');
-  document.getElementById('callNotes').value = ''; 
-  document.getElementById('callValue').value = ''; 
-  document.getElementById('callCallbackDate').value = ''; 
-  document.getElementById('callRejectionReason').value = '';
-  document.getElementById('callResult').style.display = 'none'; 
-  document.getElementById('submitCallBtn').disabled = true;
-  document.querySelectorAll('.outcome-option').forEach(function(el){ el.className = 'outcome-option'; });
-  ['extraScheduled','extraCallback','extraRejected'].forEach(function(id){ document.getElementById(id).style.display='none'; });
+function abrirModal(id,name,phone,company){
+  activeLeadId=id; selectedOutcome=null;
+  document.getElementById('callLeadId').value=id;
+  document.getElementById('callModalInfo').textContent=name+(phone?' - '+phone:'')+(company?' | '+company:'');
+  document.getElementById('callNotes').value=''; document.getElementById('callValue').value=''; document.getElementById('callCallbackDate').value=''; document.getElementById('callRejectionReason').value='';
+  document.getElementById('callResult').style.display='none'; document.getElementById('submitCallBtn').disabled=true;
+  document.querySelectorAll('.outcome-option').forEach(function(e){ e.className='outcome-option'; });
+  ['extraScheduled','extraCallback','extraRejected'].forEach(function(i){ document.getElementById(i).style.display='none'; });
   new bootstrap.Modal(document.getElementById('callModal')).show();
 }
 
-function selectOutcome(el, outcome) {
-  selectedOutcome = outcome;
-  document.querySelectorAll('.outcome-option').forEach(function(o){ o.className = 'outcome-option'; });
-  el.className = 'outcome-option selected-' + outcome;
-  document.getElementById('extraScheduled').style.display = outcome === 'scheduled' ? 'block' : 'none';
-  document.getElementById('extraCallback').style.display = outcome === 'callback' ? 'block' : 'none';
-  document.getElementById('extraRejected').style.display = outcome === 'rejected' ? 'block' : 'none';
-  document.getElementById('submitCallBtn').disabled = false;
+function selectOutcome(el,outcome){
+  selectedOutcome=outcome;
+  document.querySelectorAll('.outcome-option').forEach(function(o){ o.className='outcome-option'; });
+  el.className='outcome-option selected-'+outcome;
+  document.getElementById('extraScheduled').style.display=outcome==='scheduled'?'block':'none';
+  document.getElementById('extraCallback').style.display=outcome==='callback'?'block':'none';
+  document.getElementById('extraRejected').style.display=outcome==='rejected'?'block':'none';
+  document.getElementById('submitCallBtn').disabled=false;
 }
 
-async function submitLlamada() {
-  if (!selectedOutcome) return;
-  var btn = document.getElementById('submitCallBtn');
-  btn.disabled = true; 
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Guardando...';
-  
-  try {
-    var res = await fetch('/api/llamadas', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify({ 
-        leadId: document.getElementById('callLeadId').value, 
-        outcome: selectedOutcome, 
-        notes: document.getElementById('callNotes').value, 
-        value: document.getElementById('callValue').value, 
-        callbackDate: document.getElementById('callCallbackDate').value, 
-        rejectionReason: document.getElementById('callRejectionReason').value 
-      }) 
-    });
-    var data = await res.json();
-    var el = document.getElementById('callResult');
-    
-    if (data.success) {
-      var msgs = { 
-        scheduled:'Reunión agendada. Lead pasó a Pipeline.', 
-        callback:'Programado para seguimiento.', 
-        rejected:'Lead marcado como no interesado.', 
-        no_answer:'Llamada registrada.' 
-      };
-      el.innerHTML = '<div style="background:#dcfce7;border-radius:10px;padding:12px;font-size:13px;font-weight:600;color:#166534;margin-top:12px;"><i class="bx bx-check-circle me-1"></i>' + (msgs[data.outcome] || 'Guardado.') + '</div>';
-      el.style.display = 'block';
-      
-      var leadId = activeLeadId;
-      var currentCalls = parseInt(document.getElementById('statLlamadasHoy').textContent) || 0;
-      document.getElementById('statLlamadasHoy').textContent = currentCalls + 1;
-      
-      if (selectedOutcome === 'scheduled') {
-        var currentAgendados = parseInt(document.getElementById('statAgendadosHoy').textContent) || 0;
-        document.getElementById('statAgendadosHoy').textContent = currentAgendados + 1;
-      }
-      
-      setTimeout(function() { 
-        bootstrap.Modal.getInstance(document.getElementById('callModal')).hide(); 
-        removeLead(leadId); 
-        btn.disabled = false; 
-        btn.innerHTML = '<i class="bx bx-check me-1"></i> Guardar'; 
-      }, 1200);
-    } else {
-      el.innerHTML = '<div style="background:#fee2e2;border-radius:10px;padding:12px;font-size:13px;color:#dc2626;margin-top:12px;">' + (data.message || 'Error al guardar') + '</div>';
-      el.style.display = 'block'; 
-      btn.disabled = false; 
-      btn.innerHTML = '<i class="bx bx-check me-1"></i> Guardar';
+async function submitLlamada(){
+  if(!selectedOutcome) return;
+  var btn=document.getElementById('submitCallBtn'); btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> Guardando...';
+  try{
+    var res=await fetch('/api/llamadas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({leadId:document.getElementById('callLeadId').value,outcome:selectedOutcome,notes:document.getElementById('callNotes').value,value:document.getElementById('callValue').value,callbackDate:document.getElementById('callCallbackDate').value,rejectionReason:document.getElementById('callRejectionReason').value})});
+    var data=await res.json(); var el=document.getElementById('callResult');
+    if(data.success){
+      var msgs={scheduled:'Reunión agendada.',callback:'Programado seguimiento.',rejected:'Marcado no interesado.',no_answer:'Llamada registrada.'};
+      el.innerHTML='<div style="background:#dcfce7;border-radius:10px;padding:12px;font-size:13px;font-weight:600;color:#166534;margin-top:12px;"><i class="bx bx-check-circle me-1"></i>'+(msgs[data.outcome]||'Guardado.')+'</div>';
+      el.style.display='block';
+      var lid=activeLeadId;
+      setTimeout(function(){ bootstrap.Modal.getInstance(document.getElementById('callModal')).hide(); removeLead(lid); btn.disabled=false; btn.innerHTML='<i class="bx bx-check me-1"></i> Guardar'; },1200);
+      fetchStats();
+    } else { el.innerHTML='<div style="background:#fee2e2;border-radius:10px;padding:12px;font-size:13px;color:#dc2626;margin-top:12px;">'+(data.message||'Error')+'</div>'; el.style.display='block'; btn.disabled=false; btn.innerHTML='<i class="bx bx-check me-1"></i> Guardar'; }
+  } catch(e){ alert('Error de conexión.'); btn.disabled=false; btn.innerHTML='<i class="bx bx-check me-1"></i> Guardar'; }
+}
+
+function fetchStats(){
+  fetch('/api/calls/stats').then(r=>r.json()).then(d=>{
+    if(d.success){
+      document.getElementById('statSinLlamar').textContent=d.stats.totalNew;
+      document.getElementById('statLlamadasHoy').textContent=d.stats.callsToday;
+      document.getElementById('statAgendadosHoy').textContent=d.stats.scheduledToday;
     }
-  } catch(e) { 
-    console.error(e);
-    alert('Error de conexión.'); 
-    btn.disabled = false; 
-    btn.innerHTML = '<i class="bx bx-check me-1"></i> Guardar';
-  }
+  }).catch(console.error);
 }
 
+setInterval(fetchStats, 5000);
 loadNextBatch();
 </script>
 
 <div class="modal fade" id="callModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
-      <div class="modal-header border-0 pb-0 px-4 pt-4">
-        <div>
-          <h5 class="modal-title mb-0" style="font-weight:700;">Registrar Llamada</h5>
-          <p class="text-muted mb-0" style="font-size:13px;" id="callModalInfo"></p>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
+    <div class="modal-header border-0 pb-0 px-4 pt-4"><div><h5 class="modal-title mb-0" style="font-weight:700;">Registrar Llamada</h5><p class="text-muted mb-0" style="font-size:13px;" id="callModalInfo"></p></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body px-4 pt-3">
+      <input type="hidden" id="callLeadId">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;margin-bottom:12px;">Resultado</p>
+      <div class="row g-2 mb-3">
+        <div class="col-6"><div class="outcome-option" onclick="selectOutcome(this,'scheduled')"><i class="bx bx-calendar-check" style="font-size:28px;color:#16a34a;display:block;margin-bottom:6px;"></i><p style="font-size:12px;font-weight:700;margin:0;color:#16a34a;">Agendó Reunión</p></div></div>
+        <div class="col-6"><div class="outcome-option" onclick="selectOutcome(this,'callback')"><i class="bx bx-time" style="font-size:28px;color:#f59e0b;display:block;margin-bottom:6px;"></i><p style="font-size:12px;font-weight:700;margin:0;color:#f59e0b;">Volver a Llamar</p></div></div>
+        <div class="col-6"><div class="outcome-option" onclick="selectOutcome(this,'rejected')"><i class="bx bx-x-circle" style="font-size:28px;color:#dc2626;display:block;margin-bottom:6px;"></i><p style="font-size:12px;font-weight:700;margin:0;color:#dc2626;">No Interesado</p></div></div>
+        <div class="col-6"><div class="outcome-option" onclick="selectOutcome(this,'no_answer')"><i class="bx bx-phone-off" style="font-size:28px;color:#6b7280;display:block;margin-bottom:6px;"></i><p style="font-size:12px;font-weight:700;margin:0;color:#6b7280;">No Contestó</p></div></div>
       </div>
-      <div class="modal-body px-4 pt-3">
-        <input type="hidden" id="callLeadId">
-        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;margin-bottom:12px;">Resultado de la llamada</p>
-        <div class="row g-2 mb-3">
-          <div class="col-6">
-            <div class="outcome-option" onclick="selectOutcome(this,'scheduled')">
-              <i class="bx bx-calendar-check" style="font-size:28px;color:#16a34a;display:block;margin-bottom:6px;"></i>
-              <p style="font-size:12px;font-weight:700;margin:0;color:#16a34a;">Agendó Reunión</p>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="outcome-option" onclick="selectOutcome(this,'callback')">
-              <i class="bx bx-time" style="font-size:28px;color:#f59e0b;display:block;margin-bottom:6px;"></i>
-              <p style="font-size:12px;font-weight:700;margin:0;color:#f59e0b;">Volver a Llamar</p>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="outcome-option" onclick="selectOutcome(this,'rejected')">
-              <i class="bx bx-x-circle" style="font-size:28px;color:#dc2626;display:block;margin-bottom:6px;"></i>
-              <p style="font-size:12px;font-weight:700;margin:0;color:#dc2626;">No Interesado</p>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="outcome-option" onclick="selectOutcome(this,'no_answer')">
-              <i class="bx bx-phone-off" style="font-size:28px;color:#6b7280;display:block;margin-bottom:6px;"></i>
-              <p style="font-size:12px;font-weight:700;margin:0;color:#6b7280;">No Contestó</p>
-            </div>
-          </div>
-        </div>
-        <div id="extraScheduled" style="display:none;" class="mb-3">
-          <label class="form-label fw-semibold" style="font-size:13px;">Valor estimado ($)</label>
-          <input type="number" id="callValue" class="form-control" placeholder="2000000">
-        </div>
-        <div id="extraCallback" style="display:none;" class="mb-3">
-          <label class="form-label fw-semibold" style="font-size:13px;">Fecha para rellamar</label>
-          <input type="date" id="callCallbackDate" class="form-control">
-        </div>
-        <div id="extraRejected" style="display:none;" class="mb-3">
-          <label class="form-label fw-semibold" style="font-size:13px;">Motivo del rechazo</label>
-          <select id="callRejectionReason" class="form-select">
-            <option value="">Seleccionar...</option>
-            <option>No tiene presupuesto</option>
-            <option>Ya tiene proveedor</option>
-            <option>No es el momento</option>
-            <option>No le interesa el servicio</option>
-            <option>Otro</option>
-          </select>
-        </div>
-        <div class="mb-2">
-          <label class="form-label fw-semibold" style="font-size:13px;">Notas de la llamada</label>
-          <textarea id="callNotes" class="form-control" rows="2" placeholder="Comentarios..."></textarea>
-        </div>
-        <div id="callResult" style="display:none;"></div>
-      </div>
-      <div class="modal-footer border-0 px-4 pb-4 pt-2">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button id="submitCallBtn" class="btn btn-primary px-4" onclick="submitLlamada()" disabled>
-          <i class="bx bx-check me-1"></i> Guardar
-        </button>
-      </div>
+      <div id="extraScheduled" style="display:none;" class="mb-3"><label class="form-label fw-semibold" style="font-size:13px;">Valor estimado ($)</label><input type="number" id="callValue" class="form-control" placeholder="2000000"></div>
+      <div id="extraCallback" style="display:none;" class="mb-3"><label class="form-label fw-semibold" style="font-size:13px;">Fecha rellamar</label><input type="date" id="callCallbackDate" class="form-control"></div>
+      <div id="extraRejected" style="display:none;" class="mb-3"><label class="form-label fw-semibold" style="font-size:13px;">Motivo rechazo</label><select id="callRejectionReason" class="form-select"><option value="">Seleccionar...</option><option>No tiene presupuesto</option><option>Ya tiene proveedor</option><option>No es el momento</option><option>Otro</option></select></div>
+      <div class="mb-2"><label class="form-label fw-semibold" style="font-size:13px;">Notas</label><textarea id="callNotes" class="form-control" rows="2" placeholder="Comentarios..."></textarea></div>
+      <div id="callResult" style="display:none;"></div>
     </div>
-  </div>
+    <div class="modal-footer border-0 px-4 pb-4 pt-2"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button id="submitCallBtn" class="btn btn-primary px-4" onclick="submitLlamada()" disabled><i class="bx bx-check me-1"></i> Guardar</button></div>
+  </div></div>
 </div>
