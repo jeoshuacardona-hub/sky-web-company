@@ -8,73 +8,31 @@
 .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
 .stat-info h3 { font-size: 24px; font-weight: 700; color: #1a202c; margin: 0; }
 .stat-info p { font-size: 12px; color: #6b7280; margin: 2px 0 0; }
-
 .calendar-wrapper { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 30px; }
 .calendar-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #e5e7eb; }
 .calendar-toolbar h2 { font-size: 22px; font-weight: 700; color: #1a202c; }
 .toolbar-actions { display: flex; gap: 12px; }
-.btn-tool { background: #f3f4f6; border: none; padding: 10px 16px; border-radius: 10px; font-weight: 600; color: #374151; cursor: pointer; transition: all 0.2s; font-size: 14px; }
+.btn-tool { background: #f3f4f6; border: none; padding: 10px 16px; border-radius: 10px; font-weight: 600; color: #374151; cursor: pointer; }
 .btn-tool:hover { background: #e5e7eb; }
 .btn-primary-tool { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
 .btn-primary-tool:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
-
 .calendar-days-header { display: grid; grid-template-columns: repeat(7, 1fr); background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
-.calendar-days-header div { padding: 14px; text-align: center; font-weight: 700; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
-
+.calendar-days-header div { padding: 14px; text-align: center; font-weight: 700; font-size: 12px; color: #6b7280; text-transform: uppercase; }
 .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #e5e7eb; }
-.calendar-day { min-height: 120px; background: #fff; padding: 8px; position: relative; cursor: pointer; transition: all 0.2s; }
+.calendar-day { min-height: 100px; background: #fff; padding: 8px; cursor: pointer; }
 .calendar-day:hover { background: #f9fafb; }
-.calendar-day.other-month { background: #f9fafb; opacity: 0.5; }
 .calendar-day.today { background: #eef2ff; }
 .day-number { font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px; }
 .calendar-day.today .day-number { background: #667eea; color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-
 .day-events { display: flex; flex-direction: column; gap: 2px; }
-.day-event { font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-.day-event.reunion { background: #dbeafe; color: #2563eb; }
-.day-event.llamada { background: #dcfce7; color: #16a34a; }
-.day-event.evento { background: #fef3c7; color: #f59e0b; }
-.day-event.task-event { background: #f3e8ff; color: #7c3aed; }
-
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-.modal-overlay.active { display: flex; }
-.modal { background: #fff; border-radius: 20px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 32px; position: relative; animation: modalSlide 0.3s ease; }
-@keyframes modalSlide { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-.modal-close { position: absolute; top: 16px; right: 16px; background: #f3f4f6; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-.modal-close:hover { background: #e5e7eb; transform: rotate(90deg); }
-.modal h3 { font-size: 24px; font-weight: 700; margin-bottom: 24px; color: #1a202c; }
-.form-group-modal { margin-bottom: 18px; }
-.form-group-modal label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
-.form-group-modal input, .form-group-modal select, .form-group-modal textarea { width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; transition: all 0.2s; }
-.form-group-modal input:focus, .form-group-modal select:focus, .form-group-modal textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
-.btn-save-modal { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; transition: all 0.3s; }
-.btn-save-modal:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,0.4); }
-.btn-save-modal:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
+.day-event { font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: 600; background: #dbeafe; color: #2563eb; }
 .events-section { margin-top: 30px; }
 .events-section h3 { font-size: 20px; font-weight: 700; color: #1a202c; margin-bottom: 20px; }
-.event-card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #667eea; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; align-items: flex-start; gap: 14px; }
-.event-card.type-reunion { border-left-color: #2563eb; }
-.event-card.type-llamada { border-left-color: #16a34a; }
-.event-card.type-evento { border-left-color: #f59e0b; }
-.event-card.type-task { border-left-color: #7c3aed; }
-.event-icon-small { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.event-card.type-reunion .event-icon-small { background: #dbeafe; color: #2563eb; }
-.event-card.type-llamada .event-icon-small { background: #dcfce7; color: #16a34a; }
-.event-card.type-evento .event-icon-small { background: #fef3c7; color: #f59e0b; }
-.event-card.type-task .event-icon-small { background: #f3e8ff; color: #7c3aed; }
-.event-content { flex: 1; }
-.event-content h4 { font-size: 15px; font-weight: 700; color: #1a202c; margin-bottom: 4px; }
-.event-content p { font-size: 12px; color: #6b7280; margin: 4px 0; }
-.btn-delete-event { background: none; border: none; color: #ef4444; cursor: pointer; padding: 6px; border-radius: 6px; transition: all 0.2s; }
-.btn-delete-event:hover { background: #fee2e2; }
-
-.section-tabs { display: flex; gap: 12px; margin-bottom: 24px; }
-.section-tab { background: #f3f4f6; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; color: #374151; cursor: pointer; transition: all 0.2s; font-size: 14px; }
-.section-tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
-
-.loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.event-card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #667eea; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+.event-card h4 { font-size: 15px; font-weight: 700; color: #1a202c; margin-bottom: 8px; }
+.event-card p { font-size: 12px; color: #6b7280; margin: 4px 0; }
+.btn-add { display: inline-block; margin-top: 12px; padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; text-decoration: none; border-radius: 10px; font-weight: 600; }
+.btn-add:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
 </style>
 
 <div class="calendar-container">
@@ -84,22 +42,9 @@
   </div>
   
   <div class="calendar-stats">
-    <div class="stat-card">
-      <div class="stat-icon" style="background:#dbeafe;"><i class="bx bx-calendar-event" style="font-size:20px;color:#2563eb;"></i></div>
-      <div class="stat-info"><h3><%= meetings.filter(m=>m.type==='reunion').length %></h3><p>Reuniones</p></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon" style="background:#dcfce7;"><i class="bx bx-phone" style="font-size:20px;color:#16a34a;"></i></div>
-      <div class="stat-info"><h3><%= meetings.filter(m=>m.type==='llamada').length %></h3><p>Llamadas</p></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon" style="background:#fef3c7;"><i class="bx bx-task" style="font-size:20px;color:#f59e0b;"></i></div>
-      <div class="stat-info"><h3><%= tasks.length %></h3><p>Tareas</p></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon" style="background:#e0e7ff;"><i class="bx bx-list-check" style="font-size:20px;color:#6366f1;"></i></div>
-      <div class="stat-info"><h3><%= meetings.length + tasks.length %></h3><p>Total</p></div>
-    </div>
+    <div class="stat-card"><div class="stat-icon" style="background:#dbeafe;"><i class="bx bx-calendar-event" style="font-size:20px;color:#2563eb;"></i></div><div class="stat-info"><h3><%= (meetings||[]).length %></h3><p>Reuniones</p></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#dcfce7;"><i class="bx bx-phone" style="font-size:20px;color:#16a34a;"></i></div><div class="stat-info"><h3><%= (tasks||[]).length %></h3><p>Tareas</p></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#e0e7ff;"><i class="bx bx-list-check" style="font-size:20px;color:#6366f1;"></i></div><div class="stat-info"><h3><%= ((meetings||[]).length + (tasks||[]).length) %></h3><p>Total</p></div></div>
   </div>
 
   <div class="calendar-wrapper">
@@ -109,105 +54,39 @@
         <button class="btn-tool" onclick="changeMonth(-1)"><i class="bx bx-chevron-left"></i></button>
         <button class="btn-tool" onclick="goToday()">Hoy</button>
         <button class="btn-tool" onclick="changeMonth(1)"><i class="bx bx-chevron-right"></i></button>
-        <button class="btn-tool btn-primary-tool" onclick="openModal()"><i class="bx bx-plus me-1"></i>Nueva Reunión</button>
+        <a href="/calendar/new" class="btn-tool btn-primary-tool"><i class="bx bx-plus me-1"></i>Nueva Reunión</a>
       </div>
     </div>
-    <div class="calendar-days-header">
-      <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
-    </div>
+    <div class="calendar-days-header"><div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div></div>
     <div class="calendar-grid" id="calendarGrid"></div>
   </div>
 
   <div class="events-section">
     <h3>📋 Próximos Eventos</h3>
-    <div class="section-tabs">
-      <button class="section-tab active" onclick="filterEvents('all')">Todos</button>
-      <button class="section-tab" onclick="filterEvents('reunion')">Reuniones</button>
-      <button class="section-tab" onclick="filterEvents('llamada')">Llamadas</button>
-      <button class="section-tab" onclick="filterEvents('task')">Tareas</button>
-    </div>
-    <div id="eventsList">
-      <% const allEvents = [...meetings.map(m => ({...m, type: m.type})), ...tasks.map(t => ({...t, type: 'task', title: t.title, date: t.dueDate}))].sort((a,b) => new Date(a.date) - new Date(b.date)); %>
+    <% const allEvents = [...(meetings||[]).map(m => ({...m, type: m.type})), ...(tasks||[]).map(t => ({...t, type: 'task', title: t.title, date: t.dueDate}))].sort((a,b) => new Date(a.date) - new Date(b.date)); %>
+    <% if (allEvents.length === 0) { %>
+      <div style="text-align:center;padding:40px;color:#6b7280;background:#fff;border-radius:12px;">
+        <i class="bx bx-calendar-x" style="font-size:48px;opacity:0.3;"></i>
+        <p style="margin-top:12px;">No hay eventos programados</p>
+        <a href="/calendar/new" class="btn-add"><i class="bx bx-plus me-1"></i>Crear Primera Reunión</a>
+      </div>
+    <% } else { %>
       <% allEvents.forEach(function(ev) { %>
-        <div class="event-card type-<%= ev.type %>" data-type="<%= ev.type %>">
-          <div class="event-icon-small">
-            <i class="bx <%= ev.type==='reunion'?'bx-calendar-event':ev.type==='llamada'?'bx-phone':ev.type==='task'?'bx-task':'bx-bullseye' %>"></i>
-          </div>
-          <div class="event-content">
-            <h4><%= ev.title %></h4>
-            <p><i class="bx bx-calendar me-1"></i><%= new Date(ev.date).toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long', year:'numeric'}) %></p>
-            <% if (ev.time) { %><p><i class="bx bx-time me-1"></i><%= ev.time %></p><% } %>
-            <% if (ev.description) { %><p><i class="bx bx-comment me-1"></i><%= ev.description %></p><% } %>
-          </div>
-          <% if (ev.type !== 'task') { %>
-            <button class="btn-delete-event" onclick="deleteMeeting('<%= ev._id %>')"><i class="bx bx-trash"></i></button>
-          <% } %>
+        <div class="event-card">
+          <h4><%= ev.title %></h4>
+          <p><i class="bx bx-calendar me-1"></i><%= new Date(ev.date).toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long', year:'numeric'}) %></p>
+          <% if (ev.time) { %><p><i class="bx bx-time me-1"></i><%= ev.time %></p><% } %>
+          <% if (ev.description) { %><p><i class="bx bx-comment me-1"></i><%= ev.description %></p><% } %>
         </div>
       <% }); %>
-      <% if (allEvents.length === 0) { %>
-        <div style="text-align:center;padding:40px;color:#6b7280;">
-          <i class="bx bx-calendar-x" style="font-size:48px;opacity:0.3;"></i>
-          <p style="margin-top:12px;">No hay eventos programados</p>
-        </div>
-      <% } %>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <h3>📅 Nueva Reunión</h3>
-    <form id="meetingForm" onsubmit="saveMeeting(event)">
-      <div class="form-group-modal">
-        <label>Título *</label>
-        <input type="text" name="title" required placeholder="Ej: Reunión con cliente">
-      </div>
-      <div class="form-group-modal">
-        <label>Fecha *</label>
-        <input type="date" name="date" id="meetingDate" required>
-      </div>
-      <div class="form-group-modal">
-        <label>Hora *</label>
-        <input type="time" name="time" required>
-      </div>
-      <div class="form-group-modal">
-        <label>Tipo</label>
-        <select name="type">
-          <option value="reunion">Reunión</option>
-          <option value="llamada">Llamada</option>
-          <option value="evento">Evento</option>
-        </select>
-      </div>
-      <div class="form-group-modal">
-        <label>Ubicación</label>
-        <input type="text" name="location" placeholder="Ej: Oficina, Zoom, Cliente">
-      </div>
-      <div class="form-group-modal">
-        <label>Descripción</label>
-        <textarea name="description" rows="3" placeholder="Detalles adicionales..."></textarea>
-      </div>
-      <button type="submit" class="btn-save-modal" id="saveBtn">
-        <i class="bx bx-save me-2"></i>Guardar Reunión
-      </button>
-    </form>
+    <% } %>
   </div>
 </div>
 
 <script>
 let currentDate = new Date();
-const meetingsData = <%- JSON.stringify(meetings.map(m => ({
-  _id: m._id,
-  title: m.title,
-  date: new Date(m.date).toISOString().split('T')[0],
-  time: m.time,
-  type: m.type
-}))) %>;
-const tasksData = <%- JSON.stringify(tasks.map(t => ({
-  title: t.title,
-  date: t.dueDate ? new Date(t.dueDate).toISOString().split('T')[0] : new Date(t.createdAt).toISOString().split('T')[0],
-  type: 'task'
-}))) %>;
+const meetingsData = <%- JSON.stringify((meetings||[]).map(m => ({ title: m.title, date: new Date(m.date).toISOString().split('T')[0], type: m.type }))) %>;
+const tasksData = <%- JSON.stringify((tasks||[]).map(t => ({ title: t.title, date: t.dueDate ? new Date(t.dueDate).toISOString().split('T')[0] : new Date(t.createdAt).toISOString().split('T')[0], type: 'task' }))) %>;
 
 function renderCalendar() {
   const year = currentDate.getFullYear();
@@ -215,143 +94,21 @@ function renderCalendar() {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  
   document.getElementById('calendarTitle').textContent = `${monthNames[month]} ${year}`;
-  
   const grid = document.getElementById('calendarGrid');
   grid.innerHTML = '';
-  
   const today = new Date();
   const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
-  
-  for (let i = 0; i < firstDay; i++) {
-    grid.innerHTML += `<div class="calendar-day other-month"></div>`;
-  }
-  
+  for (let i = 0; i < firstDay; i++) grid.innerHTML += '<div class="calendar-day other-month"></div>';
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const isToday = isCurrentMonth && day === today.getDate();
-    
-    const dayMeetings = meetingsData.filter(m => m.date === dateStr);
-    const dayTasks = tasksData.filter(t => t.date === dateStr);
-    const dayEvents = [...dayMeetings, ...dayTasks];
-    
-    let eventsHtml = dayEvents.slice(0, 3).map(e => 
-      `<div class="day-event ${e.type}" title="${e.title}">${e.title}</div>`
-    ).join('');
-    
-    if (dayEvents.length > 3) {
-      eventsHtml += `<div style="font-size:10px;color:#6b7280;padding:2px;">+${dayEvents.length - 3} más</div>`;
-    }
-    
-    grid.innerHTML += `
-      <div class="calendar-day ${isToday ? 'today' : ''}" onclick="openModalWithDate('${dateStr}')">
-        <div class="day-number">${isToday ? '<span>' + day + '</span>' : day}</div>
-        <div class="day-events">${eventsHtml}</div>
-      </div>
-    `;
+    const dayEvents = [...meetingsData.filter(m => m.date === dateStr), ...tasksData.filter(t => t.date === dateStr)];
+    let eventsHtml = dayEvents.slice(0, 2).map(e => `<div class="day-event">${e.title}</div>`).join('');
+    grid.innerHTML += `<div class="calendar-day ${isToday ? 'today' : ''}"><div class="day-number">${day}</div><div class="day-events">${eventsHtml}</div></div>`;
   }
 }
-
-function changeMonth(delta) {
-  currentDate.setMonth(currentDate.getMonth() + delta);
-  renderCalendar();
-}
-
-function goToday() {
-  currentDate = new Date();
-  renderCalendar();
-}
-
-function openModal() {
-  document.getElementById('modal').classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
-
-function openModalWithDate(date) {
-  document.getElementById('meetingDate').value = date;
-  openModal();
-}
-
-function closeModal() {
-  document.getElementById('modal').classList.remove('active');
-  document.body.style.overflow = '';
-  document.getElementById('meetingForm').reset();
-}
-
-async function saveMeeting(e) {
-  e.preventDefault();
-  const form = e.target;
-  const saveBtn = document.getElementById('saveBtn');
-  
-  saveBtn.disabled = true;
-  saveBtn.innerHTML = '<span class="loading"></span> Guardando...';
-  
-  const data = {
-    title: form.title.value,
-    date: form.date.value,
-    time: form.time.value,
-    type: form.type.value,
-    location: form.location.value,
-    description: form.description.value
-  };
-  
-  try {
-    const res = await fetch('/api/meetings', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(data)
-    });
-    const result = await res.json();
-    
-    if (result.success) {
-      alert('✅ Reunión creada exitosamente');
-      closeModal();
-      location.reload();
-    } else {
-      alert('❌ Error: ' + result.error);
-      saveBtn.disabled = false;
-      saveBtn.innerHTML = '<i class="bx bx-save me-2"></i>Guardar Reunión';
-    }
-  } catch(err) {
-    alert('❌ Error al guardar: ' + err.message);
-    saveBtn.disabled = false;
-    saveBtn.innerHTML = '<i class="bx bx-save me-2"></i>Guardar Reunión';
-  }
-}
-
-async function deleteMeeting(id) {
-  if (!confirm('¿Eliminar esta reunión?')) return;
-  try {
-    await fetch('/api/meetings/' + id, { method: 'DELETE' });
-    location.reload();
-  } catch(err) {
-    alert('Error al eliminar');
-  }
-}
-
-function filterEvents(type) {
-  document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-  
-  document.querySelectorAll('.event-card').forEach(card => {
-    if (type === 'all') {
-      card.style.display = 'flex';
-    } else {
-      card.style.display = card.dataset.type === type ? 'flex' : 'none';
-    }
-  });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  renderCalendar();
-  
-  document.getElementById('modal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-  });
-  
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeModal();
-  });
-});
+function changeMonth(delta) { currentDate.setMonth(currentDate.getMonth() + delta); renderCalendar(); }
+function goToday() { currentDate = new Date(); renderCalendar(); }
+document.addEventListener('DOMContentLoaded', renderCalendar);
 </script>
