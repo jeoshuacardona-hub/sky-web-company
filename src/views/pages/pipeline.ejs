@@ -1,0 +1,239 @@
+<style>
+.pipeline-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 16px; color: #fff; margin-bottom: 30px; }
+.pipeline-header h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+.pipeline-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 30px; }
+.stat-box { background: #fff; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.stat-box h3 { font-size: 32px; font-weight: 700; color: #667eea; margin-bottom: 4px; }
+.stat-box p { color: #6b7280; font-size: 13px; }
+.pipeline-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.pipeline-column { background: #f8fafc; border-radius: 12px; padding: 16px; }
+.column-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0; }
+.column-header h3 { font-size: 16px; font-weight: 700; color: #1e293b; }
+.column-count { background: #e2e8f0; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; color: #64748b; }
+.customer-card { background: #fff; border-radius: 10px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); cursor: pointer; transition: all 0.2s; border-left: 4px solid #667eea; }
+.customer-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.customer-card.prospect { border-left-color: #3b82f6; }
+.customer-card.qualified { border-left-color: #10b981; }
+.customer-card.proposal { border-left-color: #f59e0b; }
+.customer-card.negotiation { border-left-color: #8b5cf6; }
+.customer-card.won { border-left-color: #22c55e; }
+.customer-card.lost { border-left-color: #ef4444; opacity: 0.7; }
+.customer-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px; }
+.customer-name { font-weight: 700; color: #1e293b; font-size: 15px; }
+.customer-value { font-weight: 700; color: #667eea; font-size: 16px; }
+.customer-meta { font-size: 13px; color: #64748b; margin: 6px 0; }
+.customer-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.btn-action { padding: 6px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-qualify { background: #dbeafe; color: #2563eb; }
+.btn-proposal { background: #fef3c7; color: #f59e0b; }
+.btn-negotiate { background: #e9d5ff; color: #7c3aed; }
+.btn-won { background: #dcfce7; color: #16a34a; }
+.btn-lost { background: #fee2e2; color: #dc2626; }
+.btn-followup { background: #f1f5f9; color: #475569; }
+.btn-action:hover { transform: scale(1.05); }
+.badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.badge-prospect { background: #dbeafe; color: #2563eb; }
+.badge-qualified { background: #dcfce7; color: #16a34a; }
+.badge-proposal { background: #fef3c7; color: #f59e0b; }
+.badge-negotiation { background: #e9d5ff; color: #7c3aed; }
+.badge-won { background: #dcfce7; color: #16a34a; }
+.badge-lost { background: #fee2e2; color: #dc2626; }
+</style>
+
+<div class="pipeline-header">
+  <h1>Pipeline de Clientes</h1>
+  <p>Gestiona tus oportunidades de venta</p>
+</div>
+
+<div class="pipeline-stats">
+  <div class="stat-box"><h3><%= stats.total %></h3><p>Total Clientes</p></div>
+  <div class="stat-box"><h3><%= stats.valorPipeline.toLocaleString('es-CO', {style:'currency', currency:'COP'}) %></h3><p>Valor Pipeline</p></div>
+  <div class="stat-box"><h3><%= stats.ganados %></h3><p>Ganados</p></div>
+  <div class="stat-box"><h3><%= stats.perdidos %></h3><p>Perdidos</p></div>
+</div>
+
+<div class="pipeline-columns">
+  <div class="pipeline-column">
+    <div class="column-header">
+      <h3>📋 Prospectos</h3>
+      <span class="column-count"><%= customers.filter(c=>c.status==='prospect').length %></span>
+    </div>
+    <% customers.filter(c=>c.status==='prospect').forEach(c => { %>
+      <div class="customer-card prospect" onclick="showCustomerModal('<%= c._id %>')">
+        <div class="customer-header">
+          <div class="customer-name"><%= c.name %></div>
+          <span class="badge badge-prospect">Prospecto</span>
+        </div>
+        <div class="customer-meta">📞 <%= c.phone || 'Sin teléfono' %></div>
+        <% if (c.description) { %><div class="customer-meta"><%= c.description.substring(0, 60) %>...</div><% } %>
+        <div class="customer-actions">
+          <button class="btn-action btn-qualify" onclick="qualifyCustomer('<%= c._id %>')">✓ Calificar</button>
+          <button class="btn-action btn-lost" onclick="lostCustomer('<%= c._id %>')">✕ Perdido</button>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="pipeline-column">
+    <div class="column-header">
+      <h3>✅ Calificados</h3>
+      <span class="column-count"><%= customers.filter(c=>c.status==='qualified').length %></span>
+    </div>
+    <% customers.filter(c=>c.status==='qualified').forEach(c => { %>
+      <div class="customer-card qualified" onclick="showCustomerModal('<%= c._id %>')">
+        <div class="customer-header">
+          <div class="customer-name"><%= c.name %></div>
+          <div class="customer-value"><%= c.value ? c.value.toLocaleString('es-CO', {style:'currency', currency:'COP'}) : '$0' %></div>
+        </div>
+        <div class="customer-meta">📞 <%= c.phone || 'Sin teléfono' %></div>
+        <div class="customer-actions">
+          <button class="btn-action btn-proposal" onclick="proposalCustomer('<%= c._id %>')">📄 Propuesta</button>
+          <button class="btn-action btn-lost" onclick="lostCustomer('<%= c._id %>')">✕ Perdido</button>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="pipeline-column">
+    <div class="column-header">
+      <h3>📄 Propuesta</h3>
+      <span class="column-count"><%= customers.filter(c=>c.status==='proposal').length %></span>
+    </div>
+    <% customers.filter(c=>c.status==='proposal').forEach(c => { %>
+      <div class="customer-card proposal" onclick="showCustomerModal('<%= c._id %>')">
+        <div class="customer-header">
+          <div class="customer-name"><%= c.name %></div>
+          <div class="customer-value"><%= c.value ? c.value.toLocaleString('es-CO', {style:'currency', currency:'COP'}) : '$0' %></div>
+        </div>
+        <div class="customer-meta">📞 <%= c.phone || 'Sin teléfono' %></div>
+        <div class="customer-actions">
+          <button class="btn-action btn-negotiate" onclick="negotiateCustomer('<%= c._id %>')">💬 Negociar</button>
+          <button class="btn-action btn-won" onclick="wonCustomer('<%= c._id %>')">✓ Ganado</button>
+          <button class="btn-action btn-lost" onclick="lostCustomer('<%= c._id %>')">✕ Perdido</button>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="pipeline-column">
+    <div class="column-header">
+      <h3>💬 Negociación</h3>
+      <span class="column-count"><%= customers.filter(c=>c.status==='negotiation').length %></span>
+    </div>
+    <% customers.filter(c=>c.status==='negotiation').forEach(c => { %>
+      <div class="customer-card negotiation" onclick="showCustomerModal('<%= c._id %>')">
+        <div class="customer-header">
+          <div class="customer-name"><%= c.name %></div>
+          <div class="customer-value"><%= c.value ? c.value.toLocaleString('es-CO', {style:'currency', currency:'COP'}) : '$0' %></div>
+        </div>
+        <div class="customer-meta">📞 <%= c.phone || 'Sin teléfono' %></div>
+        <div class="customer-actions">
+          <button class="btn-action btn-won" onclick="wonCustomer('<%= c._id %>')">✓ Ganado</button>
+          <button class="btn-action btn-lost" onclick="lostCustomer('<%= c._id %>')">✕ Perdido</button>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="pipeline-column">
+    <div class="column-header">
+      <h3>✓ Ganados</h3>
+      <span class="column-count"><%= customers.filter(c=>c.status==='won').length %></span>
+    </div>
+    <% customers.filter(c=>c.status==='won').forEach(c => { %>
+      <div class="customer-card won" onclick="showCustomerModal('<%= c._id %>')">
+        <div class="customer-header">
+          <div class="customer-name"><%= c.name %></div>
+          <div class="customer-value"><%= c.value ? c.value.toLocaleString('es-CO', {style:'currency', currency:'COP'}) : '$0' %></div>
+        </div>
+        <div class="customer-meta">📞 <%= c.phone || 'Sin teléfono' %></div>
+        <span class="badge badge-won">Cerrado</span>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="pipeline-column">
+    <div class="column-header">
+      <h3>✕ Perdidos</h3>
+      <span class="column-count"><%= customers.filter(c=>c.status==='lost').length %></span>
+    </div>
+    <% customers.filter(c=>c.status==='lost').forEach(c => { %>
+      <div class="customer-card lost" onclick="showCustomerModal('<%= c._id %>')">
+        <div class="customer-header">
+          <div class="customer-name"><%= c.name %></div>
+        </div>
+        <div class="customer-meta">📞 <%= c.phone || 'Sin teléfono' %></div>
+        <span class="badge badge-lost">Perdido</span>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+<script>
+async function updateStatus(id, status, data = {}) {
+  try {
+    const res = await fetch(`/api/customers/${id}/status`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ status, ...data })
+    });
+    const result = await res.json();
+    if (result.success) {
+      location.reload();
+    } else {
+      alert('Error: ' + result.error);
+    }
+  } catch(err) {
+    alert('Error de conexión: ' + err.message);
+  }
+}
+
+async function qualifyCustomer(id) {
+  const value = prompt('Valor estimado de la oportunidad (COP):', '0');
+  if (value === null) return;
+  await updateStatus(id, 'qualified', { value: parseInt(value) || 0 });
+}
+
+async function proposalCustomer(id) {
+  const details = prompt('Detalles de la propuesta:');
+  await fetch(`/api/customers/${id}/proposal`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ proposalDetails: details || '' })
+  });
+  location.reload();
+}
+
+async function negotiateCustomer(id) {
+  const value = prompt('Nuevo valor negociado (COP):', '0');
+  const notes = prompt('Notas de negociación:');
+  await fetch(`/api/customers/${id}/negotiate`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ value: parseInt(value) || 0, notes: notes || '' })
+  });
+  location.reload();
+}
+
+async function wonCustomer(id) {
+  if (confirm('¿Confirmar que este cliente fue ganado?')) {
+    await fetch(`/api/customers/${id}/won`, { method: 'POST' });
+    location.reload();
+  }
+}
+
+async function lostCustomer(id) {
+  const reason = prompt('Razón de la pérdida:');
+  if (reason === null) return;
+  await fetch(`/api/customers/${id}/lost`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ reason })
+  });
+  location.reload();
+}
+
+function showCustomerModal(id) {
+  window.location.href = `/customers/${id}`;
+}
+</script>
