@@ -19,12 +19,16 @@
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #d9dee3; }
 .card-title { font-size: 18px; font-weight: 600; color: #566a7f; }
 .activity-list { list-style: none; }
-.activity-item { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid #f0f2f4; }
+.activity-item { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid #f0f2f4; animation: slideUp 0.5s ease; }
 .activity-item:last-child { border-bottom: none; }
-.activity-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.activity-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px; }
 .activity-icon.bg-primary { background: rgba(105,108,255,0.12); color: #696cff; }
+.activity-icon.bg-success { background: rgba(113,221,55,0.12); color: #71dd37; }
+.activity-icon.bg-warning { background: rgba(255,171,0,0.12); color: #ffab00; }
 .activity-content h4 { font-size: 14px; font-weight: 600; color: #566a7f; margin-bottom: 4px; }
 .activity-content p { font-size: 13px; color: #697a8d; }
+.pipeline-progress { background: #f0f2f4; border-radius: 8px; height: 8px; overflow: hidden; margin: 12px 0; }
+.pipeline-bar { background: linear-gradient(90deg, #696cff, #a695ff); height: 100%; border-radius: 8px; transition: width 0.5s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 1024px) { .content-grid { grid-template-columns: 1fr; } }
@@ -40,23 +44,23 @@
 
   <div class="stats-row">
     <div class="stat-card">
-      <div class="stat-icon bg-primary"><i class="bx bx-target-lock"></i></div>
-      <div class="stat-value"><%= stats.totalLeads || 0 %></div>
+      <div class="stat-icon bg-primary"><i class='bx bx-target-lock'></i></div>
+      <div class="stat-value"><%= stats.totalLeads %></div>
       <div class="stat-label">Total Leads</div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon bg-success"><i class="bx bx-trending-up"></i></div>
-      <div class="stat-value"><%= stats.newLeads || 0 %></div>
+      <div class="stat-icon bg-success"><i class='bx bx-trending-up'></i></div>
+      <div class="stat-value"><%= stats.newLeads %></div>
       <div class="stat-label">Leads Nuevos</div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon bg-warning"><i class="bx bx-phone"></i></div>
-      <div class="stat-value"><%= stats.callsToday || 0 %></div>
+      <div class="stat-icon bg-warning"><i class='bx bx-phone-call'></i></div>
+      <div class="stat-value"><%= stats.callsToday %></div>
       <div class="stat-label">Llamadas Hoy</div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon bg-info"><i class="bx bx-task"></i></div>
-      <div class="stat-value"><%= stats.pendingTasks || 0 %></div>
+      <div class="stat-icon bg-info"><i class='bx bx-task'></i></div>
+      <div class="stat-value"><%= stats.pendingTasks %></div>
       <div class="stat-label">Tareas Pendientes</div>
     </div>
   </div>
@@ -64,54 +68,61 @@
   <div class="content-grid">
     <div class="card">
       <div class="card-header">
-        <h3 class="card-title">📊 Actividad Reciente</h3>
+        <h3 class="card-title"><i class='bx bx-history'></i> Actividad Reciente</h3>
         <a href="/leads" class="btn btn-primary btn-sm">Ver Todo</a>
       </div>
-      <ul class="activity-list">
-        <li class="activity-item">
-          <div class="activity-icon bg-primary"><i class="bx bx-user-plus"></i></div>
-          <div class="activity-content">
-            <h4>Nuevo lead agregado</h4>
-            <p>Un nuevo lead ha sido creado en el sistema</p>
-          </div>
-        </li>
-        <li class="activity-item">
-          <div class="activity-icon bg-success"><i class="bx bx-check-circle"></i></div>
-          <div class="activity-content">
-            <h4>Llamada completada</h4>
-            <p>Se realizó una llamada de seguimiento exitosa</p>
-          </div>
-        </li>
-        <li class="activity-item">
-          <div class="activity-icon bg-warning"><i class="bx bx-calendar"></i></div>
-          <div class="activity-content">
-            <h4>Reunión programada</h4>
-            <p>Se agendó una reunión para esta semana</p>
-          </div>
-        </li>
-      </ul>
+      <% if (recentActivity && recentActivity.length > 0) { %>
+        <ul class="activity-list">
+          <% recentActivity.forEach(activity => { %>
+            <li class="activity-item">
+              <div class="activity-icon bg-<%= activity.type === 'lead' ? 'primary' : activity.type === 'call' ? 'success' : 'warning' %>">
+                <i class='bx <%= activity.type === 'lead' ? 'bx-user-plus' : activity.type === 'call' ? 'bx-phone' : 'bx-calendar' %>'></i>
+              </div>
+              <div class="activity-content">
+                <h4><%= activity.title %></h4>
+                <p><%= activity.desc %></p>
+              </div>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p style="color: #697a8d; text-align: center; padding: 40px;">No hay actividad reciente</p>
+      <% } %>
     </div>
 
     <div>
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">🎯 Acciones Rápidas</h3>
+          <h3 class="card-title"><i class='bx bx-bolt'></i> Acciones Rápidas</h3>
         </div>
         <div style="display: flex; flex-direction: column; gap: 12px;">
-          <a href="/leads/new" class="btn btn-primary"><i class="bx bx-plus"></i> Nuevo Lead</a>
-          <a href="/calendar" class="btn btn-secondary"><i class="bx bx-calendar"></i> Agendar Reunión</a>
-          <a href="/llamadas" class="btn btn-secondary"><i class="bx bx-phone"></i> Registrar Llamada</a>
+          <a href="/leads/new" class="btn btn-primary"><i class='bx bx-plus'></i> Nuevo Lead</a>
+          <a href="/calendar" class="btn btn-secondary"><i class='bx bx-calendar-plus'></i> Agendar Reunión</a>
+          <a href="/llamadas" class="btn btn-secondary"><i class='bx bx-phone'></i> Registrar Llamada</a>
         </div>
       </div>
+      
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">📈 Pipeline</h3>
+          <h3 class="card-title"><i class='bx bx-pie-chart-alt'></i> Pipeline</h3>
         </div>
-        <p style="color: #697a8d; font-size: 14px; margin-bottom: 16px;">Progreso de ventas del mes</p>
-        <div style="background: #f0f2f4; border-radius: 8px; height: 8px; overflow: hidden;">
-          <div style="background: linear-gradient(90deg, #696cff, #a695ff); width: 65%; height: 100%; border-radius: 8px;"></div>
+        <div style="margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+            <span style="color: #697a8d;">Progreso</span>
+            <span style="font-weight: 600; color: #566a7f;"><%= pipelineStats.ganados || 0 %> ganados</span>
+          </div>
+          <div class="pipeline-progress">
+            <% const totalPipeline = (pipelineStats.prospectos || 0) + (pipelineStats.calificados || 0) + (pipelineStats.propuesta || 0) + (pipelineStats.negociacion || 0) + (pipelineStats.ganados || 0); %>
+            <% const progress = totalPipeline > 0 ? ((pipelineStats.ganados || 0) / totalPipeline) * 100 : 0; %>
+            <div class="pipeline-bar" style="width: <%= progress %>%"></div>
+          </div>
         </div>
-        <p style="color: #697a8d; font-size: 12px; margin-top: 8px;">65% de la meta mensual</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+          <div><span style="color: #697a8d;">Prospectos:</span> <strong><%= pipelineStats.prospectos || 0 %></strong></div>
+          <div><span style="color: #697a8d;">Calificados:</span> <strong><%= pipelineStats.calificados || 0 %></strong></div>
+          <div><span style="color: #697a8d;">Propuesta:</span> <strong><%= pipelineStats.propuesta || 0 %></strong></div>
+          <div><span style="color: #697a8d;">Negociación:</span> <strong><%= pipelineStats.negociacion || 0 %></strong></div>
+        </div>
       </div>
     </div>
   </div>
