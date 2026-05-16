@@ -1,3 +1,4 @@
 node_modules/
 .env
 temp-sneat-html/
+.DS_Store
