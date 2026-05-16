@@ -4,23 +4,63 @@
 .btn:hover { background: #764ba2; }
 .card { background: #fff; padding: 20px; border-radius: 12px; margin: 10px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; }
 .card:hover { transform: translateX(5px); }
+.badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 10px; }
+.badge-admin { background: #fee2e2; color: #dc2626; }
+.badge-me { background: #dcfce7; color: #16a34a; }
+.badge-task { background: #fef3c7; color: #f59e0b; }
+.user-info { font-size: 13px; color: #6b7280; margin-top: 8px; }
 </style>
 <div class="container">
-  <h1>📅 Calendario</h1>
+  <h1>📅 Calendario 
+    <% if (isAdmin) { %>
+      <span style="font-size: 14px; color: #666;">(Ves todo el equipo)</span>
+    <% } %>
+  </h1>
   <a href="/calendar/new" class="btn">+ Nueva Reunión</a>
   
-  <h2 style="margin-top: 30px;">Mis Reuniones</h2>
-  <% if (meetings.length === 0) { %>
-    <p style="color: #666; padding: 20px;">No hay reuniones agendadas</p>
+  <h2 style="margin-top: 30px;">Reuniones y Tareas</h2>
+  <% const allEvents = [...meetings.map(m => ({...m, type: 'meeting'})), ...tasks.map(t => ({...t, type: 'task'}))].sort((a,b) => new Date(a.date || a.dueDate) - new Date(b.date || b.dueDate)); %>
+  
+  <% if (allEvents.length === 0) { %>
+    <p style="color: #666; padding: 20px;">No hay eventos agendados</p>
   <% } else { %>
-    <% meetings.forEach(m => { %>
-      <div class="card" onclick="window.location='/calendar/edit/<%= m._id %>'">
-        <h3><%= m.title %></h3>
-        <p>📅 <%= new Date(m.date).toLocaleDateString('es-CO') %> ⏰ <%= m.time %></p>
-        <% if (m.description) { %><p><%= m.description %></p><% } %>
-        <div style="margin-top: 10px;">
-          <a href="/calendar/edit/<%= m._id %>" class="btn" style="background: #f59e0b;">✏️ Editar</a>
-          <a href="/calendar/delete/<%= m._id %>" class="btn" style="background: #ef4444;" onclick="event.stopPropagation(); return confirm('¿Eliminar?')">🗑️ Eliminar</a>
+    <% allEvents.forEach(ev => { %>
+      <div class="card" onclick="window.location='/calendar/edit/<%= ev._id %>'">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+          <div style="flex: 1;">
+            <h3 style="margin: 0;">
+              <%= ev.title %>
+              <% if (ev.type === 'task') { %>
+                <span class="badge badge-task">TAREA</span>
+              <% } else { %>
+                <span class="badge badge-me">REUNIÓN</span>
+              <% } %>
+            </h3>
+            <p style="margin: 8px 0; color: #666;">
+              📅 <%= new Date(ev.date || ev.dueDate).toLocaleDateString('es-CO') %>
+              <% if (ev.time) { %>⏰ <%= ev.time %><% } %>
+            </p>
+            <% if (ev.description) { %><p style="margin: 8px 0;"><%= ev.description %></p><% } %>
+            
+            <% if (isAdmin && ev.createdBy) { %>
+              <div class="user-info">
+                👤 Creado por: <%= ev.createdBy.fullName || ev.createdBy.username %>
+                <% if (ev.assignedTo && ev.assignedTo._id.toString() !== ev.createdBy._id.toString()) { %>
+                  | 👉 Asignado a: <%= ev.assignedTo.fullName || ev.assignedTo.username %>
+                <% } %>
+              </div>
+            <% } %>
+            
+            <% if (!isAdmin && ev.assignedTo && ev.assignedTo._id.toString() !== currentUser._id.toString()) { %>
+              <div class="user-info">
+                👉 Asignado por: <%= ev.assignedTo.fullName || ev.assignedTo.username %>
+              </div>
+            <% } %>
+          </div>
+          <div>
+            <a href="/calendar/edit/<%= ev._id %>" class="btn" style="background: #f59e0b;">✏️</a>
+            <a href="/calendar/delete/<%= ev._id %>" class="btn" style="background: #ef4444;" onclick="event.stopPropagation(); return confirm('¿Eliminar?')">🗑️</a>
+          </div>
         </div>
       </div>
     <% }) %>

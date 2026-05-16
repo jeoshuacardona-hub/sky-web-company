@@ -3,7 +3,7 @@
 .card { background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .form-group { margin-bottom: 20px; }
 .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
-.form-group input, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; }
 .btn { display: block; width: 100%; padding: 14px; background: #667eea; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
 .btn:hover { background: #764ba2; }
 </style>
@@ -14,6 +14,19 @@
       <div class="form-group"><label>Título</label><input type="text" name="title" required></div>
       <div class="form-group"><label>Fecha</label><input type="date" name="date" required></div>
       <div class="form-group"><label>Hora</label><input type="time" name="time" required></div>
+      
+      <% if (isAdmin) { %>
+        <div class="form-group">
+          <label>Asignar a (opcional)</label>
+          <select name="assignedTo">
+            <option value="">Sin asignar (para mí)</option>
+            <% users.forEach(u => { %>
+              <option value="<%= u._id %>"><%= u.fullName || u.username %> (<%= u.email %>)</option>
+            <% }) %>
+          </select>
+        </div>
+      <% } %>
+      
       <div class="form-group"><label>Descripción</label><textarea name="description" rows="3"></textarea></div>
       <button type="submit" class="btn">💾 Guardar</button>
     </form>
