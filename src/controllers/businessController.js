@@ -1,29 +1,15 @@
 const Task = require('../models/Task');
 const User = require('../models/User');
+const Customer = require('../models/Customer');
 
 exports.getTasks = async (req, res, next) => {
     try {
-        // 1. Definir isAdmin correctamente
         const isAdmin = req.session.user && req.session.user.role === 'admin';
-        
-        // 2. Filtrar tareas: Admin ve todas, comercial solo las suyas
         const filter = isAdmin ? {} : { assignedTo: req.session.userId };
-        
         const tasks = await Task.find(filter).populate('assignedTo').populate('customer').sort({ createdAt: -1 });
-        
-        // 3. Obtener usuarios solo si es admin (para el selector de asignación)
         const users = isAdmin ? await User.find() : [];
-        
-        // 4. Pasar isAdmin a la vista
-        res.render('pages/tasks', { 
-            title: 'Tareas', 
-            tasks, 
-            users, 
-            isAdmin 
-        });
-    } catch (error) { 
-        next(error); 
-    }
+        res.render('pages/tasks', { title: 'Tareas', tasks, users, isAdmin });
+    } catch (error) { next(error); }
 };
 
 exports.createTask = async (req, res, next) => {
@@ -60,5 +46,12 @@ exports.deleteTask = async (req, res, next) => {
     try {
         await Task.findByIdAndDelete(req.params.id);
         res.redirect('/tasks');
+    } catch (error) { next(error); }
+};
+
+exports.getCustomers = async (req, res, next) => {
+    try {
+        const customers = await Customer.find().sort({ createdAt: -1 });
+        res.render('pages/customers', { title: 'Pipeline', customers });
     } catch (error) { next(error); }
 };
