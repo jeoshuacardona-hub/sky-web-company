@@ -34,12 +34,14 @@ app.use(function(req, res, next) {
     next();
 });
 
+// Rutas
 const authRoutes = require('./routes/authRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const leadRoutes = require('./routes/leadRoutes');
 const callRoutes = require('./routes/callRoutes');
 const businessRoutes = require('./routes/businessRoutes');
 
+// Registrar rutas
 app.use(dashboardRoutes);
 app.use(authRoutes);
 app.use(leadRoutes);

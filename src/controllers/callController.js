@@ -4,24 +4,23 @@ const Customer = require('../models/Customer');
 
 exports.getLlamadas = async (req, res, next) => {
     try {
-        // Consultar leads activos (new o contacted)
-        const leads = await Lead.find({ status: { $in: ['new', 'contacted'] } }).sort({ createdAt: -1 });
-        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        // Contar llamadas SOLO de hoy
+        // Obtener leads activos
+        const leads = await Lead.find({ status: { $in: ['new', 'contacted'] } }).sort({ createdAt: -1 });
+        
+        // Stats en tiempo real desde BD
         const callsToday = await CallLog.countDocuments({ 
             createdAt: { $gte: today }
         });
         
-        // Contar agendados SOLO de hoy
         const scheduledToday = await CallLog.countDocuments({ 
             outcome: 'scheduled',
             createdAt: { $gte: today }
         });
         
-        const totalNew = leads.length; // Ya filtrados por status en la query de arriba
+        const totalNew = leads.filter(l => l.status === 'new').length;
         
         res.render('pages/llamadas', { 
             title: 'Llamadas', 
@@ -30,7 +29,9 @@ exports.getLlamadas = async (req, res, next) => {
             scheduledToday, 
             totalNew 
         });
-    } catch (error) { next(error); }
+    } catch (error) { 
+        next(error); 
+    }
 };
 
 exports.getSeguimiento = async (req, res, next) => {

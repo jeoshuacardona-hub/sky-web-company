@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 
-// Redirigir raíz a leads que sí existe
+// Redirigir raíz a leads que sí existe y funciona
 router.get('/', authMiddleware, function(req, res) {
     res.redirect('/leads');
 });
