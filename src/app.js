@@ -5,10 +5,8 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const mongoose = require('mongoose');
 const expressLayouts = require('express-ejs-layouts');
-const seedAdmin = require('./seedAdmin');
 
 dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -17,20 +15,19 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(expressLayouts);
 app.set('layout', 'layouts/main');
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback_secret',
+    secret: process.env.SESSION_SECRET || 'secret',
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
-    cookie: { secure: process.env.ENV === 'production', maxAge: 1000 * 60 * 60 * 24 }
+    cookie: { secure: false, maxAge: 1000 * 60 * 60 * 24 }
 }));
 
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
     res.locals.currentUser = req.session.user || null;
     next();
 });
@@ -54,22 +51,10 @@ app.use(debugRoutes);
 app.use(calendarRoutes);
 
 mongoose.connect(process.env.MONGODB_URI)
-    .then(async () => {
+    .then(() => {
         console.log('✅ Connected to MongoDB');
-        await seedAdmin();
         app.listen(PORT, '0.0.0.0', () => console.log('🚀 Server started on port ' + PORT));
     })
-    .catch(function(err) { 
-        console.error('❌ MongoDB Connection Error:', err.message); 
-        process.exit(1); 
-    });
+    .catch(err => { console.error('❌ MongoDB Error:', err.message); process.exit(1); });
 
 module.exports = app;
-
-// Calendar routes
-const calendarRoutes = require('./routes/calendarRoutes');
-app.use(calendarRoutes);
-
-// Calendar routes
-const calendarRoutes = require('./routes/calendarRoutes');
-app.use(calendarRoutes);
