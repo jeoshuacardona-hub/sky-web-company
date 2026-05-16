@@ -65,3 +65,11 @@ mongoose.connect(process.env.MONGODB_URI)
     });
 
 module.exports = app;
+
+// Calendar routes
+const calendarRoutes = require('./routes/calendarRoutes');
+app.use(calendarRoutes);
+
+// Calendar routes
+const calendarRoutes = require('./routes/calendarRoutes');
+app.use(calendarRoutes);

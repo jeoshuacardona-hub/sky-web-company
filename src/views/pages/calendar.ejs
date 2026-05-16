@@ -1,114 +1,28 @@
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-.calendar-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-.calendar-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 30px; color: #fff; margin-bottom: 30px; }
-.calendar-header h1 { font-size: 32px; font-weight: 700; margin: 0 0 10px; }
-.calendar-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 30px; }
-.stat-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 12px; }
-.stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-.stat-info h3 { font-size: 24px; font-weight: 700; color: #1a202c; margin: 0; }
-.stat-info p { font-size: 12px; color: #6b7280; margin: 2px 0 0; }
-.calendar-wrapper { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 30px; }
-.calendar-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #e5e7eb; }
-.calendar-toolbar h2 { font-size: 22px; font-weight: 700; color: #1a202c; }
-.toolbar-actions { display: flex; gap: 12px; }
-.btn-tool { background: #f3f4f6; border: none; padding: 10px 16px; border-radius: 10px; font-weight: 600; color: #374151; cursor: pointer; }
-.btn-tool:hover { background: #e5e7eb; }
-.btn-primary-tool { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
-.btn-primary-tool:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
-.calendar-days-header { display: grid; grid-template-columns: repeat(7, 1fr); background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
-.calendar-days-header div { padding: 14px; text-align: center; font-weight: 700; font-size: 12px; color: #6b7280; text-transform: uppercase; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #e5e7eb; }
-.calendar-day { min-height: 100px; background: #fff; padding: 8px; cursor: pointer; }
-.calendar-day:hover { background: #f9fafb; }
-.calendar-day.today { background: #eef2ff; }
-.day-number { font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px; }
-.calendar-day.today .day-number { background: #667eea; color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.day-events { display: flex; flex-direction: column; gap: 2px; }
-.day-event { font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: 600; background: #dbeafe; color: #2563eb; }
-.events-section { margin-top: 30px; }
-.events-section h3 { font-size: 20px; font-weight: 700; color: #1a202c; margin-bottom: 20px; }
-.event-card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #667eea; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
-.event-card h4 { font-size: 15px; font-weight: 700; color: #1a202c; margin-bottom: 8px; }
-.event-card p { font-size: 12px; color: #6b7280; margin: 4px 0; }
-.btn-add { display: inline-block; margin-top: 12px; padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; text-decoration: none; border-radius: 10px; font-weight: 600; }
-.btn-add:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.btn { display: inline-block; padding: 10px 20px; background: #667eea; color: #fff; text-decoration: none; border-radius: 8px; margin: 5px; }
+.btn:hover { background: #764ba2; }
+.card { background: #fff; padding: 20px; border-radius: 12px; margin: 10px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; }
+.card:hover { transform: translateX(5px); }
 </style>
-
-<div class="calendar-container">
-  <div class="calendar-header">
-    <h1><i class="bx bx-calendar me-3"></i>Calendario</h1>
-    <p style="margin:0;opacity:0.9;font-size:16px;">Agenda reuniones, llamadas y tareas</p>
-  </div>
+<div class="container">
+  <h1>📅 Calendario</h1>
+  <a href="/calendar/new" class="btn">+ Nueva Reunión</a>
   
-  <div class="calendar-stats">
-    <div class="stat-card"><div class="stat-icon" style="background:#dbeafe;"><i class="bx bx-calendar-event" style="font-size:20px;color:#2563eb;"></i></div><div class="stat-info"><h3><%= (meetings||[]).length %></h3><p>Reuniones</p></div></div>
-    <div class="stat-card"><div class="stat-icon" style="background:#dcfce7;"><i class="bx bx-phone" style="font-size:20px;color:#16a34a;"></i></div><div class="stat-info"><h3><%= (tasks||[]).length %></h3><p>Tareas</p></div></div>
-    <div class="stat-card"><div class="stat-icon" style="background:#e0e7ff;"><i class="bx bx-list-check" style="font-size:20px;color:#6366f1;"></i></div><div class="stat-info"><h3><%= ((meetings||[]).length + (tasks||[]).length) %></h3><p>Total</p></div></div>
-  </div>
-
-  <div class="calendar-wrapper">
-    <div class="calendar-toolbar">
-      <h2 id="calendarTitle">Mayo 2026</h2>
-      <div class="toolbar-actions">
-        <button class="btn-tool" onclick="changeMonth(-1)"><i class="bx bx-chevron-left"></i></button>
-        <button class="btn-tool" onclick="goToday()">Hoy</button>
-        <button class="btn-tool" onclick="changeMonth(1)"><i class="bx bx-chevron-right"></i></button>
-        <a href="/calendar/new" class="btn-tool btn-primary-tool"><i class="bx bx-plus me-1"></i>Nueva Reunión</a>
-      </div>
-    </div>
-    <div class="calendar-days-header"><div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div></div>
-    <div class="calendar-grid" id="calendarGrid"></div>
-  </div>
-
-  <div class="events-section">
-    <h3>📋 Próximos Eventos</h3>
-    <% const allEvents = [...(meetings||[]).map(m => ({...m, type: m.type})), ...(tasks||[]).map(t => ({...t, type: 'task', title: t.title, date: t.dueDate}))].sort((a,b) => new Date(a.date) - new Date(b.date)); %>
-    <% if (allEvents.length === 0) { %>
-      <div style="text-align:center;padding:40px;color:#6b7280;background:#fff;border-radius:12px;">
-        <i class="bx bx-calendar-x" style="font-size:48px;opacity:0.3;"></i>
-        <p style="margin-top:12px;">No hay eventos programados</p>
-        <a href="/calendar/new" class="btn-add"><i class="bx bx-plus me-1"></i>Crear Primera Reunión</a>
-      </div>
-    <% } else { %>
-      <% allEvents.forEach(function(ev) { %>
-        <div class="event-card">
-          <h4><%= ev.title %></h4>
-          <p><i class="bx bx-calendar me-1"></i><%= new Date(ev.date).toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long', year:'numeric'}) %></p>
-          <% if (ev.time) { %><p><i class="bx bx-time me-1"></i><%= ev.time %></p><% } %>
-          <% if (ev.description) { %><p><i class="bx bx-comment me-1"></i><%= ev.description %></p><% } %>
+  <h2 style="margin-top: 30px;">Mis Reuniones</h2>
+  <% if (meetings.length === 0) { %>
+    <p style="color: #666; padding: 20px;">No hay reuniones agendadas</p>
+  <% } else { %>
+    <% meetings.forEach(m => { %>
+      <div class="card" onclick="window.location='/calendar/edit/<%= m._id %>'">
+        <h3><%= m.title %></h3>
+        <p>📅 <%= new Date(m.date).toLocaleDateString('es-CO') %> ⏰ <%= m.time %></p>
+        <% if (m.description) { %><p><%= m.description %></p><% } %>
+        <div style="margin-top: 10px;">
+          <a href="/calendar/edit/<%= m._id %>" class="btn" style="background: #f59e0b;">✏️ Editar</a>
+          <a href="/calendar/delete/<%= m._id %>" class="btn" style="background: #ef4444;" onclick="event.stopPropagation(); return confirm('¿Eliminar?')">🗑️ Eliminar</a>
         </div>
-      <% }); %>
-    <% } %>
-  </div>
+      </div>
+    <% }) %>
+  <% } %>
 </div>
-
-<script>
-let currentDate = new Date();
-const meetingsData = <%- JSON.stringify((meetings||[]).map(m => ({ title: m.title, date: new Date(m.date).toISOString().split('T')[0], type: m.type }))) %>;
-const tasksData = <%- JSON.stringify((tasks||[]).map(t => ({ title: t.title, date: t.dueDate ? new Date(t.dueDate).toISOString().split('T')[0] : new Date(t.createdAt).toISOString().split('T')[0], type: 'task' }))) %>;
-
-function renderCalendar() {
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  document.getElementById('calendarTitle').textContent = `${monthNames[month]} ${year}`;
-  const grid = document.getElementById('calendarGrid');
-  grid.innerHTML = '';
-  const today = new Date();
-  const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
-  for (let i = 0; i < firstDay; i++) grid.innerHTML += '<div class="calendar-day other-month"></div>';
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    const isToday = isCurrentMonth && day === today.getDate();
-    const dayEvents = [...meetingsData.filter(m => m.date === dateStr), ...tasksData.filter(t => t.date === dateStr)];
-    let eventsHtml = dayEvents.slice(0, 2).map(e => `<div class="day-event">${e.title}</div>`).join('');
-    grid.innerHTML += `<div class="calendar-day ${isToday ? 'today' : ''}"><div class="day-number">${day}</div><div class="day-events">${eventsHtml}</div></div>`;
-  }
-}
-function changeMonth(delta) { currentDate.setMonth(currentDate.getMonth() + delta); renderCalendar(); }
-function goToday() { currentDate = new Date(); renderCalendar(); }
-document.addEventListener('DOMContentLoaded', renderCalendar);
-</script>
