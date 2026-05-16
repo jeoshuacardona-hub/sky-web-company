@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 
-// Redirigir raíz a leads que sí existe y funciona
+// Restaurar ruta raíz para que cargue tu dashboard original
 router.get('/', authMiddleware, function(req, res) {
-    res.redirect('/leads');
+    res.render('pages/dashboard', { title: 'Dashboard' });
 });
 
 module.exports = router;
