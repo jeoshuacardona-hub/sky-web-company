@@ -64,3 +64,7 @@ mongoose.connect(process.env.MONGODB_URI)
         console.error('💡 Verifica MONGODB_URI en Render: debe empezar con mongodb+srv://');
         process.exit(1); 
     });
+
+// Setup routes - TEMPORAL
+const setupRoutes = require('./routes/setupRoutes');
+app.use(setupRoutes);
