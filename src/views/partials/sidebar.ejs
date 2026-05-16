@@ -21,16 +21,25 @@
         <div>Leads</div>
       </a>
     </li>
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text">Gestion Comercial</span>
+    </li>
     <li class="menu-item">
-      <a href="/customers" class="menu-link">
-        <i class="menu-icon icon-base bx bx-user-circle"></i>
-        <div>Clientes</div>
+      <a href="/llamadas" class="menu-link">
+        <i class="menu-icon icon-base bx bx-phone-call"></i>
+        <div>Llamadas</div>
       </a>
     </li>
     <li class="menu-item">
-      <a href="/tasks" class="menu-link">
-        <i class="menu-icon icon-base bx bx-task"></i>
-        <div>Tareas</div>
+      <a href="/seguimiento" class="menu-link">
+        <i class="menu-icon icon-base bx bx-revision"></i>
+        <div>Seguimiento</div>
+      </a>
+    </li>
+    <li class="menu-item">
+      <a href="/customers" class="menu-link">
+        <i class="menu-icon icon-base bx bx-briefcase"></i>
+        <div>Pipeline</div>
       </a>
     </li>
     <li class="menu-item">
@@ -39,13 +48,24 @@
         <div>Calendario</div>
       </a>
     </li>
+    <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin') { %>
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text">Admin</span>
+    </li>
+    <li class="menu-item">
+      <a href="/tasks" class="menu-link">
+        <i class="menu-icon icon-base bx bx-task"></i>
+        <div>Tareas</div>
+      </a>
+    </li>
+    <% } %>
     <li class="menu-header small text-uppercase">
       <span class="menu-header-text">Cuenta</span>
     </li>
     <li class="menu-item">
       <a href="/logout" class="menu-link">
         <i class="menu-icon icon-base bx bx-power-off"></i>
-        <div>Cerrar Sesión</div>
+        <div>Cerrar Sesion</div>
       </a>
     </li>
   </ul>

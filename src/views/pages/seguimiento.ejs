@@ -1,0 +1,286 @@
+<style>
+.followup-card { background:#fff; border-radius:10px; border:1px solid #f0f0f0; padding:16px; margin-bottom:10px; transition:box-shadow 0.15s; }
+.followup-card:hover { box-shadow:0 4px 14px rgba(0,0,0,0.07); }
+.avatar-sm { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; }
+.badge-callback { background:#fff8e6; color:#b36800; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.badge-rejected { background:#fff0ee; color:#b32020; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.due-overdue { background:#fde8e8; color:#b32020; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.due-today { background:#e8eaff; color:#4a50d4; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.due-upcoming { background:#f5f5f5; color:#8a8d9f; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.stat-sm { background:#fff; border-radius:12px; padding:14px 18px; border:1px solid #f0f0f0; display:flex; align-items:center; gap:12px; }
+.outcome-option { border:2px solid #f0f0f0; border-radius:12px; padding:16px 8px; cursor:pointer; transition:all 0.15s; text-align:center; height:100%; }
+.outcome-option:hover { border-color:#bbb; }
+.outcome-option.selected-scheduled { border-color:#71dd37!important; background:#f0faeb!important; }
+.outcome-option.selected-callback { border-color:#ffab00!important; background:#fff8e6!important; }
+.outcome-option.selected-rejected { border-color:#ff3e1d!important; background:#fff0ee!important; }
+.outcome-option.selected-no_answer { border-color:#8a8d9f!important; background:#f5f5f5!important; }
+</style>
+
+<%
+var colorMap = ['#696cff','#03c3ec','#71dd37','#ff3e1d','#ffab00','#20c997'];
+function getInitials(name){ if(!name)return'?'; return name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2); }
+function getColor(str){ var h=0; for(var i=0;i<(str||'').length;i++) h=str.charCodeAt(i)+((h<<5)-h); return colorMap[Math.abs(h)%colorMap.length]; }
+var pendingCallbacks = followups.filter(function(f){ return f.outcome === 'callback'; }).length;
+var pendingRejected = followups.filter(function(f){ return f.outcome === 'rejected'; }).length;
+var overdueCount = followups.filter(function(f){ return f.callbackDate && new Date(f.callbackDate) < today; }).length;
+%>
+
+<div class="d-flex flex-wrap gap-3 mb-4">
+  <div class="stat-sm">
+    <div style="width:38px;height:38px;border-radius:10px;background:#ffab0022;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-time" style="font-size:20px;color:#ffab00;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Para Rellamar</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;"><%= pendingCallbacks %></p>
+    </div>
+  </div>
+  <div class="stat-sm">
+    <div style="width:38px;height:38px;border-radius:10px;background:#ff3e1d22;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-x-circle" style="font-size:20px;color:#ff3e1d;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">No Interesados</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#ff3e1d;"><%= pendingRejected %></p>
+    </div>
+  </div>
+  <div class="stat-sm">
+    <div style="width:38px;height:38px;border-radius:10px;background:#b3202022;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-alarm-exclamation" style="font-size:20px;color:#b32020;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Vencidos</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#b32020;"><%= overdueCount %></p>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="border-radius:12px;border:1px solid #f0f0f0;box-shadow:0 2px 12px rgba(0,0,0,0.04);">
+  <div class="card-header d-flex align-items-center justify-content-between py-3 px-4" style="background:#fff;border-bottom:1px solid #f0f0f0;border-radius:12px 12px 0 0;">
+    <div>
+      <h6 class="mb-0" style="font-weight:700;">Seguimiento</h6>
+      <p class="mb-0" style="font-size:12px;color:#8a8d9f;">Leads que requieren una segunda llamada</p>
+    </div>
+    <a href="/llamadas" class="btn btn-sm btn-primary"><i class="bx bx-phone me-1"></i> Ir a Llamadas</a>
+  </div>
+
+  <% if (followups.length === 0) { %>
+    <div style="text-align:center;padding:56px 0;">
+      <i class="bx bx-check-double" style="font-size:48px;color:#71dd37;display:block;margin-bottom:12px;"></i>
+      <p style="font-weight:600;color:#5d596c;margin-bottom:4px;">Todo al dia</p>
+      <p style="font-size:13px;color:#c5c7d4;margin:0;">No hay leads pendientes de seguimiento</p>
+    </div>
+  <% } %>
+
+  <div class="px-4 py-3">
+    <% followups.forEach(function(f) {
+      if (!f.lead) return;
+      var initials = getInitials(f.lead.name);
+      var color = getColor(f.lead.name);
+      var cbDate = f.callbackDate ? new Date(f.callbackDate) : null;
+      var isOverdue = cbDate && cbDate < today;
+      var isToday = cbDate && cbDate.toDateString() === today.toDateString();
+      var dueCls = isOverdue ? 'due-overdue' : isToday ? 'due-today' : 'due-upcoming';
+      var dueLabel = isOverdue ? 'Vencido' : isToday ? 'Hoy' : (cbDate ? cbDate.toLocaleDateString('es-CO',{day:'2-digit',month:'short'}) : '');
+    %>
+    <div class="followup-card" id="followup-<%= f._id %>">
+      <div class="d-flex align-items-start gap-3">
+        <div class="avatar-sm mt-1" style="background:<%= color %>22;color:<%= color %>;"><%= initials %></div>
+        <div style="flex:1;min-width:0;">
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+            <p class="mb-0" style="font-size:14px;font-weight:700;"><%= f.lead.name %></p>
+            <span class="<%= f.outcome === 'callback' ? 'badge-callback' : 'badge-rejected' %>">
+              <%= f.outcome === 'callback' ? 'Rellamar' : 'No interesado' %>
+            </span>
+            <% if (dueLabel) { %>
+              <span class="<%= dueCls %>"><i class="bx bx-calendar me-1"></i><%= dueLabel %></span>
+            <% } %>
+          </div>
+          <div class="d-flex gap-3 flex-wrap mb-2">
+            <% if (f.lead.phone) { %><span style="font-size:12px;color:#5d596c;"><i class="bx bx-phone" style="font-size:12px;"></i> <%= f.lead.phone %></span><% } %>
+            <% if (f.lead.company) { %><span style="font-size:12px;color:#8a8d9f;"><i class="bx bx-buildings" style="font-size:12px;"></i> <%= f.lead.company %></span><% } %>
+          </div>
+          <% if (f.rejectionReason) { %><p style="font-size:12px;color:#8a8d9f;margin:0;"><strong>Motivo:</strong> <%= f.rejectionReason %></p><% } %>
+          <% if (f.notes) { %><p style="font-size:12px;color:#8a8d9f;margin:0;"><strong>Notas:</strong> <%= f.notes %></p><% } %>
+        </div>
+        <div class="d-flex flex-column gap-2 flex-shrink-0">
+          <button class="btn btn-sm btn-outline-secondary"
+            data-id="<%= f._id %>"
+            data-leadid="<%= f.lead._id %>"
+            data-name="<%= f.lead.name %>"
+            data-phone="<%= f.lead.phone || '' %>"
+            data-company="<%= f.lead.company || '' %>"
+            onclick="abrirRellamar(this)">
+            <i class="bx bx-phone me-1"></i> Llamar de nuevo
+          </button>
+          <button class="btn btn-sm btn-outline-danger"
+            data-id="<%= f._id %>"
+            onclick="resolverSeguimiento(this)">
+            <i class="bx bx-archive me-1"></i> Archivar
+          </button>
+        </div>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+</div>
+
+<!-- Modal Rellamar -->
+<div class="modal fade" id="rellamarModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
+      <div class="modal-header border-0 pb-0 px-4 pt-4">
+        <div>
+          <h5 class="modal-title mb-0" style="font-weight:700;">Nueva Llamada</h5>
+          <p class="text-muted mb-0" style="font-size:13px;" id="rellamarInfo"></p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4 pt-3">
+        <input type="hidden" id="rellamarFollowupId">
+        <input type="hidden" id="rellamarLeadId">
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#8a8d9f;margin-bottom:10px;">Resultado</p>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div class="outcome-option" onclick="selectOutcomeR(this,'scheduled')">
+              <i class="bx bx-calendar-check" style="font-size:26px;color:#71dd37;display:block;margin-bottom:6px;"></i>
+              <p style="font-size:11px;font-weight:700;margin:0;color:#71dd37;">Agendo Reunion</p>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="outcome-option" onclick="selectOutcomeR(this,'callback')">
+              <i class="bx bx-time" style="font-size:26px;color:#ffab00;display:block;margin-bottom:6px;"></i>
+              <p style="font-size:11px;font-weight:700;margin:0;color:#ffab00;">Volver a Llamar</p>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="outcome-option" onclick="selectOutcomeR(this,'rejected')">
+              <i class="bx bx-x-circle" style="font-size:26px;color:#ff3e1d;display:block;margin-bottom:6px;"></i>
+              <p style="font-size:11px;font-weight:700;margin:0;color:#ff3e1d;">No Interesado</p>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="outcome-option" onclick="selectOutcomeR(this,'no_answer')">
+              <i class="bx bx-phone-off" style="font-size:26px;color:#8a8d9f;display:block;margin-bottom:6px;"></i>
+              <p style="font-size:11px;font-weight:700;margin:0;color:#8a8d9f;">No Contesto</p>
+            </div>
+          </div>
+        </div>
+        <div id="rExtraScheduled" style="display:none;" class="mb-3">
+          <label class="form-label fw-semibold" style="font-size:13px;">Valor estimado ($)</label>
+          <input type="number" id="rCallValue" class="form-control" placeholder="2000000">
+        </div>
+        <div id="rExtraCallback" style="display:none;" class="mb-3">
+          <label class="form-label fw-semibold" style="font-size:13px;">Nueva fecha para rellamar</label>
+          <input type="date" id="rCallbackDate" class="form-control">
+        </div>
+        <div id="rExtraRejected" style="display:none;" class="mb-3">
+          <label class="form-label fw-semibold" style="font-size:13px;">Motivo</label>
+          <select id="rRejectionReason" class="form-select">
+            <option value="">Seleccionar...</option>
+            <option>No tiene presupuesto</option>
+            <option>Ya tiene proveedor</option>
+            <option>No es el momento</option>
+            <option>No le interesa el servicio</option>
+            <option>No contesta repetidamente</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label fw-semibold" style="font-size:13px;">Notas</label>
+          <textarea id="rNotes" class="form-control" rows="2" placeholder="Comentarios..."></textarea>
+        </div>
+        <div id="rellamarResult" style="display:none;"></div>
+      </div>
+      <div class="modal-footer border-0 px-4 pb-4 pt-2">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button id="submitRellamarBtn" class="btn btn-primary px-4" onclick="submitRellamar()" disabled>
+          <i class="bx bx-check me-1"></i> Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var selectedOutcomeR = null;
+
+function abrirRellamar(btn) {
+  selectedOutcomeR = null;
+  document.getElementById('rellamarFollowupId').value = btn.dataset.id;
+  document.getElementById('rellamarLeadId').value = btn.dataset.leadid;
+  document.getElementById('rellamarInfo').textContent = btn.dataset.name + (btn.dataset.phone ? ' - ' + btn.dataset.phone : '') + (btn.dataset.company ? ' | ' + btn.dataset.company : '');
+  document.getElementById('rNotes').value = '';
+  document.getElementById('rCallValue').value = '';
+  document.getElementById('rCallbackDate').value = '';
+  document.getElementById('rRejectionReason').value = '';
+  document.getElementById('rellamarResult').style.display = 'none';
+  document.getElementById('submitRellamarBtn').disabled = true;
+  document.querySelectorAll('.outcome-option').forEach(function(el){ el.className = 'outcome-option'; });
+  ['rExtraScheduled','rExtraCallback','rExtraRejected'].forEach(function(id){ document.getElementById(id).style.display='none'; });
+  new bootstrap.Modal(document.getElementById('rellamarModal')).show();
+}
+
+function selectOutcomeR(el, outcome) {
+  selectedOutcomeR = outcome;
+  document.querySelectorAll('.outcome-option').forEach(function(o){ o.className = 'outcome-option'; });
+  el.className = 'outcome-option selected-' + outcome;
+  document.getElementById('rExtraScheduled').style.display = outcome === 'scheduled' ? 'block' : 'none';
+  document.getElementById('rExtraCallback').style.display = outcome === 'callback' ? 'block' : 'none';
+  document.getElementById('rExtraRejected').style.display = outcome === 'rejected' ? 'block' : 'none';
+  document.getElementById('submitRellamarBtn').disabled = false;
+}
+
+async function resolverSeguimiento(btn) {
+  if (!confirm('Archivar este seguimiento?')) return;
+  var id = btn.dataset.id;
+  try {
+    var res = await fetch('/api/seguimiento/' + id + '/resolver', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    var data = await res.json();
+    if (data.success) {
+      var card = document.getElementById('followup-' + id);
+      if (card) { card.style.opacity='0'; card.style.transition='opacity 0.3s'; setTimeout(function(){ card.remove(); }, 300); }
+    }
+  } catch(e) { alert('Error de conexion.'); }
+}
+
+async function submitRellamar() {
+  if (!selectedOutcomeR) return;
+  var btn = document.getElementById('submitRellamarBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Guardando...';
+  var followupId = document.getElementById('rellamarFollowupId').value;
+  try {
+    await fetch('/api/seguimiento/' + followupId + '/resolver', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    var res = await fetch('/api/llamadas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        leadId: document.getElementById('rellamarLeadId').value,
+        outcome: selectedOutcomeR,
+        notes: document.getElementById('rNotes').value,
+        value: document.getElementById('rCallValue').value,
+        callbackDate: document.getElementById('rCallbackDate').value,
+        rejectionReason: document.getElementById('rRejectionReason').value
+      })
+    });
+    var data = await res.json();
+    var el = document.getElementById('rellamarResult');
+    if (data.success) {
+      var msgs = { scheduled:'Reunion agendada. Paso a Pipeline.', callback:'Seguimiento reprogramado.', rejected:'Marcado como no interesado.', no_answer:'Llamada registrada.' };
+      el.innerHTML = '<div style="background:#e2f8ef;border-radius:10px;padding:12px;font-size:13px;font-weight:600;color:#1a7a50;margin-top:8px;"><i class="bx bx-check-circle me-1"></i>' + (msgs[selectedOutcomeR] || 'Guardado.') + '</div>';
+      el.style.display = 'block';
+      setTimeout(function(){ location.reload(); }, 1800);
+    } else {
+      el.innerHTML = '<div style="background:#fde8e8;border-radius:10px;padding:12px;font-size:13px;color:#b32020;margin-top:8px;">' + (data.message || 'Error al guardar') + '</div>';
+      el.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bx bx-check me-1"></i> Guardar';
+    }
+  } catch(e) {
+    alert('Error de conexion.');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bx bx-check me-1"></i> Guardar';
+  }
+}
+</script>

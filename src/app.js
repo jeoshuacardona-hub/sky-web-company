@@ -13,7 +13,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
-
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(expressLayouts);
@@ -31,20 +30,27 @@ app.use(session({
     cookie: { secure: process.env.ENV === 'production', maxAge: 1000 * 60 * 60 * 24 }
 }));
 
+app.use(function(req, res, next) {
+    res.locals.currentUser = req.session.user || null;
+    next();
+});
+
 const authRoutes = require('./routes/authRoutes');
 const businessRoutes = require('./routes/businessRoutes');
 const leadRoutes = require('./routes/leadRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
+const callRoutes = require('./routes/callRoutes');
 
 app.use(authRoutes);
 app.use(businessRoutes);
 app.use(leadRoutes);
 app.use(calendarRoutes);
+app.use(callRoutes);
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(async () => {
-        console.log('✅ Connected to MongoDB');
+        console.log('Connected to MongoDB');
         await seedService();
-        app.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server started on port ${PORT}`));
+        app.listen(PORT, '0.0.0.0', () => console.log('Server started on port ' + PORT));
     })
-    .catch(err => { console.error('❌ MongoDB Connection Error:', err); process.exit(1); });
+    .catch(function(err) { console.error('MongoDB Connection Error:', err); process.exit(1); });
