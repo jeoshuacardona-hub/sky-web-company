@@ -68,3 +68,17 @@ exports.deleteCustomer = async (req, res, next) => {
         res.redirect('/customers');
     } catch (error) { next(error); }
 };
+
+exports.updateCustomer = async (req, res, next) => {
+    try {
+        await Customer.findByIdAndUpdate(req.params.id, req.body);
+        res.redirect('/customers');
+    } catch (error) { next(error); }
+};
+
+exports.deleteCustomer = async (req, res, next) => {
+    try {
+        await Customer.findByIdAndDelete(req.params.id);
+        res.redirect('/customers');
+    } catch (error) { next(error); }
+};
