@@ -1,233 +1,574 @@
 <style>
-.profile-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 16px;
-  padding: 40px;
-  color: #fff;
-  margin-bottom: 24px;
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+.profile-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Header Banner */
+.profile-header-banner {
+  height: 300px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   position: relative;
   overflow: hidden;
+  border-radius: 0 0 24px 24px;
 }
-.profile-header::before {
+
+.profile-header-banner::before {
   content: '';
   position: absolute;
   top: -50%;
-  right: -10%;
-  width: 300px;
-  height: 300px;
+  right: -20%;
+  width: 600px;
+  height: 600px;
   background: rgba(255,255,255,0.1);
   border-radius: 50%;
 }
-.avatar-upload {
-  width: 120px;
-  height: 120px;
+
+.profile-header-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 400px;
+  height: 400px;
+  background: rgba(255,255,255,0.08);
   border-radius: 50%;
-  background: #fff;
+}
+
+/* Profile Card */
+.profile-card-main {
+  background: #1e293b;
+  border-radius: 20px;
+  padding: 30px;
+  margin-top: -120px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.profile-top-section {
+  display: flex;
+  gap: 30px;
+  align-items: flex-end;
+  margin-bottom: 30px;
+}
+
+.profile-avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.profile-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
-  position: relative;
-  border: 4px solid rgba(255,255,255,0.3);
+  font-size: 56px;
+  font-weight: 700;
+  color: #fff;
+  border: 5px solid #1e293b;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  overflow: hidden;
 }
-.avatar-upload img {
+
+.profile-avatar img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
   object-fit: cover;
 }
-.avatar-upload .edit-avatar {
+
+.profile-avatar-edit {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 36px;
-  height: 36px;
+  bottom: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
   background: #667eea;
-  border-radius: 50%;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: #fff;
-  border: 3px solid #fff;
-}
-.profile-card {
-  background: #fff;
-  border-radius: 16px;
-  border: 1px solid #e4e6eb;
-  padding: 32px;
-  margin-bottom: 24px;
-}
-.form-label-custom {
-  font-size: 13px;
-  font-weight: 600;
-  color: #4a5568;
-  margin-bottom: 8px;
-  display: block;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.form-control-custom {
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px 16px;
-  font-size: 15px;
+  border: 3px solid #1e293b;
   transition: all 0.3s;
-  width: 100%;
 }
-.form-control-custom:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-  outline: none;
+
+.profile-avatar-edit:hover {
+  background: #764ba2;
+  transform: scale(1.1);
 }
-.btn-save {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+.profile-info-main {
+  flex: 1;
   color: #fff;
-  border: none;
-  padding: 12px 32px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
+  padding-bottom: 10px;
 }
-.btn-save:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+
+.profile-name {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-.badge-role {
-  display: inline-block;
+
+.profile-role-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 6px 16px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
-  margin-left: 12px;
+  letter-spacing: 0.5px;
 }
-.badge-admin { background: #fee2e2; color: #dc2626; }
-.badge-comercial { background: #dcfce7; color: #16a34a; }
-.badge-user { background: #e0e7ff; color: #6366f1; }
-.alert-custom {
+
+.profile-meta {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.profile-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-meta-item i {
+  font-size: 16px;
+}
+
+.profile-actions {
+  padding-bottom: 10px;
+}
+
+.btn-connect {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 32px;
   border-radius: 12px;
-  padding: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.btn-connect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+/* Tabs */
+.profile-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #334155;
+  padding-bottom: 0;
+}
+
+.profile-tab {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 12px 12px 0 0;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.profile-tab:hover:not(.active) {
+  background: #334155;
+  color: #fff;
+}
+
+/* Content Grid */
+.profile-content-grid {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
+}
+
+/* Sidebar Card */
+.profile-sidebar-card {
+  background: #1e293b;
+  border-radius: 16px;
+  padding: 24px;
   margin-bottom: 24px;
+}
+
+.profile-sidebar-title {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
+}
+
+.profile-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  color: #e2e8f0;
+  font-size: 14px;
+}
+
+.profile-info-item i {
+  color: #667eea;
+  font-size: 16px;
+  margin-top: 2px;
+}
+
+.profile-info-item strong {
+  color: #94a3b8;
+  margin-right: 4px;
+}
+
+/* Main Content Card */
+.profile-main-card {
+  background: #1e293b;
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 24px;
+}
+
+.profile-card-title {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-card-title i {
+  color: #667eea;
+}
+
+/* Form Styles */
+.form-group-modern {
+  margin-bottom: 20px;
+}
+
+.form-label-modern {
+  display: block;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-control-modern {
+  width: 100%;
+  background: #0f172a;
+  border: 2px solid #334155;
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.3s;
+}
+
+.form-control-modern:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.form-control-modern::placeholder {
+  color: #64748b;
+}
+
+.btn-save-modern {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s;
+  margin-top: 10px;
+}
+
+.btn-save-modern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+/* Alert */
+.alert-modern {
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+}
+
+.alert-success-modern {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid #22c55e;
+  color: #22c55e;
+}
+
+.alert-danger-modern {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+  .profile-content-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .profile-top-section {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .profile-meta {
+    justify-content: center;
+  }
+  
+  .profile-tabs {
+    overflow-x: auto;
+  }
 }
 </style>
 
-<div class="profile-header">
-  <div class="d-flex align-items-center gap-4">
-    <div class="avatar-upload">
-      <% if (user.avatar) { %>
-        <img src="<%= user.avatar %>" alt="<%= user.fullName %>">
-      <% } else { %>
-        <div style="width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:48px;font-weight:700;">
-          <%= user.fullName ? user.fullName.split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2) : user.username.substring(0,2).toUpperCase() %>
+<div class="profile-container">
+  <!-- Banner -->
+  <div class="profile-header-banner"></div>
+  
+  <!-- Main Profile Card -->
+  <div class="profile-card-main">
+    <div class="profile-top-section">
+      <div class="profile-avatar-wrapper">
+        <div class="profile-avatar">
+          <% if (user.avatar) { %>
+            <img src="<%= user.avatar %>" alt="<%= user.fullName %>">
+          <% } else { %>
+            <%= user.fullName ? user.fullName.split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2) : user.username.substring(0,2).toUpperCase() %>
+          <% } %>
         </div>
-      <% } %>
-      <div class="edit-avatar" onclick="document.getElementById('avatarInput').click()">
-        <i class="bx bx-camera"></i>
+        <div class="profile-avatar-edit" onclick="document.getElementById('avatarInput').click()">
+          <i class="bx bx-camera"></i>
+        </div>
+      </div>
+      
+      <div class="profile-info-main">
+        <h1 class="profile-name">
+          <%= user.fullName || user.username %>
+          <span class="profile-role-badge"><%= user.role %></span>
+        </h1>
+        <div class="profile-meta">
+          <div class="profile-meta-item">
+            <i class="bx bx-briefcase"></i>
+            <span><%= user.department || 'Sin departamento' %></span>
+          </div>
+          <div class="profile-meta-item">
+            <i class="bx bx-envelope"></i>
+            <span><%= user.email %></span>
+          </div>
+          <div class="profile-meta-item">
+            <i class="bx bx-calendar"></i>
+            <span>Miembro desde <%= new Date(user.createdAt).toLocaleDateString('es-CO', {month: 'long', year: 'numeric'}) %></span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="profile-actions">
+        <button class="btn-connect">
+          <i class="bx bx-check-circle"></i>
+          Connected
+        </button>
       </div>
     </div>
-    <div>
-      <h2 style="margin:0;font-size:32px;font-weight:700;">
-        <%= user.fullName || user.username %>
-        <span class="badge-role badge-<%= user.role %>"><%= user.role %></span>
-      </h2>
-      <p style="margin:4px 0 0;opacity:0.9;font-size:16px;"><%= user.email %></p>
-      <p style="margin:8px 0 0;opacity:0.8;font-size:14px;"><i class="bx bx-user me-1"></i><%= user.username %></p>
-    </div>
-  </div>
-</div>
-
-<% if (typeof success !== 'undefined' && success === '1') { %>
-  <div class="alert alert-success alert-custom">
-    <i class="bx bx-check-circle me-2"></i>¡Perfil actualizado correctamente!
-  </div>
-<% } %>
-<% if (typeof success !== 'undefined' && success === 'password_changed') { %>
-  <div class="alert alert-success alert-custom">
-    <i class="bx bx-check-circle me-2"></i>¡Contraseña cambiada correctamente!
-  </div>
-<% } %>
-<% if (typeof error !== 'undefined' && error === 'password_incorrect') { %>
-  <div class="alert alert-danger alert-custom">
-    <i class="bx bx-error-circle me-2"></i>La contraseña actual es incorrecta.
-  </div>
-<% } %>
-
-<div class="row g-4">
-  <div class="col-lg-8">
-    <div class="profile-card">
-      <h5 style="font-weight:700;margin-bottom:24px;font-size:18px;">
-        <i class="bx bx-user me-2"></i>Información Personal
-      </h5>
-      <form action="/profile/update" method="POST" enctype="multipart/form-data">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label-custom">Nombre Completo</label>
-            <input type="text" name="fullName" class="form-control-custom" value="<%= user.fullName || '' %>" placeholder="Tu nombre completo">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label-custom">Teléfono</label>
-            <input type="text" name="phone" class="form-control-custom" value="<%= user.phone || '' %>" placeholder="+57 300 000 0000">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label-custom">Departamento</label>
-            <input type="text" name="department" class="form-control-custom" value="<%= user.department || '' %>" placeholder="Ej: Ventas">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label-custom">URL de Avatar</label>
-            <input type="text" name="avatar" id="avatarInput" class="form-control-custom" value="<%= user.avatar || '' %>" placeholder="https://...">
-          </div>
-          <div class="col-12">
-            <label class="form-label-custom">Biografía / Descripción</label>
-            <textarea name="bio" class="form-control-custom" rows="4" placeholder="Cuéntanos sobre ti..."><%= user.bio || '' %></textarea>
-          </div>
-          <div class="col-12">
-            <button type="submit" class="btn btn-save">
-              <i class="bx bx-save me-2"></i>Guardar Cambios
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-  
-  <div class="col-lg-4">
-    <div class="profile-card">
-      <h5 style="font-weight:700;margin-bottom:24px;font-size:18px;">
-        <i class="bx bx-lock me-2"></i>Seguridad
-      </h5>
-      <form action="/profile/change-password" method="POST">
-        <div class="mb-3">
-          <label class="form-label-custom">Contraseña Actual</label>
-          <input type="password" name="currentPassword" class="form-control-custom" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label-custom">Nueva Contraseña</label>
-          <input type="password" name="newPassword" class="form-control-custom" required>
-        </div>
-        <button type="submit" class="btn btn-save" style="width:100%;">
-          <i class="bx bx-key me-2"></i>Cambiar Contraseña
-        </button>
-      </form>
+    
+    <!-- Tabs -->
+    <div class="profile-tabs">
+      <button class="profile-tab active">
+        <i class="bx bx-user"></i>
+        Profile
+      </button>
+      <button class="profile-tab">
+        <i class="bx bx-briefcase"></i>
+        Teams
+      </button>
+      <button class="profile-tab">
+        <i class="bx bx-folder"></i>
+        Projects
+      </button>
     </div>
     
-    <div class="profile-card">
-      <h5 style="font-weight:700;margin-bottom:16px;font-size:18px;">
-        <i class="bx bx-info-circle me-2"></i>Información de Cuenta
-      </h5>
-      <div style="font-size:14px;color:#4a5568;">
-        <div style="padding:12px 0;border-bottom:1px solid #e2e8f0;">
-          <strong>Usuario:</strong> <%= user.username %>
+    <!-- Content Grid -->
+    <div class="profile-content-grid">
+      <!-- Sidebar -->
+      <div>
+        <div class="profile-sidebar-card">
+          <div class="profile-sidebar-title">About</div>
+          <div class="profile-info-item">
+            <i class="bx bx-user"></i>
+            <div><strong>Full Name:</strong> <%= user.fullName || user.username %></div>
+          </div>
+          <div class="profile-info-item">
+            <i class="bx bx-check-circle"></i>
+            <div><strong>Status:</strong> Active</div>
+          </div>
+          <div class="profile-info-item">
+            <i class="bx bx-crown"></i>
+            <div><strong>Role:</strong> <%= user.role %></div>
+          </div>
+          <div class="profile-info-item">
+            <i class="bx bx-flag"></i>
+            <div><strong>Country:</strong> Colombia</div>
+          </div>
+          <% if (user.bio) { %>
+          <div class="profile-info-item" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #334155;">
+            <i class="bx bx-quote-left"></i>
+            <div style="color: #94a3b8; font-style: italic;"><%= user.bio %></div>
+          </div>
+          <% } %>
         </div>
-        <div style="padding:12px 0;border-bottom:1px solid #e2e8f0;">
-          <strong>Email:</strong> <%= user.email %>
+        
+        <div class="profile-sidebar-card">
+          <div class="profile-sidebar-title">Contacts</div>
+          <div class="profile-info-item">
+            <i class="bx bx-phone"></i>
+            <div><strong>Phone:</strong> <%= user.phone || 'No registrado' %></div>
+          </div>
+          <div class="profile-info-item">
+            <i class="bx bx-envelope"></i>
+            <div><strong>Email:</strong> <%= user.email %></div>
+          </div>
         </div>
-        <div style="padding:12px 0;border-bottom:1px solid #e2e8f0;">
-          <strong>Rol:</strong> <%= user.role %>
+      </div>
+      
+      <!-- Main Content -->
+      <div>
+        <% if (typeof success !== 'undefined' && success === '1') { %>
+          <div class="alert-modern alert-success-modern">
+            <i class="bx bx-check-circle"></i>
+            ¡Perfil actualizado correctamente!
+          </div>
+        <% } %>
+        <% if (typeof success !== 'undefined' && success === 'password_changed') { %>
+          <div class="alert-modern alert-success-modern">
+            <i class="bx bx-check-circle"></i>
+            ¡Contraseña cambiada correctamente!
+          </div>
+        <% } %>
+        <% if (typeof error !== 'undefined' && error === 'password_incorrect') { %>
+          <div class="alert-modern alert-danger-modern">
+            <i class="bx bx-error-circle"></i>
+            La contraseña actual es incorrecta.
+          </div>
+        <% } %>
+        
+        <div class="profile-main-card">
+          <h2 class="profile-card-title">
+            <i class="bx bx-user-circle"></i>
+            Edit Profile Information
+          </h2>
+          
+          <form action="/profile/update" method="POST">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group-modern">
+                  <label class="form-label-modern">Full Name</label>
+                  <input type="text" name="fullName" class="form-control-modern" value="<%= user.fullName || '' %>" placeholder="Tu nombre completo">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-modern">
+                  <label class="form-label-modern">Phone</label>
+                  <input type="text" name="phone" class="form-control-modern" value="<%= user.phone || '' %>" placeholder="+57 300 000 0000">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-modern">
+                  <label class="form-label-modern">Department</label>
+                  <input type="text" name="department" class="form-control-modern" value="<%= user.department || '' %>" placeholder="Ej: Ventas">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-modern">
+                  <label class="form-label-modern">Avatar URL</label>
+                  <input type="text" name="avatar" id="avatarInput" class="form-control-modern" value="<%= user.avatar || '' %>" placeholder="https://...">
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="form-group-modern">
+                  <label class="form-label-modern">Bio / Description</label>
+                  <textarea name="bio" class="form-control-modern" rows="4" placeholder="Cuéntanos sobre ti..."><%= user.bio || '' %></textarea>
+                </div>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn-save-modern">
+                  <i class="bx bx-save"></i>
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
-        <div style="padding:12px 0;">
-          <strong>Miembro desde:</strong> <%= new Date(user.createdAt).toLocaleDateString('es-CO') %>
+        
+        <div class="profile-main-card">
+          <h2 class="profile-card-title">
+            <i class="bx bx-lock-alt"></i>
+            Change Password
+          </h2>
+          
+          <form action="/profile/change-password" method="POST">
+            <div class="form-group-modern">
+              <label class="form-label-modern">Current Password</label>
+              <input type="password" name="currentPassword" class="form-control-modern" required placeholder="••••••••">
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern">New Password</label>
+              <input type="password" name="newPassword" class="form-control-modern" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn-save-modern">
+              <i class="bx bx-key"></i>
+              Update Password
+            </button>
+          </form>
         </div>
       </div>
     </div>
