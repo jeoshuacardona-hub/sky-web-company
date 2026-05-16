@@ -5,7 +5,6 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const mongoose = require('mongoose');
 const expressLayouts = require('express-ejs-layouts');
-const seedService = require('./services/seedService');
 
 dotenv.config();
 
@@ -36,23 +35,23 @@ app.use(function(req, res, next) {
 });
 
 const authRoutes = require('./routes/authRoutes');
-const businessRoutes = require('./routes/businessRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 const leadRoutes = require('./routes/leadRoutes');
-const calendarRoutes = require('./routes/calendarRoutes');
 const callRoutes = require('./routes/callRoutes');
-const taskRoutes = require('./routes/taskRoutes');
+const businessRoutes = require('./routes/businessRoutes');
 
+app.use(dashboardRoutes);
 app.use(authRoutes);
-app.use(businessRoutes);
 app.use(leadRoutes);
-app.use(calendarRoutes);
 app.use(callRoutes);
-app.use(taskRoutes);
+app.use(businessRoutes);
 
 mongoose.connect(process.env.MONGODB_URI)
-    .then(async () => {
+    .then(() => {
         console.log('Connected to MongoDB');
-        await seedService();
         app.listen(PORT, '0.0.0.0', () => console.log('Server started on port ' + PORT));
     })
-    .catch(function(err) { console.error('MongoDB Connection Error:', err); process.exit(1); });
+    .catch(function(err) { 
+        console.error('MongoDB Connection Error:', err); 
+        process.exit(1); 
+    });
