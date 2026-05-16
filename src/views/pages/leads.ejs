@@ -1,349 +1,467 @@
 <style>
-.lead-status-badge { font-size: 12px; padding: 4px 10px; border-radius: 50px; font-weight: 500; display: inline-block; }
-.badge-new { background: #e8eaff; color: #4a50d4; }
-.badge-contacted { background: #fff0d6; color: #b36800; }
-.badge-qualified { background: #e2f8ef; color: #1a7a50; }
-.badge-converted { background: #d4edff; color: #0d5fa3; }
-.badge-lost { background: #fde8e8; color: #b32020; }
-.avatar-sm { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
-.stat-card { background: #fff; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #f0f0f0; }
-.leads-table th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #8a8d9f; padding: 10px 16px; border-bottom: 1px solid #f0f0f0; }
-.leads-table td { padding: 12px 16px; vertical-align: middle; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
-.leads-table tbody tr:hover { background: #fafafa; }
-.btn-action { width: 30px; height: 30px; border-radius: 6px; border: none; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; }
-.btn-action:hover { background: #f0f0f5; }
-.search-input { border: 1px solid #e0e0e8; border-radius: 8px; padding: 8px 14px 8px 36px; font-size: 14px; width: 240px; outline: none; }
-.search-input:focus { border-color: #696cff; box-shadow: 0 0 0 3px rgba(105,108,255,0.1); }
-.filter-select { border: 1px solid #e0e0e8; border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none; cursor: pointer; }
-.filter-select:focus { border-color: #696cff; }
-.drop-zone { border: 2px dashed #c5c7d4; border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s; }
-.drop-zone:hover, .drop-zone.dragover { border-color: #696cff; background: #f5f5ff; }
-.progress-bar-fill { height: 6px; border-radius: 3px; background: #696cff; transition: width 0.3s; }
-.progress-bar-bg { height: 6px; border-radius: 3px; background: #ebebef; width: 100%; }
+.leads-table th { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#8a8d9f; border-bottom:2px solid #f0f0f0; padding:10px 14px; white-space:nowrap; }
+.leads-table td { padding:12px 14px; vertical-align:middle; border-bottom:1px solid #f5f5f5; }
+.leads-table tr:last-child td { border-bottom:none; }
+.leads-table tr:hover td { background:#fafafa; }
+.avatar-sm { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+.status-badge { font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.status-new { background:#e8eaff; color:#4a50d4; }
+.status-contacted { background:#fff0d6; color:#b36800; }
+.status-qualified { background:#e8f9fd; color:#0369a1; }
+.status-converted { background:#e8faef; color:#166534; }
+.status-lost { background:#fff0ee; color:#b32020; }
+.stat-pill { background:#fff; border-radius:12px; padding:14px 18px; border:1px solid #f0f0f0; display:flex; align-items:center; gap:12px; flex:1; min-width:160px; }
+.search-box { border:1px solid #f0f0f0; border-radius:10px; padding:8px 14px 8px 36px; font-size:13px; width:240px; outline:none; transition:border 0.15s; }
+.search-box:focus { border-color:#696cff; }
+.csv-preview { max-height:200px; overflow-y:auto; font-size:12px; }
+.csv-preview table { width:100%; border-collapse:collapse; }
+.csv-preview th, .csv-preview td { padding:6px 8px; border-bottom:1px solid #f0f0f0; text-align:left; }
+.csv-preview th { background:#f5f5f5; font-weight:600; font-size:11px; color:#8a8d9f; }
 </style>
 
 <%
-const statusMap = { new: 'Nuevo', contacted: 'Contactado', qualified: 'Calificado', converted: 'Convertido', lost: 'Perdido' };
-const statusClass = { new: 'badge-new', contacted: 'badge-contacted', qualified: 'badge-qualified', converted: 'badge-converted', lost: 'badge-lost' };
-const sourceMap = { referido: '🤝', instagram: '📸', facebook: '👥', web: '🌐', llamada: '📞', otro: '📌' };
-const colorMap = ['#696cff','#03c3ec','#71dd37','#ff3e1d','#ffab00','#20c997'];
-function getInitials(name) { if (!name) return '?'; return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
-function getColor(str) { let h=0; for(let i=0;i<str.length;i++) h=str.charCodeAt(i)+((h<<5)-h); return colorMap[Math.abs(h)%colorMap.length]; }
-const totalLeads = leads.length;
-const newLeads = leads.filter(l=>l.status==='new').length;
-const convertedLeads = leads.filter(l=>l.status==='converted').length;
-const conversionRate = totalLeads > 0 ? Math.round((convertedLeads/totalLeads)*100) : 0;
+var colorMap = ['#696cff','#03c3ec','#71dd37','#ff3e1d','#ffab00','#20c997'];
+function getInitials(n){ if(!n)return'?'; return n.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2); }
+function getColor(s){ var h=0; for(var i=0;i<(s||'').length;i++) h=s.charCodeAt(i)+((h<<5)-h); return colorMap[Math.abs(h)%colorMap.length]; }
+var isAdmin = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin';
+var totalLeads = leads.length;
+var newLeads = leads.filter(function(l){ return l.status==='new'; }).length;
+var converted = leads.filter(function(l){ return l.status==='converted'; }).length;
+var contacted = leads.filter(function(l){ return l.status==='contacted'; }).length;
 %>
 
-<div class="row g-3 mb-4">
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <p class="text-muted mb-1" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Total Leads</p>
-      <h3 class="mb-0" style="font-size:28px;font-weight:700;"><%= totalLeads %></h3>
-      <p class="mb-0 mt-1" style="font-size:12px;color:#8a8d9f;">En el sistema</p>
+<!-- Stats — solo admin -->
+<% if (isAdmin) { %>
+<div class="d-flex flex-wrap gap-3 mb-4">
+  <div class="stat-pill">
+    <div style="width:38px;height:38px;border-radius:10px;background:#696cff22;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-target-lock" style="font-size:20px;color:#696cff;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Total Leads</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;"><%= totalLeads %></p>
     </div>
   </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <p class="text-muted mb-1" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Nuevos</p>
-      <h3 class="mb-0" style="font-size:28px;font-weight:700;color:#696cff;"><%= newLeads %></h3>
-      <p class="mb-0 mt-1" style="font-size:12px;color:#8a8d9f;">Sin contactar</p>
+  <div class="stat-pill">
+    <div style="width:38px;height:38px;border-radius:10px;background:#e8eaff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-user-plus" style="font-size:20px;color:#696cff;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Sin Llamar</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#696cff;"><%= newLeads %></p>
     </div>
   </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <p class="text-muted mb-1" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Convertidos</p>
-      <h3 class="mb-0" style="font-size:28px;font-weight:700;color:#71dd37;"><%= convertedLeads %></h3>
-      <p class="mb-0 mt-1" style="font-size:12px;color:#8a8d9f;">Clientes ganados</p>
+  <div class="stat-pill">
+    <div style="width:38px;height:38px;border-radius:10px;background:#fff0d6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-phone" style="font-size:20px;color:#b36800;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Contactados</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#b36800;"><%= contacted %></p>
     </div>
   </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <p class="text-muted mb-1" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Conversión</p>
-      <h3 class="mb-0" style="font-size:28px;font-weight:700;color:#03c3ec;"><%= conversionRate %>%</h3>
-      <div class="progress-bar-bg mt-2"><div class="progress-bar-fill" style="width:<%= conversionRate %>%;background:#03c3ec;"></div></div>
+  <div class="stat-pill">
+    <div style="width:38px;height:38px;border-radius:10px;background:#e8faef;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-check-circle" style="font-size:20px;color:#166534;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Convertidos</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#166534;"><%= converted %></p>
     </div>
   </div>
 </div>
+<% } %>
 
 <div class="card" style="border-radius:12px;border:1px solid #f0f0f0;box-shadow:0 2px 12px rgba(0,0,0,0.04);">
-  <div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between py-3 px-4" style="border-bottom:1px solid #f0f0f0;background:#fff;border-radius:12px 12px 0 0;">
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-      <div style="position:relative;">
-        <i class="bx bx-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#8a8d9f;font-size:16px;"></i>
-        <input type="text" id="searchInput" class="search-input" placeholder="Buscar lead..." oninput="filterLeads()">
+  <div class="card-header py-3 px-4" style="background:#fff;border-bottom:1px solid #f0f0f0;border-radius:12px 12px 0 0;">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <h6 class="mb-0" style="font-weight:700;">Base de Leads</h6>
+        <p class="mb-0" style="font-size:12px;color:#8a8d9f;"><%= totalLeads %> leads en total</p>
       </div>
-      <select id="statusFilter" class="filter-select" onchange="filterLeads()">
-        <option value="">Todos los estados</option>
-        <option value="new">Nuevo</option>
-        <option value="contacted">Contactado</option>
-        <option value="qualified">Calificado</option>
-        <option value="converted">Convertido</option>
-        <option value="lost">Perdido</option>
-      </select>
-      <select id="sourceFilter" class="filter-select" onchange="filterLeads()">
-        <option value="">Todas las fuentes</option>
-        <option value="referido">Referido</option>
-        <option value="instagram">Instagram</option>
-        <option value="facebook">Facebook</option>
-        <option value="web">Sitio Web</option>
-        <option value="llamada">Llamada</option>
-        <option value="otro">Otro</option>
-      </select>
-    </div>
-    <div class="d-flex gap-2">
-      <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#importCSVModal">
-        <i class="bx bx-upload me-1"></i> Importar CSV
-      </button>
-      <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addLeadModal">
-        <i class="bx bx-plus me-1"></i> Nuevo Lead
-      </button>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div style="position:relative;">
+          <i class="bx bx-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#8a8d9f;font-size:16px;"></i>
+          <input type="text" class="search-box" id="leadSearch" placeholder="Buscar lead..." oninput="filterLeads()">
+        </div>
+        <select class="form-select form-select-sm" id="statusFilter" style="width:auto;font-size:13px;border-radius:8px;" onchange="filterLeads()">
+          <option value="">Todos los estados</option>
+          <option value="new">Sin llamar</option>
+          <option value="contacted">Contactado</option>
+          <option value="qualified">Calificado</option>
+          <option value="converted">Convertido</option>
+          <option value="lost">Perdido</option>
+        </select>
+        <% if (isAdmin) { %>
+        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addLeadModal">
+          <i class="bx bx-plus me-1"></i> Nuevo
+        </button>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+          <i class="bx bx-upload me-1"></i> Subir CSV
+        </button>
+        <% } %>
+      </div>
     </div>
   </div>
+
+  <% if (leads.length === 0) { %>
+    <div style="text-align:center;padding:56px 0;">
+      <i class="bx bx-target-lock" style="font-size:48px;color:#c5c7d4;display:block;margin-bottom:12px;"></i>
+      <p style="font-weight:600;color:#5d596c;margin-bottom:4px;">Sin leads aún</p>
+      <% if (isAdmin) { %>
+      <p style="font-size:13px;color:#c5c7d4;">Sube un CSV o agrega leads manualmente</p>
+      <% } else { %>
+      <p style="font-size:13px;color:#c5c7d4;">El administrador aún no ha cargado leads</p>
+      <% } %>
+    </div>
+  <% } %>
 
   <div class="table-responsive">
     <table class="table leads-table mb-0" id="leadsTable">
       <thead>
         <tr>
-          <th>Lead</th><th>Empresa</th><th>Teléfono</th><th>Fuente</th><th>Estado</th><th>Asignado a</th><th>Fecha</th><th></th>
+          <th>Nombre</th>
+          <th>Empresa</th>
+          <th>Teléfono</th>
+          <th>Email</th>
+          <th>Ciudad</th>
+          <th>Fuente</th>
+          <th>Estado</th>
+          <% if (isAdmin) { %><th style="text-align:right;">Acciones</th><% } %>
         </tr>
       </thead>
       <tbody id="leadsBody">
-        <% if (leads.length === 0) { %>
-          <tr><td colspan="8" class="text-center py-5">
-            <i class="bx bx-target-lock" style="font-size:48px;color:#c5c7d4;display:block;margin-bottom:12px;"></i>
-            <p class="mb-1" style="font-weight:600;color:#8a8d9f;">No hay leads aún</p>
-            <p style="font-size:13px;color:#c5c7d4;">Crea tu primer lead o importa desde CSV</p>
-          </td></tr>
-        <% } %>
-        <% leads.forEach(lead => {
-          const initials = getInitials(lead.name);
-          const color = getColor(lead.name);
-          const assignedName = lead.assignedTo ? (lead.assignedTo.fullName || lead.assignedTo.username) : null;
-          const createdDate = lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'numeric'}) : '-';
+        <% leads.forEach(function(lead) {
+          var initials = getInitials(lead.name);
+          var color = getColor(lead.name);
+          var statusMap = { new:'Sin llamar', contacted:'Contactado', qualified:'Calificado', converted:'Convertido', lost:'Perdido' };
+          var statusCls = { new:'status-new', contacted:'status-contacted', qualified:'status-qualified', converted:'status-converted', lost:'status-lost' };
         %>
-          <tr data-name="<%= lead.name.toLowerCase() %>" data-email="<%= (lead.email||'').toLowerCase() %>" data-company="<%= (lead.company||'').toLowerCase() %>" data-status="<%= lead.status %>" data-source="<%= lead.source || '' %>">
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="avatar-sm" style="background:<%= color %>22;color:<%= color %>;"><%= initials %></div>
-                <div>
-                  <p class="mb-0" style="font-weight:600;font-size:14px;"><%= lead.name %></p>
-                  <% if (lead.email) { %><p class="mb-0" style="font-size:12px;color:#8a8d9f;"><%= lead.email %></p><% } %>
-                </div>
-              </div>
-            </td>
-            <td style="color:#5d596c;"><%= lead.company || '-' %></td>
-            <td style="color:#5d596c;"><%= lead.phone || '-' %></td>
-            <td><% if (lead.source) { %><span style="font-size:13px;"><%= sourceMap[lead.source] || '📌' %> <%= lead.source.charAt(0).toUpperCase() + lead.source.slice(1) %></span><% } else { %><span style="color:#c5c7d4;">—</span><% } %></td>
-            <td>
-              <form action="/leads/update/<%= lead._id %>" method="POST" class="d-inline" style="display:none!important;"></form>
-              <span class="lead-status-badge <%= statusClass[lead.status] || 'badge-new' %>" style="cursor:pointer;" onclick="changeStatus('<%= lead._id %>', '<%= lead.status %>')"><%= statusMap[lead.status] || lead.status %></span>
-            </td>
-            <td>
-              <% if (assignedName) { %>
-                <div class="d-flex align-items-center gap-2">
-                  <div class="avatar-sm" style="width:24px;height:24px;font-size:10px;background:<%= getColor(assignedName) %>22;color:<%= getColor(assignedName) %>;"><%= getInitials(assignedName) %></div>
-                  <span style="font-size:13px;"><%= assignedName %></span>
-                </div>
-              <% } else { %><span style="font-size:12px;color:#c5c7d4;">Sin asignar</span><% } %>
-            </td>
-            <td style="font-size:12px;color:#8a8d9f;white-space:nowrap;"><%= createdDate %></td>
-            <td>
-              <form action="/leads/delete/<%= lead._id %>" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar este lead?')">
-                <button type="submit" class="btn-action" title="Eliminar">
-                  <i class="bx bx-trash" style="font-size:16px;color:#ff3e1d;"></i>
+        <tr data-name="<%= lead.name.toLowerCase() %>" data-company="<%= (lead.company||'').toLowerCase() %>" data-status="<%= lead.status %>">
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="avatar-sm" style="background:<%= color %>22;color:<%= color %>;"><%= initials %></div>
+              <span style="font-size:13px;font-weight:600;"><%= lead.name %></span>
+            </div>
+          </td>
+          <td style="font-size:13px;color:#8a8d9f;"><%= lead.company || '—' %></td>
+          <td style="font-size:13px;"><%= lead.phone || '—' %></td>
+          <td style="font-size:13px;color:#8a8d9f;"><%= lead.email || '—' %></td>
+          <td style="font-size:13px;color:#8a8d9f;"><%= lead.city || '—' %></td>
+          <td style="font-size:13px;color:#8a8d9f;text-transform:capitalize;"><%= lead.source || '—' %></td>
+          <td><span class="status-badge <%= statusCls[lead.status] || 'status-new' %>"><%= statusMap[lead.status] || lead.status %></span></td>
+          <% if (isAdmin) { %>
+          <td style="text-align:right;">
+            <div class="d-flex gap-1 justify-content-end">
+              <button class="btn btn-sm btn-outline-secondary"
+                style="padding:4px 10px;font-size:12px;border-radius:7px;"
+                data-id="<%= lead._id %>"
+                data-name="<%= lead.name %>"
+                data-email="<%= lead.email || '' %>"
+                data-phone="<%= lead.phone || '' %>"
+                data-company="<%= lead.company || '' %>"
+                data-city="<%= lead.city || '' %>"
+                data-source="<%= lead.source || '' %>"
+                data-notes="<%= (lead.notes||'').replace(/\"/g,'&quot;') %>"
+                onclick="abrirEditar(this)">
+                <i class="bx bx-edit"></i>
+              </button>
+              <form action="/leads/delete/<%= lead._id %>" method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar este lead?')">
+                <button type="submit" class="btn btn-sm btn-outline-danger" style="padding:4px 10px;font-size:12px;border-radius:7px;">
+                  <i class="bx bx-trash"></i>
                 </button>
               </form>
-            </td>
-          </tr>
-        <% }) %>
+            </div>
+          </td>
+          <% } %>
+        </tr>
+        <% }); %>
       </tbody>
     </table>
   </div>
-  <div class="px-4 py-3" style="border-top:1px solid #f0f0f0;">
-    <span id="resultsCount" style="font-size:13px;color:#8a8d9f;"><%= leads.length %> lead<%= leads.length !== 1 ? 's' : '' %> en total</span>
-  </div>
 </div>
 
-<!-- Modal Nuevo Lead -->
+<!-- Modal Nuevo Lead — solo admin -->
+<% if (isAdmin) { %>
 <div class="modal fade" id="addLeadModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
       <div class="modal-header border-0 pb-0 px-4 pt-4">
-        <div><h5 class="modal-title mb-0" style="font-weight:700;">Nuevo Lead</h5><p class="text-muted mb-0" style="font-size:13px;">Completa la información del prospecto</p></div>
+        <div><h5 class="modal-title mb-0" style="font-weight:700;">Nuevo Lead</h5><p class="text-muted mb-0" style="font-size:13px;">Agregar lead manualmente</p></div>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form action="/leads/add" method="POST">
         <div class="modal-body px-4 pt-3">
           <div class="row g-3">
-            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Nombre *</label><input type="text" name="name" class="form-control" placeholder="Juan García" required /></div>
-            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Empresa</label><input type="text" name="company" class="form-control" placeholder="Empresa S.A.S" /></div>
-            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Teléfono</label><input type="text" name="phone" class="form-control" placeholder="+57 300 000 0000" /></div>
-            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Email</label><input type="email" name="email" class="form-control" placeholder="juan@empresa.com" /></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Nombre *</label><input type="text" name="name" class="form-control" required placeholder="Juan Pérez"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Empresa</label><input type="text" name="company" class="form-control" placeholder="Empresa S.A.S"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Teléfono</label><input type="text" name="phone" class="form-control" placeholder="+57 300 000 0000"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Email</label><input type="email" name="email" class="form-control" placeholder="juan@empresa.com"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Ciudad</label><input type="text" name="city" class="form-control" placeholder="Bogotá"></div>
             <div class="col-md-6">
               <label class="form-label fw-semibold" style="font-size:13px;">Fuente</label>
               <select name="source" class="form-select">
-                <option value="">Seleccionar...</option>
-                <option value="referido">🤝 Referido</option>
-                <option value="instagram">📸 Instagram</option>
-                <option value="facebook">👥 Facebook</option>
-                <option value="web">🌐 Sitio Web</option>
-                <option value="llamada">📞 Llamada Fría</option>
-                <option value="otro">📌 Otro</option>
+                <option value="referido">Referido</option>
+                <option value="web">Web</option>
+                <option value="redes">Redes Sociales</option>
+                <option value="llamada">Llamada en frío</option>
+                <option value="csv">CSV Import</option>
+                <option value="otro">Otro</option>
               </select>
             </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:13px;">Asignar a</label>
-              <select name="assignedTo" class="form-select">
-                <option value="">Sin asignar</option>
-                <% users.forEach(user => { %><option value="<%= user._id %>"><%= user.fullName || user.username %></option><% }) %>
-              </select>
-            </div>
-            <div class="col-12"><label class="form-label fw-semibold" style="font-size:13px;">Notas</label><textarea name="notes" class="form-control" rows="3" placeholder="Información adicional..."></textarea></div>
+            <div class="col-12"><label class="form-label fw-semibold" style="font-size:13px;">Notas</label><textarea name="notes" class="form-control" rows="2" placeholder="Información adicional..."></textarea></div>
           </div>
         </div>
         <div class="modal-footer border-0 px-4 pb-4 pt-2">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary px-4">Guardar Lead</button>
+          <button type="submit" class="btn btn-primary px-4">Guardar</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- Modal Importar CSV -->
-<div class="modal fade" id="importCSVModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+<!-- Modal Editar Lead -->
+<div class="modal fade" id="editLeadModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
       <div class="modal-header border-0 pb-0 px-4 pt-4">
-        <div><h5 class="modal-title mb-0" style="font-weight:700;">Importar desde CSV</h5><p class="text-muted mb-0" style="font-size:13px;">Sube un archivo CSV con tus leads</p></div>
+        <div><h5 class="modal-title mb-0" style="font-weight:700;">Editar Lead</h5></div>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body px-4 pt-3">
-        <div class="mb-3 p-3" style="background:#f5f5ff;border-radius:10px;border:1px solid #e0e0ff;">
-          <p class="mb-1" style="font-size:12px;font-weight:700;color:#696cff;text-transform:uppercase;letter-spacing:0.5px;">Formato esperado</p>
-          <code style="font-size:11px;color:#5d596c;">name, email, phone, company, source, notes</code>
-          <p class="mb-0 mt-1" style="font-size:12px;color:#8a8d9f;">Primera fila = encabezados. Source: referido, instagram, facebook, web, llamada, otro</p>
-        </div>
-        <div class="drop-zone" id="dropZone" onclick="document.getElementById('csvFileInput').click()">
-          <i class="bx bx-cloud-upload" style="font-size:40px;color:#c5c7d4;display:block;margin-bottom:8px;"></i>
-          <p class="mb-1" style="font-weight:600;color:#5d596c;">Arrastra tu archivo aquí</p>
-          <p class="mb-0" style="font-size:13px;color:#8a8d9f;">o haz click para seleccionar</p>
-          <p class="mb-0 mt-1" style="font-size:11px;color:#c5c7d4;">Solo archivos .csv</p>
-        </div>
-        <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCSVFile(this.files[0])">
-        <div id="csvPreview" style="display:none;" class="mt-3">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <p class="mb-0" style="font-size:13px;font-weight:600;" id="csvPreviewCount"></p>
-            <button onclick="resetCSV()" style="font-size:12px;color:#ff3e1d;background:none;border:none;cursor:pointer;">Limpiar</button>
+      <form id="editLeadForm" action="" method="POST">
+        <div class="modal-body px-4 pt-3">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Nombre *</label><input type="text" name="name" id="editName" class="form-control" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Empresa</label><input type="text" name="company" id="editCompany" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Teléfono</label><input type="text" name="phone" id="editPhone" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Email</label><input type="email" name="email" id="editEmail" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Ciudad</label><input type="text" name="city" id="editCity" class="form-control"></div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:13px;">Fuente</label>
+              <select name="source" id="editSource" class="form-select">
+                <option value="referido">Referido</option>
+                <option value="web">Web</option>
+                <option value="redes">Redes Sociales</option>
+                <option value="llamada">Llamada en frío</option>
+                <option value="csv">CSV Import</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+            <div class="col-12"><label class="form-label fw-semibold" style="font-size:13px;">Notas</label><textarea name="notes" id="editNotes" class="form-control" rows="2"></textarea></div>
           </div>
-          <div id="csvPreviewTable" style="max-height:180px;overflow-y:auto;border-radius:8px;border:1px solid #f0f0f0;"></div>
         </div>
-        <div id="importResult" style="display:none;" class="mt-3"></div>
-      </div>
-      <div class="modal-footer border-0 px-4 pb-4 pt-2">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button id="importBtn" class="btn btn-primary px-4" onclick="importCSV()" disabled><i class="bx bx-upload me-1"></i> Importar Leads</button>
-      </div>
+        <div class="modal-footer border-0 px-4 pb-4 pt-2">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary px-4">Guardar Cambios</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
 
+<!-- Modal CSV -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
+      <div class="modal-header border-0 pb-0 px-4 pt-4">
+        <div>
+          <h5 class="modal-title mb-0" style="font-weight:700;">Importar CSV</h5>
+          <p class="text-muted mb-0" style="font-size:13px;">Columnas soportadas: nombre/name, teléfono/phone, email, empresa/company, ciudad/city, notas/notes</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4 pt-3">
+        <div id="dropZone" style="border:2px dashed #d0d0d8;border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all 0.15s;" onclick="document.getElementById('csvInput').click()" ondragover="event.preventDefault();this.style.borderColor='#696cff';this.style.background='#f5f5ff'" ondragleave="this.style.borderColor='#d0d0d8';this.style.background='transparent'" ondrop="handleDrop(event)">
+          <i class="bx bx-cloud-upload" style="font-size:36px;color:#696cff;display:block;margin-bottom:8px;"></i>
+          <p style="font-weight:600;margin:0;font-size:14px;">Arrastra tu CSV aquí</p>
+          <p style="font-size:12px;color:#8a8d9f;margin:4px 0 0;">o haz click para seleccionar</p>
+          <p style="font-size:11px;color:#c5c7d4;margin-top:8px;">✅ Soporta UTF-8, comillas, y nombres de columna en español/inglés</p>
+        </div>
+        <input type="file" id="csvInput" accept=".csv,text/csv" style="display:none;" onchange="handleFile(this.files[0])">
+        
+        <div id="importPreview" style="display:none;margin-top:14px;">
+          <p style="font-size:12px;font-weight:600;margin-bottom:6px;">Vista previa (<span id="previewCount">0</span> leads):</p>
+          <div class="csv-preview" id="previewTable"></div>
+        </div>
+        
+        <div id="importResult" style="display:none;margin-top:10px;"></div>
+      </div>
+      <div class="modal-footer border-0 px-4 pb-4 pt-2">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button id="importBtn" class="btn btn-primary px-4" onclick="submitImport()" disabled>
+          <i class="bx bx-upload me-1"></i> Importar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
 <script>
 function filterLeads() {
-  const search = document.getElementById('searchInput').value.toLowerCase();
-  const status = document.getElementById('statusFilter').value;
-  const source = document.getElementById('sourceFilter').value;
-  const rows = document.querySelectorAll('#leadsBody tr[data-name]');
-  let visible = 0;
-  rows.forEach(row => {
-    const ok = (!search || row.dataset.name.includes(search) || row.dataset.email.includes(search) || row.dataset.company.includes(search)) && (!status || row.dataset.status === status) && (!source || row.dataset.source === source);
-    row.style.display = ok ? '' : 'none';
-    if (ok) visible++;
+  var q = document.getElementById('leadSearch').value.toLowerCase();
+  var st = document.getElementById('statusFilter').value;
+  document.querySelectorAll('#leadsBody tr').forEach(function(row) {
+    var name = row.dataset.name || '';
+    var company = row.dataset.company || '';
+    var status = row.dataset.status || '';
+    var matchQ = !q || name.includes(q) || company.includes(q);
+    var matchS = !st || status === st;
+    row.style.display = (matchQ && matchS) ? '' : 'none';
   });
-  document.getElementById('resultsCount').textContent = visible + ' lead' + (visible !== 1 ? 's' : '') + ' encontrado' + (visible !== 1 ? 's' : '');
 }
 
-function changeStatus(id, current) {
-  const options = {new:'Nuevo',contacted:'Contactado',qualified:'Calificado',converted:'Convertido',lost:'Perdido'};
-  const next = prompt('Cambiar estado a:\nnew / contacted / qualified / converted / lost\n\nActual: ' + current);
-  if (next && options[next]) {
-    const f = document.createElement('form'); f.method='POST'; f.action='/leads/update/'+id;
-    const i = document.createElement('input'); i.type='hidden'; i.name='status'; i.value=next;
-    f.appendChild(i); document.body.appendChild(f); f.submit();
-  }
+<% if (isAdmin) { %>
+function abrirEditar(btn) {
+  document.getElementById('editLeadForm').action = '/leads/edit/' + btn.dataset.id;
+  document.getElementById('editName').value = btn.dataset.name;
+  document.getElementById('editCompany').value = btn.dataset.company;
+  document.getElementById('editPhone').value = btn.dataset.phone;
+  document.getElementById('editEmail').value = btn.dataset.email;
+  document.getElementById('editCity').value = btn.dataset.city || '';
+  document.getElementById('editSource').value = btn.dataset.source || 'otro';
+  document.getElementById('editNotes').value = btn.dataset.notes;
+  new bootstrap.Modal(document.getElementById('editLeadModal')).show();
 }
 
-let parsedLeads = [];
-const dropZone = document.getElementById('dropZone');
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleCSVFile(e.dataTransfer.files[0]); });
-
-function handleCSVFile(file) {
-  if (!file || !file.name.endsWith('.csv')) return alert('Por favor sube un archivo .csv');
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const lines = e.target.result.split('\n').filter(l => l.trim());
-    if (lines.length < 2) return alert('El archivo está vacío.');
-    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g,''));
-    parsedLeads = [];
-    for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g,''));
-      const obj = {};
-      headers.forEach((h, idx) => { obj[h] = values[idx] || ''; });
-      if (obj.name || obj.nombre) parsedLeads.push(obj);
+// Parser CSV robusto en frontend (backup si el backend falla)
+function parseCSV(text) {
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1); // Remover BOM
+    const rows = [];
+    let row = [], field = '', inQuotes = false;
+    
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i], next = text[i+1];
+        if (c === '"') {
+            if (inQuotes && next === '"') { field += '"'; i++; }
+            else inQuotes = !inQuotes;
+        } else if (c === ',' && !inQuotes) {
+            row.push(field.trim()); field = '';
+        } else if ((c === '\n' || c === '\r') && !inQuotes) {
+            if (field || row.length) { row.push(field.trim()); rows.push(row); row = []; field = ''; }
+            if (c === '\r' && next === '\n') i++;
+        } else field += c;
     }
-    showPreview();
-  };
-  reader.readAsText(file);
+    if (field || row.length) { row.push(field.trim()); rows.push(row); }
+    return rows.filter(r => r.length > 0 && r.some(v => v));
 }
 
-function showPreview() {
-  document.getElementById('csvPreviewCount').textContent = parsedLeads.length + ' leads listos para importar';
-  const sample = parsedLeads.slice(0, 5);
-  let html = '<table style="width:100%;font-size:12px;border-collapse:collapse;"><thead><tr style="background:#f9f9f9;">';
-  ['Nombre','Email','Teléfono','Empresa','Fuente'].forEach(h => { html += `<th style="padding:8px 10px;text-align:left;color:#8a8d9f;font-weight:600;">${h}</th>`; });
-  html += '</tr></thead><tbody>';
-  sample.forEach(l => { html += `<tr><td style="padding:8px 10px;">${l.name||l.nombre||'-'}</td><td style="padding:8px 10px;color:#8a8d9f;">${l.email||'-'}</td><td style="padding:8px 10px;color:#8a8d9f;">${l.phone||l.telefono||'-'}</td><td style="padding:8px 10px;color:#8a8d9f;">${l.company||l.empresa||'-'}</td><td style="padding:8px 10px;color:#8a8d9f;">${l.source||l.fuente||'-'}</td></tr>`; });
-  if (parsedLeads.length > 5) html += `<tr><td colspan="5" style="padding:8px 10px;color:#8a8d9f;font-style:italic;">... y ${parsedLeads.length - 5} más</td></tr>`;
-  html += '</tbody></table>';
-  document.getElementById('csvPreviewTable').innerHTML = html;
-  document.getElementById('csvPreview').style.display = 'block';
-  document.getElementById('importBtn').disabled = false;
+function normalizeHeader(h) {
+    const clean = h.toLowerCase().trim().replace(/^"|"$/g, '');
+    const map = {
+        'nombre':'name','name':'name','nombres':'name','full name':'name',
+        'telefono':'phone','teléfono':'phone','phone':'phone','movil':'phone','celular':'phone',
+        'email':'email','correo':'email','e-mail':'email','mail':'email',
+        'empresa':'company','company':'company','compania':'company',
+        'ciudad':'city','city':'city','location':'city',
+        'fuente':'source','source':'source','origen':'source',
+        'notas':'notes','notes':'notes','observaciones':'notes'
+    };
+    return map[clean] || clean;
 }
 
-function resetCSV() {
-  parsedLeads = [];
-  document.getElementById('csvPreview').style.display = 'none';
-  document.getElementById('csvFileInput').value = '';
-  document.getElementById('importBtn').disabled = true;
-  document.getElementById('importResult').style.display = 'none';
+function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('dropZone').style.borderColor = '#d0d0d8';
+    document.getElementById('dropZone').style.background = 'transparent';
+    var file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
 }
 
-async function importCSV() {
-  if (!parsedLeads.length) return;
-  const btn = document.getElementById('importBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Importando...';
-  try {
-    const res = await fetch('/api/leads/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leads: parsedLeads }) });
-    const data = await res.json();
-    const el = document.getElementById('importResult');
-    if (data.success) {
-      el.innerHTML = `<div style="background:#e2f8ef;border-radius:10px;padding:16px;text-align:center;"><i class="bx bx-check-circle" style="font-size:24px;color:#1a7a50;"></i><p class="mb-0 mt-1" style="font-weight:600;color:#1a7a50;">${data.count} leads importados exitosamente</p></div>`;
-      el.style.display = 'block';
-      setTimeout(() => location.reload(), 1500);
-    } else {
-      el.innerHTML = `<div style="background:#fde8e8;border-radius:10px;padding:16px;"><p class="mb-0" style="color:#b32020;">${data.message||'Error al importar'}</p></div>`;
-      el.style.display = 'block';
-      btn.disabled = false;
-      btn.innerHTML = '<i class="bx bx-upload me-1"></i> Importar Leads';
+function handleFile(file) {
+    if (!file) return;
+    if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+        alert('Por favor selecciona un archivo .csv válido');
+        return;
     }
-  } catch(err) {
-    alert('Error de conexión.');
-    btn.disabled = false;
-    btn.innerHTML = '<i class="bx bx-upload me-1"></i> Importar Leads';
-  }
+    
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            var text = e.target.result;
+            var rows = parseCSV(text);
+            if (rows.length < 2) throw new Error('CSV vacío o sin datos');
+            
+            var headers = rows[0].map(normalizeHeader);
+            var parsedLeads = [];
+            
+            for (var i = 1; i < rows.length; i++) {
+                var obj = {};
+                for (var j = 0; j < headers.length; j++) {
+                    obj[headers[j]] = rows[i][j] || '';
+                }
+                // Validar que tenga al menos nombre
+                if (obj.name || obj.nombre) {
+                    parsedLeads.push({
+                        name: obj.name || obj.nombre || '',
+                        phone: obj.phone || obj.telefono || obj.celular || '',
+                        email: obj.email || obj.correo || '',
+                        company: obj.company || obj.empresa || '',
+                        city: obj.city || obj.ciudad || '',
+                        source: obj.source || obj.fuente || 'csv_import',
+                        notes: obj.notes || obj.notas || obj.observaciones || ''
+                    });
+                }
+            }
+            
+            if (parsedLeads.length === 0) throw new Error('No se encontraron leads válidos (se requiere al menos el nombre)');
+            
+            // Mostrar preview
+            var preview = '<table><thead><tr>';
+            headers.slice(0,5).forEach(function(h){ preview += '<th>'+h+'</th>'; });
+            preview += '</tr></thead><tbody>';
+            parsedLeads.slice(0,5).forEach(function(l){
+                preview += '<tr><td>'+l.name+'</td><td>'+l.company+'</td><td>'+l.phone+'</td><td>'+l.city+'</td><td>'+l.source+'</td></tr>';
+            });
+            preview += '</tbody></table>';
+            
+            document.getElementById('previewTable').innerHTML = preview;
+            document.getElementById('previewCount').textContent = parsedLeads.length;
+            document.getElementById('importPreview').style.display = 'block';
+            document.getElementById('importBtn').disabled = false;
+            window.parsedLeads = parsedLeads;
+            
+        } catch(err) {
+            document.getElementById('importResult').innerHTML = '<div style="background:#fde8e8;border-radius:10px;padding:12px;font-size:13px;color:#b32020;"><i class="bx bx-error-circle me-1"></i>Error: ' + err.message + '</div>';
+            document.getElementById('importResult').style.display = 'block';
+            document.getElementById('importBtn').disabled = true;
+        }
+    };
+    reader.readAsText(file, 'UTF-8');
 }
+
+async function submitImport() {
+    if (!window.parsedLeads || window.parsedLeads.length === 0) return;
+    
+    var btn = document.getElementById('importBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Importando...';
+    
+    try {
+        var res = await fetch('/api/leads/import', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ leads: window.parsedLeads })
+        });
+        var data = await res.json();
+        var el = document.getElementById('importResult');
+        
+        if (data.success) {
+            el.innerHTML = '<div style="background:#e2f8ef;border-radius:10px;padding:12px;font-size:13px;font-weight:600;color:#1a7a50;"><i class="bx bx-check-circle me-1"></i>' + data.message + '</div>';
+            el.style.display = 'block';
+            setTimeout(function(){ location.reload(); }, 2000);
+        } else {
+            el.innerHTML = '<div style="background:#fde8e8;border-radius:10px;padding:12px;font-size:13px;color:#b32020;"><i class="bx bx-error-circle me-1"></i>' + (data.message || 'Error al importar') + '</div>';
+            el.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bx bx-upload me-1"></i> Importar';
+        }
+    } catch(err) {
+        alert('Error de conexión: ' + err.message);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bx bx-upload me-1"></i> Importar';
+    }
+}
+<% } %>
 </script>

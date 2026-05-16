@@ -40,12 +40,14 @@ const businessRoutes = require('./routes/businessRoutes');
 const leadRoutes = require('./routes/leadRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const callRoutes = require('./routes/callRoutes');
+const taskRoutes = require('./routes/taskRoutes');
 
 app.use(authRoutes);
 app.use(businessRoutes);
 app.use(leadRoutes);
 app.use(calendarRoutes);
 app.use(callRoutes);
+app.use(taskRoutes);
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(async () => {
