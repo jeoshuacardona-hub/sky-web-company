@@ -1,0 +1,73 @@
+<style>
+.danger-zone {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border: 2px solid #dc2626;
+  border-radius: 16px;
+  padding: 32px;
+  margin: 24px 0;
+}
+</style>
+
+<div class="container py-5">
+  <h2 style="font-weight:700;margin-bottom:24px;">⚠️ Zona de Peligro</h2>
+  
+  <div class="danger-zone">
+    <h4 style="color:#dc2626;margin-bottom:16px;">
+      <i class="bx bx-error-circle me-2"></i>Resetear Base de Datos Completa
+    </h4>
+    <p style="color:#7f1d1d;margin-bottom:20px;">
+      Esta acción eliminará TODOS los leads, llamadas, customers y tareas. 
+      <strong>NO se puede deshacer.</strong>
+    </p>
+    
+    <div class="mb-3">
+      <input type="text" id="confirmText" class="form-control" placeholder="Escribe DELETE_EVERYTHING para confirmar">
+    </div>
+    
+    <button class="btn btn-danger btn-lg" onclick="resetDatabase()">
+      <i class="bx bx-trash me-2"></i>Eliminar TODO
+    </button>
+    
+    <div id="result" style="margin-top:20px;"></div>
+  </div>
+</div>
+
+<script>
+async function resetDatabase() {
+  var confirm = document.getElementById('confirmText').value;
+  if (confirm !== 'DELETE_EVERYTHING') {
+    alert('Por favor escribe DELETE_EVERYTHING para confirmar');
+    return;
+  }
+  
+  if (!confirm('¿Estás 100% seguro? Esto eliminará TODOS los datos permanentemente.')) {
+    return;
+  }
+  
+  try {
+    var res = await fetch('/api/admin/reset-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirm: 'DELETE_EVERYTHING' })
+    });
+    
+    var data = await res.json();
+    var resultDiv = document.getElementById('result');
+    
+    if (data.success) {
+      resultDiv.innerHTML = '<div style="background:#dcfce7;border-radius:8px;padding:16px;color:#166534;">' +
+        '<i class="bx bx-check-circle me-2"></i>' + data.message + '<br>' +
+        'Leads: ' + data.deleted.leads + '<br>' +
+        'Llamadas: ' + data.deleted.callLogs + '<br>' +
+        'Customers: ' + data.deleted.customers + '<br>' +
+        'Tareas: ' + data.deleted.tasks +
+        '</div>';
+      setTimeout(function() { location.reload(); }, 2000);
+    } else {
+      resultDiv.innerHTML = '<div style="background:#fee2e2;border-radius:8px;padding:16px;color:#dc2626;">Error: ' + data.message + '</div>';
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+</script>
