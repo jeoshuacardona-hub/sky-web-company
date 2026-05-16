@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-  <title><%= typeof title !== 'undefined' ? title : 'Sky Web' %> - Sky Web</title>
+  <title><%= title %> - Sky Web</title>
   
   <!-- ICONOS BOXICONS (CDN) -->
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
