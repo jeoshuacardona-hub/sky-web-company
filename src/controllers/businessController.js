@@ -1,6 +1,8 @@
 const Task = require('../models/Task');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
+const CallLog = require('../models/CallLog');
+const Lead = require('../models/Lead');
 
 exports.getTasks = async (req, res, next) => {
     try {
@@ -52,6 +54,14 @@ exports.deleteTask = async (req, res, next) => {
 exports.getCustomers = async (req, res, next) => {
     try {
         const customers = await Customer.find().sort({ createdAt: -1 });
-        res.render('pages/customers', { title: 'Pipeline', customers });
+        
+        // Calcular valor total del pipeline
+        const pipelineValue = customers.reduce((sum, c) => sum + (c.value || 0), 0);
+        
+        res.render('pages/customers', { 
+            title: 'Pipeline', 
+            customers,
+            pipelineValue
+        });
     } catch (error) { next(error); }
 };

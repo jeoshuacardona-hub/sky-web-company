@@ -1,274 +1,343 @@
 <style>
-.customer-card { 
-  background:#fff; 
-  border-radius:12px; 
-  border:1px solid #e4e6eb; 
-  padding:20px; 
-  margin-bottom:12px; 
-  transition:all 0.2s;
-}
-.customer-card:hover { 
-  box-shadow:0 4px 12px rgba(0,0,0,0.08);
-  border-color:#d0d2d7;
-}
-.avatar-sm { 
-  width:44px; 
-  height:44px; 
-  border-radius:50%; 
-  display:flex; 
-  align-items:center; 
-  justify-content:center; 
-  font-size:16px; 
-  font-weight:700; 
-  flex-shrink:0;
-  text-transform:uppercase;
+.pipeline-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 32px;
+  color: #fff;
+  margin-bottom: 24px;
 }
 .stat-card { 
   background:#fff; 
   border-radius:12px; 
   padding:20px; 
-  border:1px solid #e4e6eb;
+  border:1px solid #f0f0f0;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+  transition:transform 0.2s;
+}
+.stat-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.08); }
+.customer-card { 
+  background:#fff; 
+  border-radius:12px; 
+  border:1px solid #e4e6eb; 
+  padding:20px; 
+  margin-bottom:16px;
+  transition:all 0.2s;
+  border-left: 4px solid #667eea;
+}
+.customer-card:hover { 
+  box-shadow:0 4px 16px rgba(0,0,0,0.08);
+  transform:translateY(-2px);
+}
+.customer-card.status-prospect { border-left-color: #6366f1; }
+.customer-card.status-qualified { border-left-color: #f59e0b; }
+.customer-card.status-proposal { border-left-color: #0ea5e9; }
+.customer-card.status-negotiation { border-left-color: #8b5cf6; }
+.customer-card.status-closed_won { border-left-color: #16a34a; }
+.customer-card.status-closed_lost { border-left-color: #dc2626; }
+
+.avatar-lg { 
+  width:56px; 
+  height:56px; 
+  border-radius:50%; 
   display:flex; 
   align-items:center; 
-  gap:16px;
-  min-width:200px;
-}
-.stat-icon {
-  width:48px;
-  height:48px;
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  justify-content:center; 
+  font-size:20px; 
+  font-weight:700; 
   flex-shrink:0;
+  text-transform:uppercase;
 }
-.badge-prospect { background:#e7f3ff; color:#0866ff; font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; }
-.badge-qualified { background:#fff4e5; color:#f59e0b; font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; }
-.badge-proposal { background:#f0f9ff; color:#0284c7; font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; }
-.badge-negotiation { background:#fef3c7; color:#d97706; font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; }
-.badge-closed_won { background:#dcfce7; color:#16a34a; font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; }
-.badge-closed_lost { background:#fee2e2; color:#dc2626; font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; }
+.badge-status { 
+  font-size:12px; 
+  font-weight:600; 
+  padding:6px 12px; 
+  border-radius:20px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+.badge-prospect { background:#e0e7ff; color:#6366f1; }
+.badge-qualified { background:#fef3c7; color:#f59e0b; }
+.badge-proposal { background:#e0f2fe; color:#0284c7; }
+.badge-negotiation { background:#ede9fe; color:#8b5cf6; }
+.badge-closed_won { background:#dcfce7; color:#16a34a; }
+.badge-closed_lost { background:#fee2e2; color:#dc2626; }
+
+.pipeline-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.action-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.action-btn-primary { background: #667eea; color: #fff; }
+.action-btn-primary:hover { background: #5568d3; }
+.action-btn-success { background: #16a34a; color: #fff; }
+.action-btn-success:hover { background: #15803d; }
+.action-btn-danger { background: #dc2626; color: #fff; }
+.action-btn-danger:hover { background: #b91c1c; }
+.action-btn-secondary { background: #f3f4f6; color: #374151; }
+.action-btn-secondary:hover { background: #e5e7eb; }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
 </style>
 
-<%
-var colorMap = ['#6366f1','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#ef4444'];
-function getInitials(name){ 
-  if(!name) return '?'; 
-  var parts = name.trim().split(' ');
-  if(parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return name.substring(0,2).toUpperCase();
-} 
-function getColor(str){ 
-  var h=0; 
-  for(var i=0;i<(str||'').length;i++) h=str.charCodeAt(i)+((h<<5)-h); 
-  return colorMap[Math.abs(h)%colorMap.length]; 
-}
-
-var statusMap = { 
-  prospect:'Prospecto', 
-  qualified:'Calificado', 
-  proposal:'Propuesta', 
-  negotiation:'Negociación', 
-  closed_won:'Ganado', 
-  closed_lost:'Perdido' 
-};
-var statusCls = { 
-  prospect:'badge-prospect', 
-  qualified:'badge-qualified', 
-  proposal:'badge-proposal', 
-  negotiation:'badge-negotiation', 
-  closed_won:'badge-closed_won', 
-  closed_lost:'badge-closed_lost' 
-};
-
-var totalValue = customers.reduce(function(acc, c){ return acc + (c.value || 0); }, 0);
-var wonCount = customers.filter(function(c){ return c.status === 'closed_won'; }).length;
-var prospectCount = customers.filter(function(c){ return c.status === 'prospect'; }).length;
-%>
-
-<div class="d-flex flex-wrap gap-3 mb-4">
-  <div class="stat-card">
-    <div class="stat-icon" style="background:#e0e7ff;">
-      <i class="bx bx-briefcase" style="font-size:24px;color:#6366f1;"></i>
-    </div>
+<div class="pipeline-header">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
-      <p class="mb-0" style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;">Total Clientes</p>
-      <p class="mb-0" style="font-size:28px;font-weight:700;color:#111827;"><%= customers.length %></p>
+      <h3 style="margin:0 0 8px;font-size:28px;">Pipeline de Clientes</h3>
+      <p style="margin:0;opacity:0.9;">Gestiona tus oportunidades de venta</p>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon" style="background:#d1fae5;">
-      <i class="bx bx-dollar-circle" style="font-size:24px;color:#059669;"></i>
-    </div>
-    <div>
-      <p class="mb-0" style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;">Valor Pipeline</p>
-      <p class="mb-0" style="font-size:28px;font-weight:700;color:#059669;">$<%= totalValue.toLocaleString('es-CO') %></p>
-    </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon" style="background:#fef3c7;">
-      <i class="bx bx-target-lock" style="font-size:24px;color:#d97706;"></i>
-    </div>
-    <div>
-      <p class="mb-0" style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;">Prospectos</p>
-      <p class="mb-0" style="font-size:28px;font-weight:700;color:#d97706;"><%= prospectCount %></p>
-    </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon" style="background:#dcfce7;">
-      <i class="bx bx-check-circle" style="font-size:24px;color:#16a34a;"></i>
-    </div>
-    <div>
-      <p class="mb-0" style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;">Ganados</p>
-      <p class="mb-0" style="font-size:28px;font-weight:700;color:#16a34a;"><%= wonCount %></p>
+    <div class="d-flex gap-3">
+      <div style="background:rgba(255,255,255,0.2);border-radius:12px;padding:16px 24px;text-align:center;">
+        <div style="font-size:12px;opacity:0.9;margin-bottom:4px;">Total Clientes</div>
+        <div style="font-size:24px;font-weight:700;"><%= customers.length %></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.2);border-radius:12px;padding:16px 24px;text-align:center;">
+        <div style="font-size:12px;opacity:0.9;margin-bottom:4px;">Valor Pipeline</div>
+        <div style="font-size:24px;font-weight:700;">$<%= pipelineValue.toLocaleString() %></div>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="card" style="border-radius:12px;border:1px solid #e4e6eb;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-  <div class="card-header py-3 px-4" style="background:#fff;border-bottom:1px solid #e4e6eb;border-radius:12px 12px 0 0;">
-    <div class="d-flex align-items-center justify-content-between">
-      <div>
-        <h6 class="mb-0" style="font-weight:700;font-size:16px;">Pipeline de Clientes</h6>
-        <p class="mb-0" style="font-size:13px;color:#6b7280;">Oportunidades agendadas y en proceso</p>
+<div class="row g-4 mb-4">
+  <div class="col-md-2 col-sm-4">
+    <div class="stat-card text-center">
+      <div style="width:48px;height:48px;border-radius:10px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+        <i class="bx bx-user" style="font-size:24px;color:#6366f1;"></i>
       </div>
+      <div style="font-size:24px;font-weight:700;color:#6366f1;"><%= customers.filter(c=>c.status==='prospect').length %></div>
+      <div style="font-size:12px;color:#8a8d9f;">Prospectos</div>
     </div>
   </div>
-
-  <div class="card-body p-4">
-    <% if (customers.length === 0) { %>
-      <div style="text-align:center;padding:60px 0;">
-        <div style="width:80px;height:80px;background:#f3f4f6;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-          <i class="bx bx-briefcase" style="font-size:40px;color:#9ca3af;"></i>
-        </div>
-        <h5 style="font-weight:600;color:#111827;margin-bottom:8px;">Pipeline vacío</h5>
-        <p style="font-size:14px;color:#6b7280;margin-bottom:20px;">Agenda reuniones desde Llamadas para ver clientes aquí</p>
-        <a href="/llamadas" class="btn btn-primary">
-          <i class="bx bx-phone me-2"></i>Ir a Llamadas
-        </a>
+  <div class="col-md-2 col-sm-4">
+    <div class="stat-card text-center">
+      <div style="width:48px;height:48px;border-radius:10px;background:#fef3c7;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+        <i class="bx bx-check-double" style="font-size:24px;color:#f59e0b;"></i>
       </div>
-    <% } else { %>
-      <div class="row g-3">
-        <% customers.forEach(function(c) {
-          var initials = getInitials(c.name);
-          var color = getColor(c.name);
-          var statusLabel = statusMap[c.status] || c.status;
-          var badgeClass = statusCls[c.status] || 'badge-prospect';
-        %>
-        <div class="col-md-6 col-lg-4">
-          <div class="customer-card" id="customer-<%= c._id %>">
-            <div class="d-flex align-items-start gap-3 mb-3">
-              <div class="avatar-sm" style="background:<%= color %>20;color:<%= color %>;">
-                <%= initials %>
-              </div>
-              <div style="flex:1;min-width:0;">
-                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-                  <h6 class="mb-0" style="font-size:15px;font-weight:700;"><%= c.name %></h6>
-                </div>
-                <% if (c.company) { %>
-                  <p class="mb-0" style="font-size:13px;color:#6b7280;">
-                    <i class="bx bx-buildings me-1"></i><%= c.company %>
-                  </p>
-                <% } %>
+      <div style="font-size:24px;font-weight:700;color:#f59e0b;"><%= customers.filter(c=>c.status==='qualified').length %></div>
+      <div style="font-size:12px;color:#8a8d9f;">Calificados</div>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4">
+    <div class="stat-card text-center">
+      <div style="width:48px;height:48px;border-radius:10px;background:#e0f2fe;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+        <i class="bx bx-file" style="font-size:24px;color:#0284c7;"></i>
+      </div>
+      <div style="font-size:24px;font-weight:700;color:#0284c7;"><%= customers.filter(c=>c.status==='proposal').length %></div>
+      <div style="font-size:12px;color:#8a8d9f;">Propuestas</div>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4">
+    <div class="stat-card text-center">
+      <div style="width:48px;height:48px;border-radius:10px;background:#ede9fe;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+        <i class="bx bx-handshake" style="font-size:24px;color:#8b5cf6;"></i>
+      </div>
+      <div style="font-size:24px;font-weight:700;color:#8b5cf6;"><%= customers.filter(c=>c.status==='negotiation').length %></div>
+      <div style="font-size:12px;color:#8a8d9f;">Negociación</div>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4">
+    <div class="stat-card text-center">
+      <div style="width:48px;height:48px;border-radius:10px;background:#dcfce7;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+        <i class="bx bx-trophy" style="font-size:24px;color:#16a34a;"></i>
+      </div>
+      <div style="font-size:24px;font-weight:700;color:#16a34a;"><%= customers.filter(c=>c.status==='closed_won').length %></div>
+      <div style="font-size:12px;color:#8a8d9f;">Ganados</div>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4">
+    <div class="stat-card text-center">
+      <div style="width:48px;height:48px;border-radius:10px;background:#fee2e2;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+        <i class="bx bx-x-circle" style="font-size:24px;color:#dc2626;"></i>
+      </div>
+      <div style="font-size:24px;font-weight:700;color:#dc2626;"><%= customers.filter(c=>c.status==='closed_lost').length %></div>
+      <div style="font-size:12px;color:#8a8d9f;">Perdidos</div>
+    </div>
+  </div>
+</div>
+
+<% if (customers.length === 0) { %>
+  <div class="text-center py-5" style="background:#fff;border-radius:16px;border:1px solid #f0f0f0;">
+    <div style="width:100px;height:100px;background:#f3f4f6;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+      <i class="bx bx-briefcase" style="font-size:50px;color:#9ca3af;"></i>
+    </div>
+    <h5 style="font-weight:700;color:#111827;margin-bottom:8px;">Pipeline vacío</h5>
+    <p style="color:#6b7280;margin-bottom:20px;">Aún no tienes clientes en el pipeline</p>
+    <a href="/llamadas" class="btn btn-primary px-4"><i class="bx bx-phone me-2"></i>Ir a Llamadas</a>
+  </div>
+<% } else { %>
+  <div id="customersList">
+    <% customers.forEach(function(c) {
+      var initials = c.name.split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2);
+      var colorMap = ['#6366f1','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#ef4444'];
+      var hash = 0; for(var i=0;i<c.name.length;i++) hash=c.name.charCodeAt(i)+((hash<<5)-hash);
+      var color = colorMap[Math.abs(hash)%colorMap.length];
+      
+      var statusLabels = {
+        prospect: 'Prospecto',
+        qualified: 'Calificado',
+        proposal: 'Propuesta',
+        negotiation: 'Negociación',
+        closed_won: 'Ganado',
+        closed_lost: 'Perdido'
+      };
+      
+      var statusClasses = {
+        prospect: 'badge-prospect',
+        qualified: 'badge-qualified',
+        proposal: 'badge-proposal',
+        negotiation: 'badge-negotiation',
+        closed_won: 'badge-closed_won',
+        closed_lost: 'badge-closed_lost'
+      };
+    %>
+    <div class="customer-card status-<%= c.status %>" id="customer-<%= c._id %>">
+      <div class="d-flex align-items-start gap-3">
+        <div class="avatar-lg" style="background:<%= color %>20;color:<%= color %>;">
+          <%= initials %>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+            <h5 style="margin:0;font-size:18px;font-weight:700;"><%= c.name %></h5>
+            <span class="badge-status <%= statusClasses[c.status] %>"><%= statusLabels[c.status] %></span>
+          </div>
+          
+          <div class="row g-2 mb-3">
+            <% if (c.company) { %>
+            <div class="col-md-4 col-sm-6">
+              <div style="font-size:13px;color:#6b7280;">
+                <i class="bx bx-buildings me-2"></i><%= c.company %>
               </div>
             </div>
-            
-            <div class="mb-3">
-              <span class="<%= badgeClass %>"><%= statusLabel %></span>
-            </div>
-            
-            <div class="d-flex flex-column gap-2 mb-3">
-              <% if (c.phone) { %>
-                <div style="font-size:13px;color:#374151;">
-                  <i class="bx bx-phone me-2" style="color:#6b7280;"></i><%= c.phone %>
-                </div>
-              <% } %>
-              <% if (c.email) { %>
-                <div style="font-size:13px;color:#374151;">
-                  <i class="bx bx-envelope me-2" style="color:#6b7280;"></i><%= c.email %>
-                </div>
-              <% } %>
-              <% if (c.value) { %>
-                <div style="font-size:13px;color:#059669;font-weight:600;">
-                  <i class="bx bx-dollar me-2"></i>$<%= c.value.toLocaleString('es-CO') %>
-                </div>
-              <% } %>
-            </div>
-            
-            <% if (c.notes) { %>
-              <div style="background:#f9fafb;border-radius:8px;padding:12px;margin-bottom:12px;">
-                <p class="mb-0" style="font-size:12px;color:#6b7280;line-height:1.5;">
-                  <i class="bx bx-comment me-1"></i><%= c.notes %>
-                </p>
-              </div>
             <% } %>
-            
-            <div class="d-flex gap-2">
-              <% if (c.status !== 'closed_lost' && c.status !== 'closed_won') { %>
-                <select class="form-select form-select-sm" style="flex:1;font-size:13px;" onchange="updatePipelineStatus('<%= c._id %>', this.value)">
-                  <option value="" disabled> Cambiar estado...</option>
-                  <option value="prospect" <%= c.status==='prospect'?'selected':'' %>>Prospecto</option>
-                  <option value="qualified" <%= c.status==='qualified'?'selected':'' %>>Calificado</option>
-                  <option value="proposal" <%= c.status==='proposal'?'selected':'' %>>Propuesta</option>
-                  <option value="negotiation" <%= c.status==='negotiation'?'selected':'' %>>Negociación</option>
-                  <option value="closed_won" <%= c.status==='closed_won'?'selected':'' %>>✓ Ganado</option>
-                  <option value="closed_lost" <%= c.status==='closed_lost'?'selected':'' %>>✗ Perdido</option>
-                </select>
-              <% } else { %>
-                <div style="flex:1;"></div>
-              <% } %>
-              
-              <button class="btn btn-sm btn-outline-danger" style="white-space:nowrap;font-size:12px;padding:6px 12px;" onclick="eliminarDePipeline('<%= c._id %>', '<%= c.name.replace(/'/g, "\\'") %>')" title="Enviar a Seguimiento">
-                <i class="bx bx-redo me-1"></i>Seguimiento
-              </button>
+            <% if (c.phone) { %>
+            <div class="col-md-4 col-sm-6">
+              <div style="font-size:13px;color:#6b7280;">
+                <i class="bx bx-phone me-2"></i><%= c.phone %>
+              </div>
+            </div>
+            <% } %>
+            <% if (c.email) { %>
+            <div class="col-md-4 col-sm-6">
+              <div style="font-size:13px;color:#6b7280;">
+                <i class="bx bx-envelope me-2"></i><%= c.email %>
+              </div>
+            </div>
+            <% } %>
+            <% if (c.value) { %>
+            <div class="col-md-4 col-sm-6">
+              <div style="font-size:13px;color:#16a34a;font-weight:600;">
+                <i class="bx bx-dollar me-2"></i>$<%= c.value.toLocaleString() %>
+              </div>
+            </div>
+            <% } %>
+          </div>
+          
+          <% if (c.notes) { %>
+          <div style="background:#f8f9fa;border-radius:8px;padding:12px;margin-bottom:12px;">
+            <div style="font-size:12px;color:#6b7280;line-height:1.5;">
+              <i class="bx bx-comment me-1"></i><%= c.notes %>
             </div>
           </div>
+          <% } %>
+          
+          <div class="pipeline-actions">
+            <% if (c.status !== 'closed_won' && c.status !== 'closed_lost') { %>
+              <button class="action-btn action-btn-primary" onclick="updateStatus('<%= c._id %>', 'qualified')" title="Marcar como Calificado">
+                <i class="bx bx-check"></i> Calificar
+              </button>
+              <button class="action-btn action-btn-secondary" onclick="updateStatus('<%= c._id %>', 'proposal')" title="Enviar Propuesta">
+                <i class="bx bx-file"></i> Propuesta
+              </button>
+              <button class="action-btn action-btn-secondary" onclick="updateStatus('<%= c._id %>', 'negotiation')" title="Negociación">
+                <i class="bx bx-handshake"></i> Negociar
+              </button>
+              <button class="action-btn action-btn-success" onclick="updateStatus('<%= c._id %>', 'closed_won')" title="Ganado">
+                <i class="bx bx-trophy"></i> Ganado
+              </button>
+              <button class="action-btn action-btn-danger" onclick="updateStatus('<%= c._id %>', 'closed_lost')" title="Perdido">
+                <i class="bx bx-x-circle"></i> Perdido
+              </button>
+            <% } %>
+            <button class="action-btn action-btn-secondary" onclick="sendToFollowup('<%= c._id %>', '<%= c.name.replace(/'/g, "\\'") %>')" title="Enviar a Seguimiento">
+              <i class="bx bx-redo"></i> Seguimiento
+            </button>
+          </div>
         </div>
-        <% }); %>
       </div>
-    <% } %>
+    </div>
+    <% }); %>
   </div>
-</div>
+<% } %>
 
 <script>
-async function updatePipelineStatus(customerId, status) {
-  if (!status) return;
+async function updateStatus(customerId, newStatus) {
+  var statusNames = {
+    prospect: 'Prospecto',
+    qualified: 'Calificado',
+    proposal: 'Propuesta',
+    negotiation: 'Negociación',
+    closed_won: 'Ganado',
+    closed_lost: 'Perdido'
+  };
+  
+  if (!confirm('¿Cambiar estado a "' + statusNames[newStatus] + '"?')) return;
   
   try {
     var res = await fetch('/api/pipeline/' + customerId + '/status', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: status })
+      body: JSON.stringify({ status: newStatus })
     });
+    
     var data = await res.json();
     if (data.success) {
-      location.reload();
-    } else {
-      alert('Error: ' + (data.message || 'No se pudo actualizar'));
-    }
-  } catch(e) { 
-    console.error(e);
-    alert('Error de conexión al actualizar'); 
-  }
-}
-
-async function eliminarDePipeline(id, name) {
-  if (!confirm('¿Enviar "' + name + '" a Seguimiento?\n\nEl cliente se eliminará del Pipeline y el lead original volverá a la lista de Seguimiento para no perderlo.')) return;
-  
-  try {
-    var res = await fetch('/api/pipeline/' + id + '/delete', { 
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    });
-    var data = await res.json();
-    if (data.success) {
-      var card = document.getElementById('customer-' + id);
+      var card = document.getElementById('customer-' + customerId);
       if (card) {
         card.style.opacity = '0';
         card.style.transform = 'translateX(-20px)';
-        card.style.transition = 'all 0.3s';
+        setTimeout(function() { location.reload(); }, 300);
+      }
+    } else {
+      alert('Error: ' + (data.message || 'No se pudo actualizar'));
+    }
+  } catch(e) {
+    console.error(e);
+    alert('Error de conexión al actualizar');
+  }
+}
+
+async function sendToFollowup(customerId, customerName) {
+  if (!confirm('¿Enviar "' + customerName + '" a Seguimiento?\n\nEl cliente se eliminará del Pipeline y el lead volverá a la lista de Seguimiento.')) return;
+  
+  try {
+    var res = await fetch('/api/pipeline/' + customerId + '/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    var data = await res.json();
+    if (data.success) {
+      var card = document.getElementById('customer-' + customerId);
+      if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(20px)';
         setTimeout(function() {
           card.remove();
           if (document.querySelectorAll('.customer-card').length === 0) {
@@ -278,11 +347,11 @@ async function eliminarDePipeline(id, name) {
       }
       alert('✓ ' + data.message);
     } else {
-      alert('Error: ' + (data.message || 'No se pudo eliminar'));
+      alert('Error: ' + (data.message || 'No se pudo enviar a seguimiento'));
     }
-  } catch(e) { 
+  } catch(e) {
     console.error(e);
-    alert('Error de conexión al eliminar'); 
+    alert('Error de conexión');
   }
 }
 </script>
