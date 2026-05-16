@@ -1,39 +1,56 @@
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
+<style>
+.meeting-card { background:#fff; border-radius:10px; border:1px solid #f0f0f0; padding:14px; margin-bottom:10px; transition: box-shadow 0.15s; }
+.meeting-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.fc .fc-button-primary { background:#696cff!important; border-color:#696cff!important; border-radius:8px!important; font-size:13px!important; }
+.fc .fc-button-primary:hover { background:#5558e3!important; }
+.fc .fc-button-primary:not(.fc-button-active) { background:#f0f0ff!important; color:#696cff!important; border-color:#e0e0ff!important; }
+.fc .fc-button-primary.fc-button-active { background:#696cff!important; color:#fff!important; }
+.fc .fc-today-button { background:#696cff!important; color:#fff!important; }
+.fc-event { border-radius:6px!important; border:none!important; padding:2px 6px!important; font-size:12px!important; }
+.fc-daygrid-day.fc-day-today { background:#f5f5ff!important; }
+</style>
+
 <div class="row g-4">
-  <div class="col-lg-9">
-    <div class="card">
-      <div class="card-body">
+  <!-- Calendario -->
+  <div class="col-lg-8">
+    <div class="card" style="border-radius:12px;border:1px solid #f0f0f0;box-shadow:0 2px 12px rgba(0,0,0,0.04);">
+      <div class="card-body p-4">
         <div id="calendar"></div>
       </div>
     </div>
   </div>
-  <div class="col-lg-3">
-    <div class="card">
-      <div class="card-header">
-        <h6 class="card-title mb-0">Nueva Reunión</h6>
+
+  <!-- Panel derecho -->
+  <div class="col-lg-4">
+    <!-- Formulario -->
+    <div class="card mb-4" style="border-radius:12px;border:1px solid #f0f0f0;box-shadow:0 2px 12px rgba(0,0,0,0.04);">
+      <div class="card-header border-0 pb-0 px-4 pt-4">
+        <h6 class="mb-0" style="font-weight:700;">Nueva Reunión</h6>
+        <p class="text-muted mb-0" style="font-size:12px;">Agenda una reunión o llamada</p>
       </div>
-      <div class="card-body">
-        <form id="meetingForm">
+      <div class="card-body px-4 pb-4">
+        <div id="meetingForm">
           <div class="mb-3">
-            <label class="form-label">Título *</label>
-            <input type="text" id="meetingTitle" class="form-control" required />
+            <label class="form-label fw-semibold" style="font-size:13px;">Título *</label>
+            <input type="text" id="meetingTitle" class="form-control" placeholder="Reunión con cliente..." />
           </div>
           <div class="mb-3">
-            <label class="form-label">Descripción</label>
-            <textarea id="meetingDescription" class="form-control" rows="2"></textarea>
+            <label class="form-label fw-semibold" style="font-size:13px;">Descripción</label>
+            <textarea id="meetingDescription" class="form-control" rows="2" placeholder="Detalles de la reunión..."></textarea>
           </div>
           <div class="mb-3">
-            <label class="form-label">Fecha y Hora Inicio *</label>
-            <input type="datetime-local" id="meetingStart" class="form-control" required />
+            <label class="form-label fw-semibold" style="font-size:13px;">Inicio *</label>
+            <input type="datetime-local" id="meetingStart" class="form-control" />
           </div>
           <div class="mb-3">
-            <label class="form-label">Fecha y Hora Fin</label>
+            <label class="form-label fw-semibold" style="font-size:13px;">Fin</label>
             <input type="datetime-local" id="meetingEnd" class="form-control" />
           </div>
           <div class="mb-3">
-            <label class="form-label">Lead relacionado</label>
+            <label class="form-label fw-semibold" style="font-size:13px;">Lead relacionado</label>
             <select id="meetingLead" class="form-select">
               <option value="">Sin lead</option>
               <% leads.forEach(lead => { %>
@@ -41,43 +58,144 @@
               <% }) %>
             </select>
           </div>
-          <button type="submit" class="btn btn-primary w-100">Agendar</button>
-        </form>
+          <button id="saveMeetingBtn" class="btn btn-primary w-100" onclick="saveMeeting()">
+            <i class="bx bx-calendar-plus me-1"></i> Agendar Reunión
+          </button>
+          <div id="meetingMsg" style="display:none;" class="mt-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Próximas reuniones -->
+    <div class="card" style="border-radius:12px;border:1px solid #f0f0f0;box-shadow:0 2px 12px rgba(0,0,0,0.04);">
+      <div class="card-header border-0 pb-0 px-4 pt-4">
+        <h6 class="mb-0" style="font-weight:700;">Próximas Reuniones</h6>
+      </div>
+      <div class="card-body px-4 pb-4" id="upcomingList">
+        <p class="text-muted" style="font-size:13px;">Cargando...</p>
       </div>
     </div>
   </div>
 </div>
 
 <script>
+let calendar;
+
 document.addEventListener('DOMContentLoaded', function() {
   const calendarEl = document.getElementById('calendar');
-  const calendar = new FullCalendar.Calendar(calendarEl, {
+  calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
     locale: 'es',
+    height: 'auto',
     headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+    buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día' },
     events: '/api/meetings',
+    eventColor: '#696cff',
+    dateClick: function(info) {
+      document.getElementById('meetingStart').value = info.dateStr + 'T09:00';
+      document.getElementById('meetingEnd').value = info.dateStr + 'T10:00';
+      document.getElementById('meetingTitle').focus();
+    },
     eventClick: function(info) {
-      if (confirm('¿Eliminar esta reunión: ' + info.event.title + '?')) {
-        fetch('/api/meetings/' + info.event.id, { method: 'DELETE' }).then(() => calendar.refetchEvents());
+      if (confirm('¿Eliminar la reunión: ' + info.event.title + '?')) {
+        fetch('/api/meetings/' + info.event.id, { method: 'DELETE' })
+          .then(() => { calendar.refetchEvents(); loadUpcoming(); });
       }
     }
   });
   calendar.render();
+  loadUpcoming();
+});
 
-  document.getElementById('meetingForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const data = {
-      title: document.getElementById('meetingTitle').value,
-      description: document.getElementById('meetingDescription').value,
-      start: document.getElementById('meetingStart').value,
-      end: document.getElementById('meetingEnd').value,
-      lead: document.getElementById('meetingLead').value
-    };
-    fetch('/api/meetings', {
+async function saveMeeting() {
+  const title = document.getElementById('meetingTitle').value.trim();
+  const start = document.getElementById('meetingStart').value;
+  if (!title || !start) {
+    showMsg('Por favor completa título y fecha de inicio.', 'danger');
+    return;
+  }
+  const btn = document.getElementById('saveMeetingBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Agendando...';
+  try {
+    const res = await fetch('/api/meetings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    }).then(() => { calendar.refetchEvents(); this.reset(); });
-  });
-});
+      body: JSON.stringify({
+        title,
+        description: document.getElementById('meetingDescription').value,
+        start,
+        end: document.getElementById('meetingEnd').value || null,
+        lead: document.getElementById('meetingLead').value || null
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showMsg('¡Reunión agendada exitosamente!', 'success');
+      document.getElementById('meetingTitle').value = '';
+      document.getElementById('meetingDescription').value = '';
+      document.getElementById('meetingStart').value = '';
+      document.getElementById('meetingEnd').value = '';
+      document.getElementById('meetingLead').value = '';
+      calendar.refetchEvents();
+      loadUpcoming();
+    } else {
+      showMsg('Error al agendar. Intenta de nuevo.', 'danger');
+    }
+  } catch(e) {
+    showMsg('Error de conexión.', 'danger');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="bx bx-calendar-plus me-1"></i> Agendar Reunión';
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('meetingMsg');
+  el.innerHTML = `<div class="alert alert-${type} py-2 mb-0" style="font-size:13px;">${text}</div>`;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+async function loadUpcoming() {
+  try {
+    const res = await fetch('/api/meetings');
+    const events = await res.json();
+    const now = new Date();
+    const upcoming = events
+      .filter(e => new Date(e.start) >= now)
+      .sort((a,b) => new Date(a.start) - new Date(b.start))
+      .slice(0, 5);
+    const container = document.getElementById('upcomingList');
+    if (upcoming.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:20px 0;color:#c5c7d4;"><i class="bx bx-calendar-x" style="font-size:32px;display:block;margin-bottom:8px;"></i><p style="font-size:13px;margin:0;">No hay reuniones próximas</p></div>';
+      return;
+    }
+    container.innerHTML = upcoming.map(e => {
+      const d = new Date(e.start);
+      const dateStr = d.toLocaleDateString('es-CO', { weekday:'short', day:'numeric', month:'short' });
+      const timeStr = d.toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' });
+      return `<div class="meeting-card">
+        <div class="d-flex align-items-start gap-2">
+          <div style="width:36px;height:36px;border-radius:8px;background:#f0f0ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bx bx-calendar" style="font-size:18px;color:#696cff;"></i>
+          </div>
+          <div style="min-width:0;">
+            <p class="mb-0" style="font-size:13px;font-weight:700;">${e.title}</p>
+            <p class="mb-0" style="font-size:12px;color:#8a8d9f;">${dateStr} · ${timeStr}</p>
+          </div>
+          <button onclick="deleteMeeting('${e.id}')" style="background:none;border:none;color:#c5c7d4;cursor:pointer;margin-left:auto;flex-shrink:0;" title="Eliminar">
+            <i class="bx bx-x" style="font-size:18px;"></i>
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function deleteMeeting(id) {
+  if (!confirm('¿Eliminar esta reunión?')) return;
+  await fetch('/api/meetings/' + id, { method: 'DELETE' });
+  calendar.refetchEvents();
+  loadUpcoming();
+}
 </script>
