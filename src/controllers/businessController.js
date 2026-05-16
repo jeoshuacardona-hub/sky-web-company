@@ -1,84 +1,64 @@
-const Customer = require('../models/Customer');
 const Task = require('../models/Task');
-const Lead = require('../models/Lead');
-
-exports.getDashboard = async (req, res, next) => {
-    try {
-        const customerCount = await Customer.countDocuments();
-        const pendingTasks = await Task.countDocuments({ status: 'todo' });
-        const closedWon = await Customer.countDocuments({ status: 'closed-won' });
-        const leadsCount = await Lead.countDocuments();
-        const recentLeads = await Lead.find().sort({ createdAt: -1 }).limit(5);
-        const recentTasks = await Task.find({ status: 'todo' }).sort({ createdAt: -1 }).limit(5);
-        const statuses = ['new', 'contacted', 'qualified', 'converted', 'lost'];
-        const leadsByStatus = await Promise.all(statuses.map(s => Lead.countDocuments({ status: s })));
-        res.render('pages/index', {
-            title: 'Dashboard',
-            stats: { customers: customerCount, tasks: pendingTasks, revenue: closedWon, leads: leadsCount, recentLeads, recentTasks, leadsByStatus }
-        });
-    } catch (error) { next(error); }
-};
-
-exports.getCustomers = async (req, res, next) => {
-    try {
-        const customers = await Customer.find().populate('assignedTo');
-        res.render('pages/customers', { title: 'Clientes', customers });
-    } catch (error) { next(error); }
-};
-
-exports.createCustomer = async (req, res, next) => {
-    try {
-        await Customer.create(req.body);
-        res.redirect('/customers');
-    } catch (error) { next(error); }
-};
+const User = require('../models/User');
 
 exports.getTasks = async (req, res, next) => {
     try {
-        const tasks = await Task.find().populate('customer').populate('assignedTo');
-        res.render('pages/tasks', { title: 'Tareas', tasks });
-    } catch (error) { next(error); }
-};
-
-exports.updateTaskStatus = async (req, res, next) => {
-    try {
-        const { id, status } = req.body;
-        await Task.findByIdAndUpdate(id, { status });
-        res.redirect('/tasks');
-    } catch (error) { next(error); }
+        // 1. Definir isAdmin correctamente
+        const isAdmin = req.session.user && req.session.user.role === 'admin';
+        
+        // 2. Filtrar tareas: Admin ve todas, comercial solo las suyas
+        const filter = isAdmin ? {} : { assignedTo: req.session.userId };
+        
+        const tasks = await Task.find(filter).populate('assignedTo').populate('customer').sort({ createdAt: -1 });
+        
+        // 3. Obtener usuarios solo si es admin (para el selector de asignación)
+        const users = isAdmin ? await User.find() : [];
+        
+        // 4. Pasar isAdmin a la vista
+        res.render('pages/tasks', { 
+            title: 'Tareas', 
+            tasks, 
+            users, 
+            isAdmin 
+        });
+    } catch (error) { 
+        next(error); 
+    }
 };
 
 exports.createTask = async (req, res, next) => {
     try {
-        await Task.create(req.body);
+        await Task.create({
+            title: req.body.title,
+            description: req.body.description || '',
+            priority: req.body.priority || 'medium',
+            dueDate: req.body.dueDate || null,
+            assignedTo: req.body.assignedTo || req.session.userId,
+            status: 'todo'
+        });
         res.redirect('/tasks');
     } catch (error) { next(error); }
 };
 
-exports.updateCustomer = async (req, res, next) => {
+exports.updateTask = async (req, res, next) => {
     try {
-        await Customer.findByIdAndUpdate(req.params.id, req.body);
-        res.redirect('/customers');
+        await Task.findByIdAndUpdate(req.params.id, req.body);
+        res.redirect('/tasks');
     } catch (error) { next(error); }
 };
 
-exports.deleteCustomer = async (req, res, next) => {
+exports.updateStatus = async (req, res, next) => {
     try {
-        await Customer.findByIdAndDelete(req.params.id);
-        res.redirect('/customers');
+        const update = { status: req.body.status };
+        if (req.body.status === 'done') update.completedAt = new Date();
+        await Task.findByIdAndUpdate(req.params.id, update);
+        res.json({ success: true });
     } catch (error) { next(error); }
 };
 
-exports.updateCustomer = async (req, res, next) => {
+exports.deleteTask = async (req, res, next) => {
     try {
-        await Customer.findByIdAndUpdate(req.params.id, req.body);
-        res.redirect('/customers');
-    } catch (error) { next(error); }
-};
-
-exports.deleteCustomer = async (req, res, next) => {
-    try {
-        await Customer.findByIdAndDelete(req.params.id);
-        res.redirect('/customers');
+        await Task.findByIdAndDelete(req.params.id);
+        res.redirect('/tasks');
     } catch (error) { next(error); }
 };
