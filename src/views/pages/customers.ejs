@@ -216,7 +216,7 @@ var prospectCount = customers.filter(function(c){ return c.status === 'prospect'
                   <option value="closed_won" <%= c.status==='closed_won'?'selected':'' %>>✓ Ganado</option>
                   <option value="closed_lost" <%= c.status==='closed_lost'?'selected':'' %>>✗ Perdido</option>
                 </select>
-              <% } else %>
+              <% } else { %>
                 <div style="flex:1;"></div>
               <% } %>
               
