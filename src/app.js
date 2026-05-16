@@ -35,7 +35,6 @@ app.use(function(req, res, next) {
     next();
 });
 
-// Rutas
 const authRoutes = require('./routes/authRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const leadRoutes = require('./routes/leadRoutes');
@@ -43,28 +42,26 @@ const callRoutes = require('./routes/callRoutes');
 const businessRoutes = require('./routes/businessRoutes');
 const userRoutes = require('./routes/userRoutes');
 const debugRoutes = require('./routes/debugRoutes');
+const calendarRoutes = require('./routes/calendarRoutes');
 
-app.use(dashboardRoutes);
 app.use(authRoutes);
+app.use(dashboardRoutes);
 app.use(leadRoutes);
 app.use(callRoutes);
 app.use(businessRoutes);
 app.use(userRoutes);
 app.use(debugRoutes);
+app.use(calendarRoutes);
 
-// Conectar a MongoDB y seed admin
 mongoose.connect(process.env.MONGODB_URI)
     .then(async () => {
         console.log('✅ Connected to MongoDB');
-        await seedAdmin(); // Crear admin si no existe
+        await seedAdmin();
         app.listen(PORT, '0.0.0.0', () => console.log('🚀 Server started on port ' + PORT));
     })
     .catch(function(err) { 
         console.error('❌ MongoDB Connection Error:', err.message); 
-        console.error('💡 Verifica MONGODB_URI en Render: debe empezar con mongodb+srv://');
         process.exit(1); 
     });
 
-// Setup routes - TEMPORAL
-const setupRoutes = require('./routes/setupRoutes');
-app.use(setupRoutes);
+module.exports = app;
