@@ -1,4 +1,8 @@
 <style>
+  /* Ocultar sidebar en login */
+  .sidebar, .layout-menu, #layout-menu { display: none !important; }
+  .layout-page, .content-wrapper, .container-xxl { margin-left: 0 !important; padding: 0 !important; }
+  
   .login-wrapper {
     min-height: 100vh;
     display: flex;
@@ -6,7 +10,6 @@
     justify-content: center;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 40px 20px;
-    margin: -20px;
   }
   .login-box {
     background: #fff;
@@ -26,95 +29,21 @@
     flex-direction: column;
     justify-content: center;
   }
-  .login-left h1 {
-    font-size: 36px;
-    margin-bottom: 20px;
-    line-height: 1.2;
-  }
-  .login-left p {
-    font-size: 15px;
-    opacity: 0.9;
-    line-height: 1.6;
-  }
-  .login-right {
-    padding: 60px 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .login-header {
-    text-align: center;
-    margin-bottom: 32px;
-  }
-  .login-header i {
-    font-size: 64px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 16px;
-  }
-  .login-header h2 {
-    font-size: 24px;
-    color: #1a202c;
-    margin-bottom: 8px;
-  }
-  .login-header p {
-    color: #718096;
-    font-size: 14px;
-  }
-  .form-group {
-    margin-bottom: 20px;
-  }
-  .form-label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #2d3748;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .form-input {
-    width: 100%;
-    padding: 14px 16px;
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 15px;
-    transition: all 0.2s;
-  }
-  .form-input:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
-  }
-  .btn-login {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.2s;
-    margin-top: 8px;
-  }
-  .btn-login:hover {
-    transform: translateY(-2px);
-  }
-  .error-msg {
-    background: #fed7d7;
-    color: #c53030;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 14px;
-  }
-  @media (max-width: 768px) {
-    .login-box { grid-template-columns: 1fr; }
-    .login-left { display: none; }
-  }
+  .login-left h1 { font-size: 36px; margin-bottom: 20px; }
+  .login-left p { font-size: 15px; opacity: 0.9; line-height: 1.6; }
+  .login-right { padding: 60px 40px; display: flex; flex-direction: column; justify-content: center; }
+  .login-header { text-align: center; margin-bottom: 32px; }
+  .login-header i { font-size: 64px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 16px; }
+  .login-header h2 { font-size: 24px; color: #1a202c; margin-bottom: 8px; }
+  .login-header p { color: #718096; font-size: 14px; }
+  .form-group { margin-bottom: 20px; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: #2d3748; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-input { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.2s; }
+  .form-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+  .btn-login { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.2s; margin-top: 8px; }
+  .btn-login:hover { transform: translateY(-2px); }
+  .error-msg { background: #fed7d7; color: #c53030; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+  @media (max-width: 768px) { .login-box { grid-template-columns: 1fr; } .login-left { display: none; } }
 </style>
 
 <div class="login-wrapper">
