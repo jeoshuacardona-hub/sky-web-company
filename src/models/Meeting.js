@@ -6,6 +6,7 @@ const meetingSchema = new mongoose.Schema({
     description: String,
     location: String,
     type: { type: String, default: 'reunion' },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 module.exports = mongoose.model('Meeting', meetingSchema);

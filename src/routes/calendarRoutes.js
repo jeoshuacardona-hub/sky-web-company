@@ -3,11 +3,11 @@ const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const Meeting = require('../models/Meeting');
 const Task = require('../models/Task');
+const User = require('../models/User');
 
 router.get('/calendar', authMiddleware, async (req, res) => {
     const isAdmin = req.session.user.role === 'admin';
     
-    // Admin ve TODO, comercial solo lo suyo
     const meetingFilter = isAdmin ? {} : { 
         $or: [
             { createdBy: req.session.userId },
@@ -27,16 +27,23 @@ router.get('/calendar', authMiddleware, async (req, res) => {
         .populate('customer', 'name')
         .sort({ dueDate: 1, createdAt: -1 });
     
+    const users = await User.find({}).select('username fullName email');
+    
     res.render('pages/calendar', { 
         meetings, 
         tasks,
+        users,
         isAdmin,
         currentUser: req.session.user
     });
 });
 
-router.get('/calendar/new', authMiddleware, (req, res) => {
-    res.render('pages/calendar-new', { isAdmin: req.session.user.role === 'admin' });
+router.get('/calendar/new', authMiddleware, async (req, res) => {
+    const users = await User.find({}).select('username fullName email');
+    res.render('pages/calendar-new', { 
+        isAdmin: req.session.user.role === 'admin',
+        users 
+    });
 });
 
 router.post('/calendar/save', authMiddleware, async (req, res) => {
@@ -45,8 +52,7 @@ router.post('/calendar/save', authMiddleware, async (req, res) => {
         createdBy: req.session.userId 
     };
     
-    // Si es admin y asigna a alguien más
-    if (req.body.assignedTo) {
+    if (req.body.assignedTo && req.body.assignedTo !== '') {
         data.assignedTo = req.body.assignedTo;
     }
     
@@ -58,11 +64,14 @@ router.get('/calendar/edit/:id', authMiddleware, async (req, res) => {
     const meeting = await Meeting.findById(req.params.id)
         .populate('createdBy', 'username fullName')
         .populate('assignedTo', 'username fullName');
-    res.render('pages/calendar-edit', { meeting });
+    const users = await User.find({}).select('username fullName email');
+    res.render('pages/calendar-edit', { meeting, users });
 });
 
 router.post('/calendar/update/:id', authMiddleware, async (req, res) => {
-    await Meeting.findByIdAndUpdate(req.params.id, req.body);
+    const data = { ...req.body };
+    if (req.body.assignedTo === '') delete data.assignedTo;
+    await Meeting.findByIdAndUpdate(req.params.id, data);
     res.redirect('/calendar');
 });
 
