@@ -12,7 +12,6 @@ exports.getDashboard = async (req, res, next) => {
         const lostLeads = await Lead.countDocuments({ status: 'lost' });
         
         const totalCustomers = await Customer.countDocuments();
-        const activeCustomers = await Customer.countDocuments({ status: { $in: ['prospect', 'qualified', 'proposal', 'negotiation'] } });
         const pipelineValue = await Customer.aggregate([
             { $match: { status: { $in: ['prospect', 'qualified', 'proposal', 'negotiation'] } } },
             { $group: { _id: null, total: { $sum: '$value' } } }
@@ -41,7 +40,6 @@ exports.getDashboard = async (req, res, next) => {
                 convertedLeads,
                 lostLeads,
                 totalCustomers,
-                activeCustomers,
                 pipelineValue: pipelineValue[0] ? pipelineValue[0].total : 0,
                 callsToday,
                 scheduledToday,
@@ -50,6 +48,33 @@ exports.getDashboard = async (req, res, next) => {
             },
             recentLeads,
             recentCalls
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getStats = async (req, res, next) => {
+    try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const totalLeads = await Lead.countDocuments();
+        const newLeads = await Lead.countDocuments({ status: 'new' });
+        const callsToday = await CallLog.countDocuments({ createdAt: { $gte: today } });
+        const scheduledToday = await CallLog.countDocuments({ 
+            outcome: 'scheduled',
+            createdAt: { $gte: today }
+        });
+        
+        res.json({
+            success: true,
+            stats: {
+                totalLeads,
+                newLeads,
+                callsToday,
+                scheduledToday
+            }
         });
     } catch (error) {
         next(error);

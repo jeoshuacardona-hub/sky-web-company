@@ -5,15 +5,32 @@ const Customer = require('../models/Customer');
 exports.getLlamadas = async (req, res, next) => {
     try {
         const leads = await Lead.find({ status: { $in: ['new', 'contacted'] } }).sort({ createdAt: -1 });
-        const callLogs = await CallLog.find({ lead: { $in: leads.map(function(l){ return l._id; }) } }).sort({ createdAt: -1 });
-        const callMap = {};
-        callLogs.forEach(function(c){ if (!callMap[c.lead.toString()]) callMap[c.lead.toString()] = c; });
-        const today = new Date(); today.setHours(0,0,0,0);
-        const callsToday = await CallLog.countDocuments({ createdAt: { $gte: today } });
-        const scheduledToday = await CallLog.countDocuments({ outcome: 'scheduled', createdAt: { $gte: today } });
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const callsToday = await CallLog.countDocuments({ 
+            createdAt: { $gte: today },
+            calledBy: req.session.userId 
+        });
+        
+        const scheduledToday = await CallLog.countDocuments({ 
+            outcome: 'scheduled',
+            createdAt: { $gte: today }
+        });
+        
         const totalNew = leads.filter(function(l){ return l.status === 'new'; }).length;
-        res.render('pages/llamadas', { title: 'Llamadas', leads, callMap, callsToday, scheduledToday, totalNew });
-    } catch (error) { next(error); }
+        
+        res.render('pages/llamadas', { 
+            title: 'Llamadas', 
+            leads, 
+            callsToday, 
+            scheduledToday, 
+            totalNew 
+        });
+    } catch (error) { 
+        next(error); 
+    }
 };
 
 exports.getSeguimiento = async (req, res, next) => {
@@ -87,19 +104,19 @@ exports.registrarLlamada = async (req, res, next) => {
             
             await Lead.findByIdAndUpdate(leadId, { status: 'converted' });
             
-            return res.json({ success: true, outcome: outcome, customerId: customerId, redirect: 'pipeline' });
+            return res.json({ success: true, outcome: outcome, customerId: customerId });
             
         } else if (outcome === 'callback') {
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
-            return res.json({ success: true, outcome: outcome, redirect: 'seguimiento' });
+            return res.json({ success: true, outcome: outcome });
             
         } else if (outcome === 'rejected') {
             await Lead.findByIdAndUpdate(leadId, { status: 'lost' });
-            return res.json({ success: true, outcome: outcome, redirect: 'perdido' });
+            return res.json({ success: true, outcome: outcome });
             
         } else {
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
-            return res.json({ success: true, outcome: outcome, redirect: 'contactado' });
+            return res.json({ success: true, outcome: outcome });
         }
 
     } catch (error) { 
@@ -140,41 +157,6 @@ exports.actualizarEstadoPipeline = async (req, res, next) => {
         }
         
         res.json({ success: true });
-    } catch (error) { next(error); }
-};
-
-exports.eliminarDelPipeline = async (req, res, next) => {
-    try {
-        const customer = await Customer.findById(req.params.id);
-        if (!customer) return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
-
-        const customerPhone = customer.phone;
-        const customerName = customer.name;
-
-        await Customer.findByIdAndDelete(req.params.id);
-
-        let lead = await Lead.findOne({ phone: customerPhone });
-        
-        if (!lead && customerPhone) {
-             lead = await Lead.findOne({ name: customerName });
-        }
-
-        if (lead) {
-            await Lead.findByIdAndUpdate(lead._id, { status: 'callback' });
-            
-            await CallLog.create({
-                lead: lead._id,
-                calledBy: req.session.userId,
-                outcome: 'callback',
-                notes: `Devuelto desde Pipeline. Cliente: ${customerName}. Motivo: Eliminado/Pérdida.`,
-                resolved: false
-            });
-            
-            return res.json({ success: true, message: 'Cliente eliminado del Pipeline y enviado a Seguimiento.' });
-        } else {
-            return res.json({ success: true, message: 'Cliente eliminado del Pipeline.' });
-        }
-
     } catch (error) { next(error); }
 };
 
