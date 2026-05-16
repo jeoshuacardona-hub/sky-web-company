@@ -54,3 +54,7 @@ mongoose.connect(process.env.MONGODB_URI)
         app.listen(PORT, '0.0.0.0', () => console.log('Server started on port ' + PORT));
     })
     .catch(function(err) { console.error('MongoDB Connection Error:', err); process.exit(1); });
+
+// Debug routes - TEMPORAL
+const debugRoutes = require('./routes/debugRoutes');
+app.use(debugRoutes);
