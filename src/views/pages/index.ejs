@@ -1,118 +1,223 @@
-<div class="row g-4 mb-4">
-  <div class="col-sm-6 col-xl-3">
+<div class="row">
+  <div class="col-xxl-8 mb-6 order-0">
     <div class="card">
-      <div class="card-body">
-        <div class="d-flex align-items-start justify-content-between">
-          <div>
-            <span class="fw-medium d-block mb-1">Clientes</span>
-            <h3 class="card-title mb-2"><%= stats.customers %></h3>
-            <a href="/customers" class="btn btn-sm btn-outline-primary">Ver todos</a>
+      <div class="d-flex align-items-start row">
+        <div class="col-sm-7">
+          <div class="card-body">
+            <h5 class="card-title text-primary mb-3">¡Bienvenido a Sky Web Company! 🎉</h5>
+            <p class="mb-6">Gestiona tus clientes, leads y tareas desde un solo lugar.</p>
+            <a href="/leads" class="btn btn-sm btn-outline-primary">Ver Leads</a>
           </div>
-          <div class="avatar flex-shrink-0">
-            <span class="avatar-initial rounded bg-label-primary"><i class="icon-base bx bx-user icon-lg"></i></span>
+        </div>
+        <div class="col-sm-5 text-center text-sm-left">
+          <div class="card-body pb-0 px-0 px-md-6">
+            <img src="/assets/img/illustrations/man-with-laptop.png" height="175" alt="Sky Web Company" />
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-xl-3">
-    <div class="card">
-      <div class="card-body">
-        <div class="d-flex align-items-start justify-content-between">
-          <div>
-            <span class="fw-medium d-block mb-1">Leads</span>
-            <h3 class="card-title mb-2"><%= stats.leads %></h3>
-            <a href="/leads" class="btn btn-sm btn-outline-warning">Ver todos</a>
-          </div>
-          <div class="avatar flex-shrink-0">
-            <span class="avatar-initial rounded bg-label-warning"><i class="icon-base bx bx-target-lock icon-lg"></i></span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-xl-3">
-    <div class="card">
-      <div class="card-body">
-        <div class="d-flex align-items-start justify-content-between">
-          <div>
-            <span class="fw-medium d-block mb-1">Tareas Pendientes</span>
-            <h3 class="card-title mb-2"><%= stats.tasks %></h3>
-            <a href="/tasks" class="btn btn-sm btn-outline-danger">Ver todas</a>
-          </div>
-          <div class="avatar flex-shrink-0">
-            <span class="avatar-initial rounded bg-label-danger"><i class="icon-base bx bx-task icon-lg"></i></span>
+  <div class="col-xxl-4 col-lg-12 col-md-4 order-1">
+    <div class="row">
+      <div class="col-lg-6 col-md-12 col-6 mb-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="card-title d-flex align-items-start justify-content-between mb-4">
+              <div class="avatar flex-shrink-0">
+                <span class="avatar-initial rounded bg-label-primary"><i class="icon-base bx bx-user icon-lg"></i></span>
+              </div>
+            </div>
+            <p class="mb-1">Clientes</p>
+            <h4 class="card-title mb-3"><%= stats.customers %></h4>
+            <small><a href="/customers" class="text-primary">Ver todos</a></small>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-xl-3">
-    <div class="card">
-      <div class="card-body">
-        <div class="d-flex align-items-start justify-content-between">
-          <div>
-            <span class="fw-medium d-block mb-1">Negocios Cerrados</span>
-            <h3 class="card-title mb-2"><%= stats.revenue %></h3>
-            <a href="/customers" class="btn btn-sm btn-outline-success">Ver todos</a>
-          </div>
-          <div class="avatar flex-shrink-0">
-            <span class="avatar-initial rounded bg-label-success"><i class="icon-base bx bx-check-circle icon-lg"></i></span>
+      <div class="col-lg-6 col-md-12 col-6 mb-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="card-title d-flex align-items-start justify-content-between mb-4">
+              <div class="avatar flex-shrink-0">
+                <span class="avatar-initial rounded bg-label-warning"><i class="icon-base bx bx-target-lock icon-lg"></i></span>
+              </div>
+            </div>
+            <p class="mb-1">Leads</p>
+            <h4 class="card-title mb-3"><%= stats.leads %></h4>
+            <small><a href="/leads" class="text-warning">Ver todos</a></small>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
-<div class="row g-4">
-  <div class="col-md-6">
+
+<div class="row">
+  <div class="col-12 col-xxl-8 mb-6">
+    <div class="card">
+      <div class="row row-bordered g-0">
+        <div class="col-lg-8">
+          <div class="card-header">
+            <h5 class="m-0">Pipeline de Leads por Estado</h5>
+          </div>
+          <div id="leadsChart" class="px-3 pb-3"></div>
+        </div>
+        <div class="col-lg-4">
+          <div class="card-body d-flex flex-column justify-content-center align-items-center py-5">
+            <div id="tasksDonut"></div>
+            <div class="text-center fw-medium mt-4">Tareas por estado</div>
+            <div class="d-flex gap-4 mt-3">
+              <div class="d-flex align-items-center gap-2"><span class="badge bg-primary" style="width:12px;height:12px;border-radius:50%;display:inline-block;"></span><small>Pendientes: <%= stats.tasks %></small></div>
+              <div class="d-flex align-items-center gap-2"><span class="badge bg-success" style="width:12px;height:12px;border-radius:50%;display:inline-block;"></span><small>Cerrados: <%= stats.revenue %></small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xxl-4 mb-6">
     <div class="card h-100">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Últimos Leads</h5>
+        <h5 class="card-title m-0">Últimos Leads</h5>
         <a href="/leads" class="btn btn-sm btn-primary">Ver todos</a>
       </div>
-      <div class="card-body">
+      <div class="card-body pt-3">
         <% if (stats.recentLeads && stats.recentLeads.length > 0) { %>
-          <ul class="list-group list-group-flush">
+          <ul class="p-0 m-0">
             <% stats.recentLeads.forEach(lead => { %>
-              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                <div>
-                  <strong><%= lead.name %></strong>
-                  <small class="d-block text-muted"><%= lead.company || 'Sin empresa' %></small>
+              <li class="d-flex align-items-center mb-5">
+                <div class="avatar flex-shrink-0 me-3">
+                  <span class="avatar-initial rounded-2 bg-label-<%= lead.status === 'new' ? 'info' : lead.status === 'converted' ? 'success' : lead.status === 'lost' ? 'danger' : 'warning' %>">
+                    <i class="icon-base bx bx-user"></i>
+                  </span>
                 </div>
-                <span class="badge bg-label-<%= lead.status === 'new' ? 'info' : lead.status === 'converted' ? 'success' : 'warning' %>"><%= lead.status %></span>
+                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                  <div>
+                    <h6 class="mb-0"><%= lead.name %></h6>
+                    <small class="text-muted"><%= lead.company || 'Sin empresa' %></small>
+                  </div>
+                  <span class="badge bg-label-<%= lead.status === 'new' ? 'info' : lead.status === 'converted' ? 'success' : lead.status === 'lost' ? 'danger' : 'warning' %>"><%= lead.status %></span>
+                </div>
               </li>
             <% }) %>
           </ul>
         <% } else { %>
-          <p class="text-muted text-center mt-3">No hay leads aún. <a href="/leads">Agregar primero</a></p>
-        <% } %>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-6">
-    <div class="card h-100">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Tareas Pendientes</h5>
-        <a href="/tasks" class="btn btn-sm btn-primary">Ver todas</a>
-      </div>
-      <div class="card-body">
-        <% if (stats.recentTasks && stats.recentTasks.length > 0) { %>
-          <ul class="list-group list-group-flush">
-            <% stats.recentTasks.forEach(task => { %>
-              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                <div>
-                  <strong><%= task.title %></strong>
-                  <small class="d-block text-muted"><%= task.description ? task.description.substring(0,40) + '...' : '' %></small>
-                </div>
-                <span class="badge bg-label-<%= task.priority === 'high' ? 'danger' : task.priority === 'medium' ? 'warning' : 'info' %>"><%= task.priority %></span>
-              </li>
-            <% }) %>
-          </ul>
-        <% } else { %>
-          <p class="text-muted text-center mt-3">No hay tareas pendientes.</p>
+          <div class="text-center py-5">
+            <i class="bx bx-target-lock icon-lg text-muted mb-2" style="font-size:3rem;"></i>
+            <p class="text-muted">No hay leads aún.<br><a href="/leads">Agregar primero</a></p>
+          </div>
         <% } %>
       </div>
     </div>
   </div>
 </div>
+
+<div class="row">
+  <div class="col-md-6 mb-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title m-0">Tareas Pendientes</h5>
+        <a href="/tasks" class="btn btn-sm btn-primary">Ver todas</a>
+      </div>
+      <div class="card-body pt-3">
+        <% if (stats.recentTasks && stats.recentTasks.length > 0) { %>
+          <ul class="p-0 m-0">
+            <% stats.recentTasks.forEach(task => { %>
+              <li class="d-flex align-items-center mb-5">
+                <div class="avatar flex-shrink-0 me-3">
+                  <span class="avatar-initial rounded-2 bg-label-<%= task.priority === 'high' ? 'danger' : task.priority === 'medium' ? 'warning' : 'info' %>">
+                    <i class="icon-base bx bx-task"></i>
+                  </span>
+                </div>
+                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                  <div>
+                    <h6 class="mb-0"><%= task.title %></h6>
+                    <small class="text-muted"><%= task.description ? task.description.substring(0,35) + '...' : 'Sin descripción' %></small>
+                  </div>
+                  <span class="badge bg-label-<%= task.priority === 'high' ? 'danger' : task.priority === 'medium' ? 'warning' : 'info' %>"><%= task.priority %></span>
+                </div>
+              </li>
+            <% }) %>
+          </ul>
+        <% } else { %>
+          <div class="text-center py-5">
+            <i class="bx bx-task icon-lg text-muted mb-2" style="font-size:3rem;"></i>
+            <p class="text-muted">No hay tareas pendientes.</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 mb-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <h5 class="card-title m-0">Resumen del Negocio</h5>
+      </div>
+      <div class="card-body">
+        <ul class="p-0 m-0">
+          <li class="d-flex align-items-center mb-5">
+            <div class="avatar flex-shrink-0 me-3">
+              <span class="avatar-initial rounded-2 bg-label-primary"><i class="icon-base bx bx-user-circle"></i></span>
+            </div>
+            <div class="d-flex w-100 justify-content-between">
+              <div><h6 class="mb-0">Clientes Totales</h6><small class="text-muted">Pipeline activo</small></div>
+              <h6 class="mb-0 text-primary"><%= stats.customers %></h6>
+            </div>
+          </li>
+          <li class="d-flex align-items-center mb-5">
+            <div class="avatar flex-shrink-0 me-3">
+              <span class="avatar-initial rounded-2 bg-label-warning"><i class="icon-base bx bx-target-lock"></i></span>
+            </div>
+            <div class="d-flex w-100 justify-content-between">
+              <div><h6 class="mb-0">Leads Activos</h6><small class="text-muted">Por contactar</small></div>
+              <h6 class="mb-0 text-warning"><%= stats.leads %></h6>
+            </div>
+          </li>
+          <li class="d-flex align-items-center mb-5">
+            <div class="avatar flex-shrink-0 me-3">
+              <span class="avatar-initial rounded-2 bg-label-danger"><i class="icon-base bx bx-task"></i></span>
+            </div>
+            <div class="d-flex w-100 justify-content-between">
+              <div><h6 class="mb-0">Tareas Pendientes</h6><small class="text-muted">Por completar</small></div>
+              <h6 class="mb-0 text-danger"><%= stats.tasks %></h6>
+            </div>
+          </li>
+          <li class="d-flex align-items-center">
+            <div class="avatar flex-shrink-0 me-3">
+              <span class="avatar-initial rounded-2 bg-label-success"><i class="icon-base bx bx-check-circle"></i></span>
+            </div>
+            <div class="d-flex w-100 justify-content-between">
+              <div><h6 class="mb-0">Negocios Cerrados</h6><small class="text-muted">Clientes ganados</small></div>
+              <h6 class="mb-0 text-success"><%= stats.revenue %></h6>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+<script>
+  // Gráfica de barras - Pipeline de Leads
+  new ApexCharts(document.getElementById('leadsChart'), {
+    chart: { type: 'bar', height: 250, toolbar: { show: false } },
+    series: [{ name: 'Leads', data: [<%= stats.leadsByStatus ? stats.leadsByStatus.join(',') : '0,0,0,0,0' %>] }],
+    xaxis: { categories: ['Nuevo', 'Contactado', 'Calificado', 'Convertido', 'Perdido'] },
+    colors: ['#696cff'],
+    plotOptions: { bar: { borderRadius: 6, columnWidth: '40%' } },
+    dataLabels: { enabled: false },
+    grid: { borderColor: '#f1f1f1' }
+  }).render();
+
+  // Donut de tareas
+  new ApexCharts(document.getElementById('tasksDonut'), {
+    chart: { type: 'donut', height: 160 },
+    series: [<%= stats.tasks || 0 %>, <%= stats.revenue || 0 %>],
+    labels: ['Pendientes', 'Cerrados'],
+    colors: ['#696cff', '#71dd37'],
+    legend: { show: false },
+    dataLabels: { enabled: false }
+  }).render();
+</script>

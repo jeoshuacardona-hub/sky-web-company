@@ -8,5 +8,6 @@ router.get('/customers', authMiddleware, businessController.getCustomers);
 router.post('/customers/add', authMiddleware, businessController.createCustomer);
 router.get('/tasks', authMiddleware, businessController.getTasks);
 router.post('/tasks/update', authMiddleware, businessController.updateTaskStatus);
+router.post('/tasks/add', authMiddleware, businessController.createTask);
 
 module.exports = router;
