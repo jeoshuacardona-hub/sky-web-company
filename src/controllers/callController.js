@@ -177,3 +177,38 @@ exports.eliminarDelPipeline = async (req, res, next) => {
 
     } catch (error) { next(error); }
 };
+
+exports.eliminarDelPipeline = async (req, res, next) => {
+    try {
+        const customer = await Customer.findById(req.params.id);
+        if (!customer) return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+
+        const customerPhone = customer.phone;
+        const customerName = customer.name;
+
+        await Customer.findByIdAndDelete(req.params.id);
+
+        let lead = await Lead.findOne({ phone: customerPhone });
+        
+        if (!lead && customerName) {
+             lead = await Lead.findOne({ name: new RegExp(customerName, 'i') });
+        }
+
+        if (lead) {
+            await Lead.findByIdAndUpdate(lead._id, { status: 'contacted' });
+            
+            await CallLog.create({
+                lead: lead._id,
+                calledBy: req.session.userId,
+                outcome: 'callback',
+                notes: 'Devuelto desde Pipeline. Cliente: ' + customerName + '. Motivo: Eliminado/Pérdida.',
+                resolved: false
+            });
+            
+            return res.json({ success: true, message: 'Cliente eliminado del Pipeline y enviado a Seguimiento.' });
+        } else {
+            return res.json({ success: true, message: 'Cliente eliminado del Pipeline.' });
+        }
+
+    } catch (error) { next(error); }
+};
