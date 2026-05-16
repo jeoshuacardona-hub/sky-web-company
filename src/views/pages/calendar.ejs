@@ -1,0 +1,83 @@
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+<div class="row g-4">
+  <div class="col-lg-9">
+    <div class="card">
+      <div class="card-body">
+        <div id="calendar"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-3">
+    <div class="card">
+      <div class="card-header">
+        <h6 class="card-title mb-0">Nueva Reunión</h6>
+      </div>
+      <div class="card-body">
+        <form id="meetingForm">
+          <div class="mb-3">
+            <label class="form-label">Título *</label>
+            <input type="text" id="meetingTitle" class="form-control" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea id="meetingDescription" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Fecha y Hora Inicio *</label>
+            <input type="datetime-local" id="meetingStart" class="form-control" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Fecha y Hora Fin</label>
+            <input type="datetime-local" id="meetingEnd" class="form-control" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Lead relacionado</label>
+            <select id="meetingLead" class="form-select">
+              <option value="">Sin lead</option>
+              <% leads.forEach(lead => { %>
+                <option value="<%= lead._id %>"><%= lead.name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Agendar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const calendarEl = document.getElementById('calendar');
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    locale: 'es',
+    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+    events: '/api/meetings',
+    eventClick: function(info) {
+      if (confirm('¿Eliminar esta reunión: ' + info.event.title + '?')) {
+        fetch('/api/meetings/' + info.event.id, { method: 'DELETE' }).then(() => calendar.refetchEvents());
+      }
+    }
+  });
+  calendar.render();
+
+  document.getElementById('meetingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = {
+      title: document.getElementById('meetingTitle').value,
+      description: document.getElementById('meetingDescription').value,
+      start: document.getElementById('meetingStart').value,
+      end: document.getElementById('meetingEnd').value,
+      lead: document.getElementById('meetingLead').value
+    };
+    fetch('/api/meetings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(() => { calendar.refetchEvents(); this.reset(); });
+  });
+});
+</script>

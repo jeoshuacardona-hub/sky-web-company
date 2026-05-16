@@ -1,0 +1,115 @@
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Gestión de Leads</h5>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLeadModal">
+          <i class="bx bx-plus"></i> Nuevo Lead
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Nombre</th><th>Empresa</th><th>Teléfono</th><th>Fuente</th><th>Estado</th><th>Asignado a</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (leads.length === 0) { %>
+                <tr><td colspan="7" class="text-center text-muted">No hay leads aún.</td></tr>
+              <% } %>
+              <% leads.forEach(lead => { %>
+                <tr>
+                  <td><strong><%= lead.name %></strong><% if (lead.email) { %><br><small class="text-muted"><%= lead.email %></small><% } %></td>
+                  <td><%= lead.company || '-' %></td>
+                  <td><%= lead.phone || '-' %></td>
+                  <td><%= lead.source || '-' %></td>
+                  <td>
+                    <form action="/leads/update/<%= lead._id %>" method="POST" class="d-inline">
+                      <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="new" <%= lead.status === 'new' ? 'selected' : '' %>>Nuevo</option>
+                        <option value="contacted" <%= lead.status === 'contacted' ? 'selected' : '' %>>Contactado</option>
+                        <option value="qualified" <%= lead.status === 'qualified' ? 'selected' : '' %>>Calificado</option>
+                        <option value="converted" <%= lead.status === 'converted' ? 'selected' : '' %>>Convertido</option>
+                        <option value="lost" <%= lead.status === 'lost' ? 'selected' : '' %>>Perdido</option>
+                      </select>
+                    </form>
+                  </td>
+                  <td><%= lead.assignedTo ? lead.assignedTo.fullName || lead.assignedTo.username : 'Sin asignar' %></td>
+                  <td>
+                    <form action="/leads/delete/<%= lead._id %>" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar este lead?')">
+                      <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bx bx-trash"></i></button>
+                    </form>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addLeadModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Nuevo Lead</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/leads/add" method="POST">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Nombre *</label>
+              <input type="text" name="name" class="form-control" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Empresa</label>
+              <input type="text" name="company" class="form-control" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Teléfono</label>
+              <input type="text" name="phone" class="form-control" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Fuente</label>
+              <select name="source" class="form-select">
+                <option value="">Seleccionar...</option>
+                <option value="referido">Referido</option>
+                <option value="instagram">Instagram</option>
+                <option value="facebook">Facebook</option>
+                <option value="web">Sitio Web</option>
+                <option value="llamada">Llamada Fría</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Asignar a</label>
+              <select name="assignedTo" class="form-select">
+                <option value="">Sin asignar</option>
+                <% users.forEach(user => { %>
+                  <option value="<%= user._id %>"><%= user.fullName || user.username %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Notas</label>
+              <textarea name="notes" class="form-control" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Lead</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
