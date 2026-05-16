@@ -32,25 +32,37 @@ var contacted = leads.filter(function(l){ return l.status==='contacted'; }).leng
     <div style="width:38px;height:38px;border-radius:10px;background:#696cff22;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
       <i class="bx bx-target-lock" style="font-size:20px;color:#696cff;"></i>
     </div>
-    <div><p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Total Leads</p><p class="mb-0" style="font-size:22px;font-weight:700;"><%= totalLeads %></p></div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Total Leads</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;"><%= totalLeads %></p>
+    </div>
   </div>
   <div class="stat-pill">
     <div style="width:38px;height:38px;border-radius:10px;background:#e8eaff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
       <i class="bx bx-user-plus" style="font-size:20px;color:#696cff;"></i>
     </div>
-    <div><p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Sin Llamar</p><p class="mb-0" style="font-size:22px;font-weight:700;color:#696cff;"><%= newLeads %></p></div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Sin Llamar</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#696cff;"><%= newLeads %></p>
+    </div>
   </div>
   <div class="stat-pill">
     <div style="width:38px;height:38px;border-radius:10px;background:#fff0d6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
       <i class="bx bx-phone" style="font-size:20px;color:#b36800;"></i>
     </div>
-    <div><p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Contactados</p><p class="mb-0" style="font-size:22px;font-weight:700;color:#b36800;"><%= contacted %></p></div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Contactados</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#b36800;"><%= contacted %></p>
+    </div>
   </div>
   <div class="stat-pill">
     <div style="width:38px;height:38px;border-radius:10px;background:#e8faef;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
       <i class="bx bx-check-circle" style="font-size:20px;color:#166534;"></i>
     </div>
-    <div><p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Convertidos</p><p class="mb-0" style="font-size:22px;font-weight:700;color:#166534;"><%= converted %></p></div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Convertidos</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#166534;"><%= converted %></p>
+    </div>
   </div>
 </div>
 <% } %>
@@ -78,6 +90,9 @@ var contacted = leads.filter(function(l){ return l.status==='contacted'; }).leng
         <% if (isAdmin) { %>
         <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addLeadModal"><i class="bx bx-plus me-1"></i> Nuevo</button>
         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#importModal"><i class="bx bx-upload me-1"></i> Subir CSV</button>
+        <% if (leads.length > 0) { %>
+        <button class="btn btn-sm btn-danger" onclick="confirmarEliminarTodos()"><i class="bx bx-trash me-1"></i> Eliminar Todos</button>
+        <% } %>
         <% } %>
       </div>
     </div>
@@ -283,6 +298,30 @@ async function submitImport() {
     alert('Error de conexion: ' + err.message);
     btn.disabled = false;
     btn.innerHTML = '<i class="bx bx-upload me-1"></i> Importar';
+  }
+}
+
+async function confirmarEliminarTodos() {
+  var total = <%= totalLeads %>;
+  if (!confirm('⚠️ ATENCIÓN: ¿Estás seguro de eliminar TODOS los ' + total + ' leads permanentemente?\n\nEsta acción NO se puede deshacer y los leads NO irán a seguimiento. Se borrarán completamente.')) return;
+  
+  var confirmText = prompt('Escribe "ELIMINAR" para confirmar la eliminación permanente de todos los leads:');
+  if (confirmText !== 'ELIMINAR') {
+    alert('Operación cancelada.');
+    return;
+  }
+  
+  try {
+    var res = await fetch('/api/leads/delete-all', { method: 'POST' });
+    var data = await res.json();
+    if (data.success) {
+      alert('✓ ' + data.message);
+      location.reload();
+    } else {
+      alert('Error: ' + (data.message || 'No se pudieron eliminar los leads'));
+    }
+  } catch(err) {
+    alert('Error de conexión: ' + err.message);
   }
 }
 <% } %>

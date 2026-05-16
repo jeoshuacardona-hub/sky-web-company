@@ -9,6 +9,7 @@ router.post('/leads/add', authMiddleware, leadController.createLead);
 router.post('/leads/edit/:id', authMiddleware, leadController.updateLead);
 router.post('/leads/update/:id', authMiddleware, leadController.updateLeadStatus);
 router.post('/leads/delete/:id', authMiddleware, leadController.deleteLead);
+router.post('/api/leads/delete-all', authMiddleware, adminOnly, leadController.deleteAllLeads);
 router.post('/api/leads/import', authMiddleware, adminOnly, leadController.importLeads);
 
 module.exports = router;

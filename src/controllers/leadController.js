@@ -37,6 +37,16 @@ exports.deleteLead = async (req, res, next) => {
     } catch (error) { next(error); }
 };
 
+exports.deleteAllLeads = async (req, res, next) => {
+    try {
+        const result = await Lead.deleteMany({});
+        res.json({ 
+            success: true, 
+            message: `Se eliminaron ${result.deletedCount} leads permanentemente.` 
+        });
+    } catch (error) { next(error); }
+};
+
 exports.importLeads = async (req, res, next) => {
     try {
         const { leads } = req.body;
@@ -52,8 +62,8 @@ exports.importLeads = async (req, res, next) => {
                 'email': 'email', 'correo': 'email', 'mail': 'email',
                 'empresa': 'company', 'company': 'company', 'compania': 'company', 'negocio': 'company',
                 'ciudad': 'city', 'city': 'city', 'ubicacion': 'city', 'municipio': 'city',
-                'problema': 'notes', 'solucion': 'notes', 'solución': 'notes', 'notas': 'notes', 'notes': 'notes', 'observaciones': 'notes', 'descripcion': 'notes', 'analisisestrategico': 'notes', 'sugerenciaautomatizacion': 'notes', 'dolor': 'notes', 'gancho': 'notes', 'estado': 'notes',
-                'fuente': 'source', 'source': 'source', 'origen': 'source', 'url': 'source', 'web': 'source', 'fuentesurl': 'source'
+                'problema': 'notes', 'solucion': 'notes', 'solución': 'notes', 'notas': 'notes', 'notes': 'notes', 'observaciones': 'notes', 'descripcion': 'notes', 'analisisestrategico': 'notes', 'sugerenciaautomatizacion': 'notes', 'dolor': 'notes', 'gancho': 'notes', 'estado': 'notes', 'analisisestrategoclaude': 'notes',
+                'fuente': 'source', 'source': 'source', 'origen': 'source', 'url': 'source', 'web': 'source', 'fuentesurl': 'source', 'redes': 'source'
             };
             return map[k] || null;
         };
