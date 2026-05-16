@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-  <title><%= typeof title !== 'undefined' ? title : 'Sky Web' %> - Sky Web</title>
+  <title><%= typeof title !== 'undefined' && title ? title + ' - Sky Web' : 'Sky Web' %></title>
   
   <!-- ICONOS BOXICONS (CDN) -->
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
@@ -19,21 +19,21 @@
     <div class="layout-container">
       <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
         <div class="app-brand demo">
-          <a href="/dashboard" class="app-brand-link">
+          <a href="/" class="app-brand-link">
             <span class="app-brand-text demo menu-text fw-bolder ms-2">Sky Web</span>
           </a>
         </div>
         <div class="menu-inner-shadow"></div>
         <ul class="menu-inner py-1">
-          <li class="menu-item <%= title==='Dashboard'?'active':'' %>"><a href="/dashboard" class="menu-link"><i class='menu-icon tf-icons bx bx-home-circle'></i><div>Dashboard</div></a></li>
-          <li class="menu-item <%= title==='Leads'?'active':'' %>"><a href="/leads" class="menu-link"><i class='menu-icon tf-icons bx bx-target-lock'></i><div>Leads</div></a></li>
+          <li class="menu-item <%= typeof title !== 'undefined' && title==='Dashboard' ? 'active' : '' %>"><a href="/dashboard" class="menu-link"><i class='menu-icon tf-icons bx bx-home-circle'></i><div>Dashboard</div></a></li>
+          <li class="menu-item <%= typeof title !== 'undefined' && title==='Leads' ? 'active' : '' %>"><a href="/leads" class="menu-link"><i class='menu-icon tf-icons bx bx-target-lock'></i><div>Leads</div></a></li>
           <li class="menu-header small text-uppercase"><span class="menu-header-text">Gestión Comercial</span></li>
-          <li class="menu-item <%= title==='Llamadas'?'active':'' %>"><a href="/llamadas" class="menu-link"><i class='menu-icon tf-icons bx bx-phone'></i><div>Llamadas</div></a></li>
-          <li class="menu-item <%= title==='Seguimiento'?'active':'' %>"><a href="/seguimiento" class="menu-link"><i class='menu-icon tf-icons bx bx-refresh'></i><div>Seguimiento</div></a></li>
-          <li class="menu-item <%= title==='Pipeline'?'active':'' %>"><a href="/pipeline" class="menu-link"><i class='menu-icon tf-icons bx bx-briefcase-alt'></i><div>Pipeline</div></a></li>
-          <li class="menu-item <%= title==='Calendario'?'active':'' %>"><a href="/calendar" class="menu-link"><i class='menu-icon tf-icons bx bx-calendar'></i><div>Calendario</div></a></li>
+          <li class="menu-item <%= typeof title !== 'undefined' && title==='Llamadas' ? 'active' : '' %>"><a href="/llamadas" class="menu-link"><i class='menu-icon tf-icons bx bx-phone'></i><div>Llamadas</div></a></li>
+          <li class="menu-item <%= typeof title !== 'undefined' && title==='Seguimiento' ? 'active' : '' %>"><a href="/seguimiento" class="menu-link"><i class='menu-icon tf-icons bx bx-refresh'></i><div>Seguimiento</div></a></li>
+          <li class="menu-item <%= typeof title !== 'undefined' && title==='Pipeline' ? 'active' : '' %>"><a href="/pipeline" class="menu-link"><i class='menu-icon tf-icons bx bx-briefcase-alt'></i><div>Pipeline</div></a></li>
+          <li class="menu-item <%= typeof title !== 'undefined' && title==='Calendario' ? 'active' : '' %>"><a href="/calendar" class="menu-link"><i class='menu-icon tf-icons bx bx-calendar'></i><div>Calendario</div></a></li>
           <li class="menu-header small text-uppercase"><span class="menu-header-text">Cuenta</span></li>
-          <li class="menu-item <%= title==='Mi Perfil'?'active':'' %>"><a href="/profile" class="menu-link"><i class='menu-icon tf-icons bx bx-user'></i><div>Mi Perfil</div></a></li>
+          <li class="menu-item <%= typeof title !== 'undefined' && title==='Mi Perfil' ? 'active' : '' %>"><a href="/profile" class="menu-link"><i class='menu-icon tf-icons bx bx-user'></i><div>Mi Perfil</div></a></li>
           <li class="menu-item"><a href="/logout" class="menu-link"><i class='menu-icon tf-icons bx bx-log-out'></i><div>Cerrar Sesión</div></a></li>
         </ul>
       </aside>

@@ -1,0 +1,25 @@
+<div class="card" style="max-width: 600px; margin: 40px auto;">
+  <h2 style="margin-bottom: 24px; color: #566a7f;"><%= action === 'create' ? '➕ Nuevo Lead' : '✏️ Editar Lead' %></h2>
+  <form action="<%= action === 'create' ? '/leads' : '/leads/' + lead._id %>" method="POST">
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #566a7f;">Nombre *</label>
+      <input type="text" name="name" value="<%= lead.name || '' %>" required style="width: 100%; padding: 10px; border: 1px solid #d9dee3; border-radius: 8px;">
+    </div>
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #566a7f;">Teléfono</label>
+      <input type="tel" name="phone" value="<%= lead.phone || '' %>" style="width: 100%; padding: 10px; border: 1px solid #d9dee3; border-radius: 8px;">
+    </div>
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #566a7f;">Email</label>
+      <input type="email" name="email" value="<%= lead.email || '' %>" style="width: 100%; padding: 10px; border: 1px solid #d9dee3; border-radius: 8px;">
+    </div>
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #566a7f;">Notas</label>
+      <textarea name="notes" rows="4" style="width: 100%; padding: 10px; border: 1px solid #d9dee3; border-radius: 8px;"><%= lead.notes || '' %></textarea>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <button type="submit" class="btn btn-primary" style="padding: 10px 24px; background: #696cff; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">💾 Guardar</button>
+      <a href="/leads" class="btn btn-secondary" style="padding: 10px 24px; background: #8592a3; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600;">Cancelar</a>
+    </div>
+  </form>
+</div>

@@ -13,3 +13,8 @@ router.post('/api/leads/import', authMiddleware, adminOnly, leadController.impor
 router.post('/api/admin/hard-reset', authMiddleware, leadController.hardReset);
 
 module.exports = router;
+
+// Ruta para mostrar formulario nuevo lead
+router.get('/new', authMiddleware, (req, res) => {
+    res.render('pages/lead-form', { title: 'Nuevo Lead', lead: {}, action: 'create' });
+});
