@@ -18,9 +18,17 @@ exports.getLlamadas = async (req, res, next) => {
 
 exports.getSeguimiento = async (req, res, next) => {
     try {
-        const followups = await CallLog.find({ outcome: { $in: ['callback', 'rejected'] }, resolved: false })
-            .populate('lead').populate('calledBy').sort({ callbackDate: 1, createdAt: -1 });
-        const today = new Date(); today.setHours(0,0,0,0);
+        const followups = await CallLog.find({ 
+            outcome: { $in: ['callback', 'rejected'] }, 
+            resolved: false 
+        })
+        .populate('lead')
+        .populate('calledBy')
+        .sort({ callbackDate: 1, createdAt: -1 });
+        
+        const today = new Date(); 
+        today.setHours(0,0,0,0);
+        
         res.render('pages/seguimiento', { title: 'Seguimiento', followups, today });
     } catch (error) { next(error); }
 };
@@ -49,35 +57,87 @@ exports.registrarLlamada = async (req, res, next) => {
         var customerId = null;
 
         if (outcome === 'scheduled') {
-            const customer = await Customer.create({
-                name: lead.name,
-                email: lead.email || '',
-                phone: lead.phone || '',
-                company: lead.company || '',
-                status: 'prospect',
-                value: value ? parseInt(value) : 0,
-                notes: notes || lead.notes || ''
+            let customer = await Customer.findOne({ 
+                $or: [{ phone: lead.phone }, { email: lead.email }] 
             });
+            
+            if (!customer) {
+                customer = await Customer.create({
+                    name: lead.name,
+                    email: lead.email || '',
+                    phone: lead.phone || '',
+                    company: lead.company || '',
+                    status: 'prospect',
+                    value: value ? parseInt(value) : 0,
+                    notes: notes || lead.notes || '',
+                    source: 'llamada_agendada'
+                });
+            } else {
+                await Customer.findByIdAndUpdate(customer._id, {
+                    status: 'prospect',
+                    value: value ? parseInt(value) : customer.value,
+                    notes: notes ? (customer.notes ? customer.notes + '\n' + notes : notes) : customer.notes
+                });
+            }
+            
             customerId = customer._id;
             callLog.customerId = customerId;
             await callLog.save();
+            
             await Lead.findByIdAndUpdate(leadId, { status: 'converted' });
+            
+            return res.json({ success: true, outcome: outcome, customerId: customerId, redirect: 'pipeline' });
+            
+        } else if (outcome === 'callback') {
+            await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
+            return res.json({ success: true, outcome: outcome, redirect: 'seguimiento' });
+            
         } else if (outcome === 'rejected') {
             await Lead.findByIdAndUpdate(leadId, { status: 'lost' });
+            return res.json({ success: true, outcome: outcome, redirect: 'perdido' });
+            
         } else {
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
+            return res.json({ success: true, outcome: outcome, redirect: 'contactado' });
         }
 
-        res.json({ success: true, outcome: outcome, customerId: customerId });
-    } catch (error) { next(error); }
+    } catch (error) { 
+        console.error('Error registrando llamada:', error);
+        next(error); 
+    }
 };
 
 exports.resolverSeguimiento = async (req, res, next) => {
     try {
         const followup = await CallLog.findById(req.params.id).populate('lead');
         if (!followup) return res.status(404).json({ success: false });
+        
         await CallLog.findByIdAndUpdate(req.params.id, { resolved: true });
-        if (followup.lead) await Lead.findByIdAndUpdate(followup.lead._id, { status: 'contacted' });
+        
+        if (followup.lead) {
+            await Lead.findByIdAndUpdate(followup.lead._id, { status: 'contacted' });
+        }
+        
+        res.json({ success: true });
+    } catch (error) { next(error); }
+};
+
+exports.actualizarEstadoPipeline = async (req, res, next) => {
+    try {
+        const { customerId, status, notes } = req.body;
+        
+        const customer = await Customer.findById(customerId);
+        if (!customer) return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+        
+        await Customer.findByIdAndUpdate(customerId, {
+            status: status,
+            notes: notes ? (customer.notes ? customer.notes + '\n' + notes : notes) : customer.notes
+        });
+        
+        if (status === 'closed_won') {
+            await Customer.findByIdAndUpdate(customerId, { closedDate: new Date() });
+        }
+        
         res.json({ success: true });
     } catch (error) { next(error); }
 };

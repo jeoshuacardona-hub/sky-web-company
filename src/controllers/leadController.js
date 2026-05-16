@@ -47,18 +47,22 @@ exports.importLeads = async (req, res, next) => {
         const normalizeKey = (key) => {
             const k = key.toLowerCase().trim().replace(/[^a-z0-9áéíóúñü]/g, '');
             const map = {
-                'nombre': 'name', 'name': 'name', 'contacto': 'name',
-                'telefono': 'phone', 'teléfono': 'phone', 'phone': 'phone', 'celular': 'phone', 'movil': 'phone', 'móvil': 'phone', 'whatsapp': 'phone', 'wa': 'phone',
+                'nombre': 'name', 'name': 'name', 'contacto': 'name', 'restaurante': 'company',
+                'telefono': 'phone', 'teléfono': 'phone', 'phone': 'phone', 'celular': 'phone', 'movil': 'phone', 'whatsapp': 'phone', 'wa': 'phone',
                 'email': 'email', 'correo': 'email', 'mail': 'email',
-                'empresa': 'company', 'company': 'company', 'compania': 'company', 'compañia': 'company', 'negocio': 'company', 'restaurante': 'company',
-                'ciudad': 'city', 'city': 'city', 'ubicacion': 'city', 'ubicación': 'city', 'municipio': 'city',
-                'problema': 'notes', 'solucion': 'notes', 'solución': 'notes', 'oferta': 'notes', 'queofrecer': 'notes', 'quéofrecer': 'notes', 'notas': 'notes', 'notes': 'notes', 'observaciones': 'notes', 'descripcion': 'notes', 'descripción': 'notes', 'analisisestrategico': 'notes', 'sugerenciaautomatizacion': 'notes', 'dolor': 'notes', 'gancho': 'notes', 'estado': 'notes',
-                'fuente': 'source', 'source': 'source', 'origen': 'source', 'url': 'source', 'web': 'source'
+                'empresa': 'company', 'company': 'company', 'compania': 'company', 'negocio': 'company',
+                'ciudad': 'city', 'city': 'city', 'ubicacion': 'city', 'municipio': 'city',
+                'problema': 'notes', 'solucion': 'notes', 'solución': 'notes', 'notas': 'notes', 'notes': 'notes', 'observaciones': 'notes', 'descripcion': 'notes', 'analisisestrategico': 'notes', 'sugerenciaautomatizacion': 'notes', 'dolor': 'notes', 'gancho': 'notes', 'estado': 'notes',
+                'fuente': 'source', 'source': 'source', 'origen': 'source', 'url': 'source', 'web': 'source', 'fuentesurl': 'source'
             };
             return map[k] || null;
         };
 
-        const toInsert = leads.map(function(row) {
+        let insertedCount = 0;
+        let skippedCount = 0;
+        let duplicateCount = 0;
+
+        for (const row of leads) {
             const normalized = {};
             Object.keys(row).forEach(function(key) {
                 const mapped = normalizeKey(key);
@@ -66,25 +70,51 @@ exports.importLeads = async (req, res, next) => {
                     normalized[mapped] = row[key].toString().trim();
                 }
             });
-            return {
-                name: normalized.name || '',
-                email: normalized.email || '',
-                phone: normalized.phone || '',
-                company: normalized.company || '',
-                city: normalized.city || '',
-                source: normalized.source || 'csv_import',
-                status: 'new',
-                notes: normalized.notes || '',
-                createdBy: req.session.userId
-            };
-        }).filter(function(l) { return l.name && l.name.length > 1; });
 
-        if (toInsert.length === 0) {
-            return res.status(400).json({ success: false, message: 'No hay leads válidos para importar (se requiere al menos el nombre).' });
+            if (!normalized.name || normalized.name.length < 2) {
+                skippedCount++;
+                continue;
+            }
+
+            const existingLead = await Lead.findOne({
+                $or: [
+                    { phone: normalized.phone },
+                    { email: normalized.email }
+                ].filter(Boolean)
+            });
+
+            if (existingLead) {
+                duplicateCount++;
+                await Lead.findByIdAndUpdate(existingLead._id, {
+                    name: normalized.name || existingLead.name,
+                    company: normalized.company || existingLead.company,
+                    city: normalized.city || existingLead.city,
+                    notes: normalized.notes ? (existingLead.notes ? existingLead.notes + '\n' + normalized.notes : normalized.notes) : existingLead.notes,
+                    source: 'csv_import'
+                });
+            } else {
+                await Lead.create({
+                    name: normalized.name,
+                    email: normalized.email || '',
+                    phone: normalized.phone || '',
+                    company: normalized.company || '',
+                    city: normalized.city || '',
+                    source: normalized.source || 'csv_import',
+                    status: 'new',
+                    notes: normalized.notes || '',
+                    createdBy: req.session.userId
+                });
+                insertedCount++;
+            }
         }
 
-        const inserted = await Lead.insertMany(toInsert, { ordered: false });
-        res.json({ success: true, count: inserted.length, message: `${inserted.length} leads importados correctamente.` });
+        res.json({ 
+            success: true, 
+            count: insertedCount, 
+            duplicates: duplicateCount,
+            skipped: skippedCount,
+            message: `${insertedCount} leads nuevos importados. ${duplicateCount} actualizados (duplicados). ${skippedCount} omitidos.` 
+        });
 
     } catch (error) {
         console.error('Error importando leads:', error);
