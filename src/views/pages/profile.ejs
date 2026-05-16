@@ -1,23 +1,234 @@
-<div class="row">
-  <div class="col-md-12">
-    <div class="card">
-      <div class="card-header">
-        <h5 class="card-title">Configuración de Cuenta</h5>
+<style>
+.profile-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 40px;
+  color: #fff;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.profile-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+}
+.avatar-upload {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  position: relative;
+  border: 4px solid rgba(255,255,255,0.3);
+}
+.avatar-upload img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.avatar-upload .edit-avatar {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  background: #667eea;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  border: 3px solid #fff;
+}
+.profile-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e4e6eb;
+  padding: 32px;
+  margin-bottom: 24px;
+}
+.form-label-custom {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.form-control-custom {
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 15px;
+  transition: all 0.3s;
+  width: 100%;
+}
+.form-control-custom:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  outline: none;
+}
+.btn-save {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+.badge-role {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-left: 12px;
+}
+.badge-admin { background: #fee2e2; color: #dc2626; }
+.badge-comercial { background: #dcfce7; color: #16a34a; }
+.badge-user { background: #e0e7ff; color: #6366f1; }
+.alert-custom {
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+</style>
+
+<div class="profile-header">
+  <div class="d-flex align-items-center gap-4">
+    <div class="avatar-upload">
+      <% if (user.avatar) { %>
+        <img src="<%= user.avatar %>" alt="<%= user.fullName %>">
+      <% } else { %>
+        <div style="width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:48px;font-weight:700;">
+          <%= user.fullName ? user.fullName.split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2) : 'U' %>
+        </div>
+      <% } %>
+      <div class="edit-avatar" onclick="document.getElementById('avatarInput').click()">
+        <i class="bx bx-camera"></i>
       </div>
-      <div class="card-body">
-        <form action="/profile/update" method="POST">
-          <div class="row">
-            <div class="col-md-6 mb-4">
-              <label class="form-label">Nombre Completo</label>
-              <input type="text" class="form-control" name="fullName" value="Admin Sky Web" />
-            </div>
-            <div class="col-md-6 mb-4">
-              <label class="form-label">Correo Electrónico</label>
-              <input type="email" class="form-control" name="email" value="admin@skywebcompany.com" />
-            </div>
+    </div>
+    <div>
+      <h2 style="margin:0;font-size:32px;font-weight:700;">
+        <%= user.fullName || user.username %>
+        <span class="badge-role badge-<%= user.role %>"><%= user.role %></span>
+      </h2>
+      <p style="margin:4px 0 0;opacity:0.9;font-size:16px;"><%= user.email %></p>
+      <p style="margin:8px 0 0;opacity:0.8;font-size:14px;"><i class="bx bx-user me-1"></i><%= user.username %></p>
+    </div>
+  </div>
+</div>
+
+<% if (req.query.success === '1') { %>
+  <div class="alert alert-success alert-custom">
+    <i class="bx bx-check-circle me-2"></i>¡Perfil actualizado correctamente!
+  </div>
+<% } %>
+<% if (req.query.success === 'password_changed') { %>
+  <div class="alert alert-success alert-custom">
+    <i class="bx bx-check-circle me-2"></i>¡Contraseña cambiada correctamente!
+  </div>
+<% } %>
+<% if (req.query.error === 'password_incorrect') { %>
+  <div class="alert alert-danger alert-custom">
+    <i class="bx bx-error-circle me-2"></i>La contraseña actual es incorrecta.
+  </div>
+<% } %>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="profile-card">
+      <h5 style="font-weight:700;margin-bottom:24px;font-size:18px;">
+        <i class="bx bx-user me-2"></i>Información Personal
+      </h5>
+      <form action="/profile/update" method="POST" enctype="multipart/form-data">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label-custom">Nombre Completo</label>
+            <input type="text" name="fullName" class="form-control-custom" value="<%= user.fullName || '' %>" placeholder="Tu nombre completo">
           </div>
-          <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-        </form>
+          <div class="col-md-6">
+            <label class="form-label-custom">Teléfono</label>
+            <input type="text" name="phone" class="form-control-custom" value="<%= user.phone || '' %>" placeholder="+57 300 000 0000">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">Departamento</label>
+            <input type="text" name="department" class="form-control-custom" value="<%= user.department || '' %>" placeholder="Ej: Ventas">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-custom">URL de Avatar</label>
+            <input type="text" name="avatar" id="avatarInput" class="form-control-custom" value="<%= user.avatar || '' %>" placeholder="https://...">
+          </div>
+          <div class="col-12">
+            <label class="form-label-custom">Biografía / Descripción</label>
+            <textarea name="bio" class="form-control-custom" rows="4" placeholder="Cuéntanos sobre ti..."><%= user.bio || '' %></textarea>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-save">
+              <i class="bx bx-save me-2"></i>Guardar Cambios
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <div class="profile-card">
+      <h5 style="font-weight:700;margin-bottom:24px;font-size:18px;">
+        <i class="bx bx-lock me-2"></i>Seguridad
+      </h5>
+      <form action="/profile/change-password" method="POST">
+        <div class="mb-3">
+          <label class="form-label-custom">Contraseña Actual</label>
+          <input type="password" name="currentPassword" class="form-control-custom" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label-custom">Nueva Contraseña</label>
+          <input type="password" name="newPassword" class="form-control-custom" required>
+        </div>
+        <button type="submit" class="btn btn-save" style="width:100%;">
+          <i class="bx bx-key me-2"></i>Cambiar Contraseña
+        </button>
+      </form>
+    </div>
+    
+    <div class="profile-card">
+      <h5 style="font-weight:700;margin-bottom:16px;font-size:18px;">
+        <i class="bx bx-info-circle me-2"></i>Información de Cuenta
+      </h5>
+      <div style="font-size:14px;color:#4a5568;">
+        <div style="padding:12px 0;border-bottom:1px solid #e2e8f0;">
+          <strong>Usuario:</strong> <%= user.username %>
+        </div>
+        <div style="padding:12px 0;border-bottom:1px solid #e2e8f0;">
+          <strong>Email:</strong> <%= user.email %>
+        </div>
+        <div style="padding:12px 0;border-bottom:1px solid #e2e8f0;">
+          <strong>Rol:</strong> <%= user.role %>
+        </div>
+        <div style="padding:12px 0;">
+          <strong>Miembro desde:</strong> <%= new Date(user.createdAt).toLocaleDateString('es-CO') %>
+        </div>
       </div>
     </div>
   </div>
