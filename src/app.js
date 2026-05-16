@@ -42,7 +42,7 @@ const debugRoutes = require('./routes/debugRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 
 app.use(authRoutes);
-app.use(dashboardRoutes);
+app.use('/dashboard', dashboardRoutes);
 app.use(leadRoutes);
 app.use(callRoutes);
 app.use(businessRoutes);

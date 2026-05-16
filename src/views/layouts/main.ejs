@@ -4,7 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
   <title><%= title %> - Sky Web</title>
-  <link rel="stylesheet" href="/assets/vendor/fonts/boxicons.css" />
+  
+  <!-- ICONOS BOXICONS (CDN) -->
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  
+  <!-- SNEAT ASSETS -->
   <link rel="stylesheet" href="/assets/vendor/css/core.css" />
   <link rel="stylesheet" href="/assets/vendor/css/theme-default.css" />
   <link rel="stylesheet" href="/assets/css/demo.css" />
@@ -21,16 +25,16 @@
         </div>
         <div class="menu-inner-shadow"></div>
         <ul class="menu-inner py-1">
-          <li class="menu-item <%= title==='Dashboard'?'active':'' %>"><a href="/dashboard" class="menu-link"><i class="menu-icon tf-icons bx bx-home-circle"></i><div>Dashboard</div></a></li>
-          <li class="menu-item <%= title==='Leads'?'active':'' %>"><a href="/leads" class="menu-link"><i class="menu-icon tf-icons bx bx-target-lock"></i><div>Leads</div></a></li>
+          <li class="menu-item <%= title==='Dashboard'?'active':'' %>"><a href="/dashboard" class="menu-link"><i class='menu-icon tf-icons bx bx-home-circle'></i><div>Dashboard</div></a></li>
+          <li class="menu-item <%= title==='Leads'?'active':'' %>"><a href="/leads" class="menu-link"><i class='menu-icon tf-icons bx bx-target-lock'></i><div>Leads</div></a></li>
           <li class="menu-header small text-uppercase"><span class="menu-header-text">Gestión Comercial</span></li>
-          <li class="menu-item <%= title==='Llamadas'?'active':'' %>"><a href="/llamadas" class="menu-link"><i class="menu-icon tf-icons bx bx-phone"></i><div>Llamadas</div></a></li>
-          <li class="menu-item <%= title==='Seguimiento'?'active':'' %>"><a href="/seguimiento" class="menu-link"><i class="menu-icon tf-icons bx bx-refresh"></i><div>Seguimiento</div></a></li>
-          <li class="menu-item <%= title==='Pipeline'?'active':'' %>"><a href="/pipeline" class="menu-link"><i class="menu-icon tf-icons bx bx-briefcase-alt"></i><div>Pipeline</div></a></li>
-          <li class="menu-item <%= title==='Calendario'?'active':'' %>"><a href="/calendar" class="menu-link"><i class="menu-icon tf-icons bx bx-calendar"></i><div>Calendario</div></a></li>
+          <li class="menu-item <%= title==='Llamadas'?'active':'' %>"><a href="/llamadas" class="menu-link"><i class='menu-icon tf-icons bx bx-phone'></i><div>Llamadas</div></a></li>
+          <li class="menu-item <%= title==='Seguimiento'?'active':'' %>"><a href="/seguimiento" class="menu-link"><i class='menu-icon tf-icons bx bx-refresh'></i><div>Seguimiento</div></a></li>
+          <li class="menu-item <%= title==='Pipeline'?'active':'' %>"><a href="/pipeline" class="menu-link"><i class='menu-icon tf-icons bx bx-briefcase-alt'></i><div>Pipeline</div></a></li>
+          <li class="menu-item <%= title==='Calendario'?'active':'' %>"><a href="/calendar" class="menu-link"><i class='menu-icon tf-icons bx bx-calendar'></i><div>Calendario</div></a></li>
           <li class="menu-header small text-uppercase"><span class="menu-header-text">Cuenta</span></li>
-          <li class="menu-item <%= title==='Mi Perfil'?'active':'' %>"><a href="/profile" class="menu-link"><i class="menu-icon tf-icons bx bx-user"></i><div>Mi Perfil</div></a></li>
-          <li class="menu-item"><a href="/logout" class="menu-link"><i class="menu-icon tf-icons bx bx-log-out"></i><div>Cerrar Sesión</div></a></li>
+          <li class="menu-item <%= title==='Mi Perfil'?'active':'' %>"><a href="/profile" class="menu-link"><i class='menu-icon tf-icons bx bx-user'></i><div>Mi Perfil</div></a></li>
+          <li class="menu-item"><a href="/logout" class="menu-link"><i class='menu-icon tf-icons bx bx-log-out'></i><div>Cerrar Sesión</div></a></li>
         </ul>
       </aside>
       <div class="layout-page">
@@ -43,6 +47,7 @@
     </div>
     <div class="layout-overlay layout-menu-toggle"></div>
   </div>
+  
   <script src="/assets/vendor/libs/jquery/jquery.js"></script>
   <script src="/assets/vendor/libs/popper/popper.js"></script>
   <script src="/assets/vendor/js/bootstrap.js"></script>
