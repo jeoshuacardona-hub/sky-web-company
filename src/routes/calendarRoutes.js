@@ -8,7 +8,7 @@ const User = require('../models/User');
 router.get('/calendar', authMiddleware, async (req, res, next) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
-        const filter = isAdmin ? {} : { createdBy: req.session.userId };
+        const filter = isAdmin ? {} : { $or: [{ createdBy: req.session.userId }, { assignedTo: req.session.userId }] };
         
         const meetings = await Meeting.find(filter)
             .populate('lead', 'name phone')
@@ -29,12 +29,20 @@ router.get('/calendar', authMiddleware, async (req, res, next) => {
             isAdmin,
             users
         });
-    } catch (error) { next(error); }
+    } catch (error) { 
+        console.error('Error en calendario:', error);
+        next(error); 
+    }
 });
 
 router.post('/api/meetings', authMiddleware, async (req, res, next) => {
     try {
-        const { title, date, time, description, location, type, leadId } = req.body;
+        const { title, date, time, description, location, type } = req.body;
+        
+        if (!title || !date || !time) {
+            return res.status(400).json({ success: false, error: 'Título, fecha y hora son requeridos' });
+        }
+        
         const meeting = await Meeting.create({
             title,
             date: new Date(date),
@@ -42,16 +50,17 @@ router.post('/api/meetings', authMiddleware, async (req, res, next) => {
             description: description || '',
             location: location || '',
             type: type || 'reunion',
-            lead: leadId || null,
             createdBy: req.session.userId
         });
+        
         res.json({ success: true, meeting });
     } catch (error) {
+        console.error('Error creando reunión:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-router.get('/api/meetings/:id/delete', authMiddleware, async (req, res, next) => {
+router.delete('/api/meetings/:id', authMiddleware, async (req, res, next) => {
     try {
         await Meeting.findByIdAndDelete(req.params.id);
         res.json({ success: true });
