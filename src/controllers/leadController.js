@@ -37,105 +37,55 @@ exports.deleteLead = async (req, res, next) => {
     } catch (error) { next(error); }
 };
 
-// Función auxiliar para normalizar nombres de columnas
-function normalizeHeader(h) {
-    const clean = h.toLowerCase().trim().replace(/^"|"$/g, '');
-    const map = {
-        'nombre': 'name', 'name': 'name', 'nombres': 'name', 'full name': 'name',
-        'telefono': 'phone', 'teléfono': 'phone', 'phone': 'phone', 'móvil': 'phone', 'celular': 'phone',
-        'email': 'email', 'correo': 'email', 'e-mail': 'email', 'mail': 'email',
-        'empresa': 'company', 'company': 'company', 'compañia': 'company', 'organización': 'company',
-        'ciudad': 'city', 'city': 'city', 'location': 'city', 'ubicación': 'city',
-        'fuente': 'source', 'source': 'source', 'origen': 'source',
-        'notas': 'notes', 'notes': 'notes', 'observaciones': 'notes', 'comentarios': 'notes'
-    };
-    return map[clean] || clean;
-}
-
-// Función para parsear CSV de forma robusta (maneja comillas y comas dentro de valores)
-function parseCSV(text) {
-    // Remover BOM si existe
-    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-    
-    const lines = [];
-    let current = '';
-    let inQuotes = false;
-    
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        const next = text[i + 1];
-        
-        if (char === '"') {
-            if (inQuotes && next === '"') {
-                current += '"';
-                i++;
-            } else {
-                inQuotes = !inQuotes;
-            }
-        } else if (char === ',' && !inQuotes) {
-            lines.push(current.trim().replace(/^"|"$/g, ''));
-            current = '';
-        } else if ((char === '\n' || char === '\r') && !inQuotes) {
-            if (current.trim()) lines.push(current.trim().replace(/^"|"$/g, ''));
-            current = '';
-            if (char === '\r' && next === '\n') i++;
-        } else {
-            current += char;
-        }
-    }
-    if (current.trim()) lines.push(current.trim().replace(/^"|"$/g, ''));
-    
-    // Agrupar en filas
-    const rows = [];
-    let row = [];
-    for (const val of lines) {
-        if (val === '\n' || val === '\r') {
-            if (row.length > 0) { rows.push(row); row = []; }
-        } else {
-            row.push(val);
-        }
-    }
-    if (row.length > 0) rows.push(row);
-    
-    return rows.filter(r => r.length > 0 && r.some(v => v));
-}
-
 exports.importLeads = async (req, res, next) => {
     try {
         const { leads } = req.body;
-        
         if (!leads || !Array.isArray(leads) || leads.length === 0) {
             return res.status(400).json({ success: false, message: 'No se recibieron leads válidos.' });
         }
-        
-        const toInsert = leads.map(function(l) {
-            // Normalizar keys del objeto
+
+        const normalizeKey = (key) => {
+            const k = key.toLowerCase().trim().replace(/[^a-z0-9áéíóúñü]/g, '');
+            const map = {
+                'nombre': 'name', 'name': 'name', 'contacto': 'name',
+                'telefono': 'phone', 'teléfono': 'phone', 'phone': 'phone', 'celular': 'phone', 'movil': 'phone', 'móvil': 'phone', 'whatsapp': 'phone', 'wa': 'phone',
+                'email': 'email', 'correo': 'email', 'mail': 'email',
+                'empresa': 'company', 'company': 'company', 'compania': 'company', 'compañia': 'company', 'negocio': 'company', 'restaurante': 'company',
+                'ciudad': 'city', 'city': 'city', 'ubicacion': 'city', 'ubicación': 'city', 'municipio': 'city',
+                'problema': 'notes', 'solucion': 'notes', 'solución': 'notes', 'oferta': 'notes', 'queofrecer': 'notes', 'quéofrecer': 'notes', 'notas': 'notes', 'notes': 'notes', 'observaciones': 'notes', 'descripcion': 'notes', 'descripción': 'notes', 'analisisestrategico': 'notes', 'sugerenciaautomatizacion': 'notes', 'dolor': 'notes', 'gancho': 'notes', 'estado': 'notes',
+                'fuente': 'source', 'source': 'source', 'origen': 'source', 'url': 'source', 'web': 'source'
+            };
+            return map[k] || null;
+        };
+
+        const toInsert = leads.map(function(row) {
             const normalized = {};
-            for (const key in l) {
-                const normKey = normalizeHeader(key);
-                normalized[normKey] = l[key];
-            }
-            
+            Object.keys(row).forEach(function(key) {
+                const mapped = normalizeKey(key);
+                if (mapped && row[key] && row[key].toString().trim()) {
+                    normalized[mapped] = row[key].toString().trim();
+                }
+            });
             return {
-                name: normalized.name || normalized.nombre || '',
-                email: normalized.email || normalized.correo || '',
-                phone: normalized.phone || normalized.telefono || normalized.celular || '',
-                company: normalized.company || normalized.empresa || '',
-                city: normalized.city || normalized.ciudad || '',
-                source: normalized.source || normalized.fuente || 'csv_import',
+                name: normalized.name || '',
+                email: normalized.email || '',
+                phone: normalized.phone || '',
+                company: normalized.company || '',
+                city: normalized.city || '',
+                source: normalized.source || 'csv_import',
                 status: 'new',
-                notes: normalized.notes || normalized.notas || normalized.observaciones || '',
+                notes: normalized.notes || '',
                 createdBy: req.session.userId
             };
-        }).filter(function(l){ return l.name && l.name.trim().length > 0; });
-        
+        }).filter(function(l) { return l.name && l.name.length > 1; });
+
         if (toInsert.length === 0) {
             return res.status(400).json({ success: false, message: 'No hay leads válidos para importar (se requiere al menos el nombre).' });
         }
-        
-        const inserted = await Lead.insertMany(toInsert);
+
+        const inserted = await Lead.insertMany(toInsert, { ordered: false });
         res.json({ success: true, count: inserted.length, message: `${inserted.length} leads importados correctamente.` });
-        
+
     } catch (error) {
         console.error('Error importando leads:', error);
         if (error.code === 11000) {
