@@ -1,39 +1,31 @@
-<!-- Forzar carga de iconos -->
 <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
 <style>
-.pipeline-header { background: linear-gradient(135deg, #696cff 0%, #8b9aff 100%); border-radius: 16px; padding: 24px; color: #fff; margin-bottom: 24px; }
-.pipeline-header h1 { margin: 0; font-size: 24px; font-weight: 700; }
-.pipeline-header p { margin: 8px 0 0 0; opacity: 0.9; }
-
-/* Stats */
-.pipeline-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
-.stat-box { background: #fff; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f0f2f4; }
-.stat-box h3 { font-size: 24px; font-weight: 700; color: #696cff; margin: 0 0 4px 0; }
-.stat-box p { font-size: 12px; color: #697a8d; margin: 0; font-weight: 500; }
-
-/* Pipeline Columns */
-.pipeline-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; overflow-x: auto; padding-bottom: 16px; }
-.pipeline-column { background: #f9fafb; border-radius: 12px; padding: 16px; min-height: 400px; }
-.column-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #e0e4e8; }
+.pipeline-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 24px 32px; color: #fff; margin-bottom: 24px; }
+.pipeline-header h1 { margin: 0 0 8px 0; font-size: 26px; font-weight: 700; }
+.pipeline-header p { margin: 0; opacity: 0.9; font-size: 15px; }
+.pipeline-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-box { background: #fff; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f0f2f4; }
+.stat-box h3 { font-size: 28px; font-weight: 700; color: #667eea; margin: 0 0 4px 0; }
+.stat-box p { font-size: 13px; color: #697a8d; margin: 0; font-weight: 500; }
+.btn-new { background: #667eea; color: #fff; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; margin-bottom: 24px; transition: all 0.2s; }
+.btn-new:hover { background: #5a67d8; transform: translateY(-2px); }
+.pipeline-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.pipeline-column { background: #f8f9fa; border-radius: 12px; padding: 16px; min-height: 400px; }
+.column-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0; }
 .column-header h3 { font-size: 14px; font-weight: 700; color: #566a7f; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
-.column-count { background: #696cff; color: #fff; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-
-/* Customer Cards */
-.customer-card { background: #fff; border-radius: 10px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-left: 4px solid #696cff; cursor: pointer; transition: all 0.2s; }
+.column-count { background: #667eea; color: #fff; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.customer-card { background: #fff; border-radius: 10px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-left: 4px solid #667eea; transition: all 0.2s; }
 .customer-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
 .customer-card.qualified { border-left-color: #71dd37; }
 .customer-card.proposal { border-left-color: #ffab00; }
 .customer-card.negotiation { border-left-color: #8b5cf6; }
 .customer-card.won { border-left-color: #34c759; opacity: 0.85; }
 .customer-card.lost { border-left-color: #ff3b30; opacity: 0.7; }
-
 .customer-name { font-weight: 600; color: #566a7f; font-size: 15px; margin-bottom: 8px; }
-.customer-value { font-size: 18px; font-weight: 700; color: #696cff; margin-bottom: 8px; }
+.customer-value { font-size: 18px; font-weight: 700; color: #667eea; margin-bottom: 8px; }
 .customer-meta { font-size: 12px; color: #697a8d; margin: 4px 0; display: flex; align-items: center; gap: 6px; }
 .customer-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-
-/* Buttons */
 .btn-sm { padding: 6px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.2s; }
 .btn-qualify { background: rgba(113,221,55,0.15); color: #71dd37; }
 .btn-proposal { background: rgba(255,171,0,0.15); color: #ffab00; }
@@ -41,25 +33,23 @@
 .btn-won { background: rgba(52,199,89,0.15); color: #34c759; }
 .btn-lost { background: rgba(255,59,48,0.15); color: #ff3b30; }
 .btn-sm:hover { transform: scale(1.05); }
+.empty-state { text-align: center; padding: 40px 20px; color: #697a8d; }
+.empty-state i { font-size: 48px; opacity: 0.3; margin-bottom: 12px; display: block; }
 
 /* Modal */
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
 .modal-overlay.active { display: flex; }
-.modal { background: #fff; border-radius: 16px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 24px; }
-.modal h3 { margin: 0 0 20px 0; font-size: 20px; color: #566a7f; }
+.modal { background: #fff; border-radius: 16px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 24px; position: relative; animation: modalIn 0.3s ease; }
+@keyframes modalIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.modal h3 { margin: 0 0 20px 0; font-size: 20px; color: #566a7f; font-weight: 700; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 13px; font-weight: 500; color: #566a7f; margin-bottom: 6px; }
-.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #d9dee3; border-radius: 8px; font-size: 14px; }
-.form-group input:focus { outline: none; border-color: #696cff; box-shadow: 0 0 0 3px rgba(105,108,255,0.1); }
-.btn-save { width: 100%; padding: 12px; background: #696cff; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-.btn-save:hover { background: #5f62e6; }
-.btn-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: #697a8d; }
-.btn-close:hover { color: #566a7f; }
-
-/* Empty state */
-.empty-state { text-align: center; padding: 40px 20px; color: #697a8d; }
-.empty-state i { font-size: 48px; opacity: 0.3; margin-bottom: 12px; }
-
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #d9dee3; border-radius: 8px; font-size: 14px; transition: 0.2s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+.btn-save { width: 100%; padding: 12px; background: #667eea; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.btn-save:hover { background: #5a67d8; }
+.btn-close { position: absolute; top: 16px; right: 16px; background: #f0f2f4; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; color: #697a8d; }
+.btn-close:hover { background: #e2e8f0; }
 @media (max-width: 768px) { .pipeline-board { grid-template-columns: 1fr; } }
 </style>
 
@@ -75,156 +65,64 @@
   <div class="stat-box"><h3><%= stats.perdidos || 0 %></h3><p>Perdidos</p></div>
 </div>
 
-<div style="margin-bottom: 20px;">
-  <button class="btn btn-primary" onclick="openModal()" style="padding: 10px 20px; border-radius: 8px; border: none; background: #696cff; color: #fff; font-weight: 600; cursor: pointer;">
-    <i class='bx bx-plus'></i> Nuevo Cliente
-  </button>
-</div>
+<button class="btn-new" onclick="openModal()"><i class='bx bx-plus'></i> Nuevo Cliente</button>
 
 <div class="pipeline-board">
-  <!-- Prospectos -->
-  <div class="pipeline-column">
-    <div class="column-header">
-      <h3>📋 Prospectos</h3>
-      <span class="column-count"><%= customers.filter(c=>c.status==='prospect').length %></span>
-    </div>
-    <% const prospects = customers.filter(c=>c.status==='prospect'); %>
-    <% if (prospects.length === 0) { %>
-      <div class="empty-state"><i class='bx bx-user'></i><p>Sin prospectos</p></div>
-    <% } else { %>
-      <% prospects.forEach(c => { %>
-        <div class="customer-card" onclick="editCustomer('<%= c._id %>')">
-          <div class="customer-name"><%= c.name %></div>
-          <% if (c.value) { %><div class="customer-value"><%= c.value.toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0}) %></div><% } %>
-          <div class="customer-meta"><i class='bx bx-phone'></i> <%= c.phone || 'Sin teléfono' %></div>
-          <div class="customer-actions">
-            <button class="btn-sm btn-qualify" onclick="event.stopPropagation(); changeStatus('<%= c._id %>', 'qualified')">✓ Calificar</button>
-            <button class="btn-sm btn-lost" onclick="event.stopPropagation(); changeStatus('<%= c._id %>', 'lost')">✕</button>
+  <% const statuses = [
+    { key: 'prospect', label: '📋 PROSPECTOS', class: '' },
+    { key: 'qualified', label: '✅ CALIFICADOS', class: 'qualified' },
+    { key: 'proposal', label: '📄 PROPUESTA', class: 'proposal' },
+    { key: 'negotiation', label: '💬 NEGOCIACIÓN', class: 'negotiation' },
+    { key: 'won', label: '✓ GANADOS', class: 'won' },
+    { key: 'lost', label: '× PERDIDOS', class: 'lost' }
+  ]; %>
+  
+  <% statuses.forEach(status => { %>
+    <div class="pipeline-column">
+      <div class="column-header">
+        <h3><%= status.label %></h3>
+        <span class="column-count"><%= customers.filter(c=>c.status===status.key).length %></span>
+      </div>
+      <% const items = customers.filter(c=>c.status===status.key); %>
+      <% if (items.length === 0) { %>
+        <div class="empty-state"><i class='bx bx-user'></i>Sin <%= status.key === 'prospect' ? 'prospectos' : status.key === 'qualified' ? 'calificados' : status.key === 'proposal' ? 'propuestas' : status.key === 'negotiation' ? 'negociaciones' : status.key === 'won' ? 'ganados' : 'perdidos' %></div>
+      <% } else { %>
+        <% items.forEach(c => { %>
+          <div class="customer-card <%= status.class %>">
+            <div class="customer-name"><%= c.name %></div>
+            <% if (c.value) { %><div class="customer-value"><%= c.value.toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0}) %></div><% } %>
+            <% if (c.phone) { %><div class="customer-meta"><i class='bx bx-phone'></i> <%= c.phone %></div><% } %>
+            <div class="customer-actions">
+              <% if (status.key === 'prospect') { %>
+                <button class="btn-sm btn-qualify" onclick="changeStatus('<%= c._id %>', 'qualified')">✓ Calificar</button>
+                <button class="btn-sm btn-lost" onclick="changeStatus('<%= c._id %>', 'lost')">✕</button>
+              <% } else if (status.key === 'qualified') { %>
+                <button class="btn-sm btn-proposal" onclick="changeStatus('<%= c._id %>', 'proposal')">📄 Propuesta</button>
+                <button class="btn-sm btn-lost" onclick="changeStatus('<%= c._id %>', 'lost')">✕</button>
+              <% } else if (status.key === 'proposal') { %>
+                <button class="btn-sm btn-negotiate" onclick="changeStatus('<%= c._id %>', 'negotiation')">💬 Negociar</button>
+                <button class="btn-sm btn-won" onclick="changeStatus('<%= c._id %>', 'won')">✓</button>
+                <button class="btn-sm btn-lost" onclick="changeStatus('<%= c._id %>', 'lost')">✕</button>
+              <% } else if (status.key === 'negotiation') { %>
+                <button class="btn-sm btn-won" onclick="changeStatus('<%= c._id %>', 'won')">✓ Ganado</button>
+                <button class="btn-sm btn-lost" onclick="changeStatus('<%= c._id %>', 'lost')">✕ Perdido</button>
+              <% } %>
+            </div>
           </div>
-        </div>
-      <% }) %>
-    <% } %>
-  </div>
-
-  <!-- Calificados -->
-  <div class="pipeline-column">
-    <div class="column-header">
-      <h3>✅ Calificados</h3>
-      <span class="column-count"><%= customers.filter(c=>c.status==='qualified').length %></span>
+        <% }) %>
+      <% } %>
     </div>
-    <% const qualified = customers.filter(c=>c.status==='qualified'); %>
-    <% if (qualified.length === 0) { %>
-      <div class="empty-state"><i class='bx bx-check-circle'></i><p>Sin calificados</p></div>
-    <% } else { %>
-      <% qualified.forEach(c => { %>
-        <div class="customer-card qualified" onclick="editCustomer('<%= c._id %>')">
-          <div class="customer-name"><%= c.name %></div>
-          <% if (c.value) { %><div class="customer-value"><%= c.value.toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0}) %></div><% } %>
-          <div class="customer-actions">
-            <button class="btn-sm btn-proposal" onclick="event.stopPropagation(); changeStatus('<%= c._id %>', 'proposal')">📄 Propuesta</button>
-            <button class="btn-sm btn-lost" onclick="event.stopPropagation(); changeStatus('<%= c._id %>', 'lost')">✕</button>
-          </div>
-        </div>
-      <% }) %>
-    <% } %>
-  </div>
-
-  <!-- Propuesta -->
-  <div class="pipeline-column">
-    <div class="column-header">
-      <h3>📄 Propuesta</h3>
-      <span class="column-count"><%= customers.filter(c=>c.status==='proposal').length %></span>
-    </div>
-    <% const proposal = customers.filter(c=>c.status==='proposal'); %>
-    <% if (proposal.length === 0) { %>
-      <div class="empty-state"><i class='bx bx-file'></i><p>Sin propuestas</p></div>
-    <% } else { %>
-      <% proposal.forEach(c => { %>
-        <div class="customer-card proposal" onclick="editCustomer('<%= c._id %>')">
-          <div class="customer-name"><%= c.name %></div>
-          <% if (c.value) { %><div class="customer-value"><%= c.value.toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0}) %></div><% } %>
-          <div class="customer-actions">
-            <button class="btn-sm btn-negotiate" onclick="event.stopPropagation(); changeStatus('<%= c._id %>', 'negotiation')">💬 Negociar</button>
-            <button class="btn-sm btn-won" onclick="event.stopPropagation(); changeStatus('<%= c._id %>', 'won')">✓</button>
-            <button class="btn-sm btn-lost" onclick="event.stopPropagation(); changeStatus('<%= c._id %>', 'lost')">✕</button>
-          </div>
-        </div>
-      <% }) %>
-    <% } %>
-  </div>
-
-  <!-- Negociación -->
-  <div class="pipeline-column">
-    <div class="column-header">
-      <h3>💬 Negociación</h3>
-      <span class="column-count"><%= customers.filter(c=>c.status==='negotiation').length %></span>
-    </div>
-    <% const negotiation = customers.filter(c=>c.status==='negotiation'); %>
-    <% if (negotiation.length === 0) { %>
-      <div class="empty-state"><i class='bx bx-handshake'></i><p>Sin negociaciones</p></div>
-    <% } else { %>
-      <% negotiation.forEach(c => { %>
-        <div class="customer-card negotiation" onclick="editCustomer('<%= c._id %>')">
-          <div class="customer-name"><%= c.name %></div>
-          <% if (c.value) { %><div class="customer-value"><%= c.value.toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0}) %></div><% } %>
-          <div class="customer-actions">
-            <button class="btn-sm btn-won" onclick="event.stopPropagation(); changeStatus('<%= c._id %>', 'won')">✓ Ganado</button>
-            <button class="btn-sm btn-lost" onclick="event.stopPropagation(); changeStatus('<%= c._id %>', 'lost')">✕ Perdido</button>
-          </div>
-        </div>
-      <% }) %>
-    <% } %>
-  </div>
-
-  <!-- Ganados -->
-  <div class="pipeline-column">
-    <div class="column-header">
-      <h3>✓ Ganados</h3>
-      <span class="column-count"><%= customers.filter(c=>c.status==='won').length %></span>
-    </div>
-    <% const won = customers.filter(c=>c.status==='won'); %>
-    <% if (won.length === 0) { %>
-      <div class="empty-state"><i class='bx bx-trophy'></i><p>¡A ganar más!</p></div>
-    <% } else { %>
-      <% won.forEach(c => { %>
-        <div class="customer-card won" onclick="editCustomer('<%= c._id %>')">
-          <div class="customer-name"><%= c.name %></div>
-          <% if (c.value) { %><div class="customer-value"><%= c.value.toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0}) %></div><% } %>
-          <span style="font-size:11px; color:#34c759; font-weight:600;">✓ Cerrado</span>
-        </div>
-      <% }) %>
-    <% } %>
-  </div>
-
-  <!-- Perdidos -->
-  <div class="pipeline-column">
-    <div class="column-header">
-      <h3>✕ Perdidos</h3>
-      <span class="column-count"><%= customers.filter(c=>c.status==='lost').length %></span>
-    </div>
-    <% const lost = customers.filter(c=>c.status==='lost'); %>
-    <% if (lost.length === 0) { %>
-      <div class="empty-state"><i class='bx bx-x-circle'></i><p>Sin pérdidas</p></div>
-    <% } else { %>
-      <% lost.forEach(c => { %>
-        <div class="customer-card lost" onclick="editCustomer('<%= c._id %>')">
-          <div class="customer-name"><%= c.name %></div>
-          <span style="font-size:11px; color:#ff3b30; font-weight:600;">✕ Perdido</span>
-        </div>
-      <% }) %>
-    <% } %>
-  </div>
+  <% }) %>
 </div>
 
-<!-- Modal Nuevo/Editar Cliente -->
+<!-- Modal Nuevo Cliente -->
 <div class="modal-overlay" id="customerModal">
-  <div class="modal" style="position: relative;">
+  <div class="modal">
     <button class="btn-close" onclick="closeModal()">×</button>
-    <h3 id="modalTitle">✨ Nuevo Cliente</h3>
+    <h3>✨ Nuevo Cliente</h3>
     <form id="customerForm" onsubmit="saveCustomer(event)">
-      <input type="hidden" id="customerId">
       <div class="form-group">
-        <label>Nombre *</label>
+        <label>Nombre del Cliente *</label>
         <input type="text" id="custName" required placeholder="Ej: Empresa XYZ">
       </div>
       <div class="form-group">
@@ -236,14 +134,12 @@
         <input type="number" id="custValue" placeholder="0">
       </div>
       <div class="form-group">
-        <label>Estado</label>
+        <label>Estado Inicial</label>
         <select id="custStatus">
           <option value="prospect">📋 Prospecto</option>
           <option value="qualified">✅ Calificado</option>
           <option value="proposal">📄 Propuesta</option>
           <option value="negotiation">💬 Negociación</option>
-          <option value="won">✓ Ganado</option>
-          <option value="lost">✕ Perdido</option>
         </select>
       </div>
       <div class="form-group">
@@ -256,25 +152,24 @@
 </div>
 
 <script>
-// Modal functions
 function openModal() {
-  document.getElementById('modalTitle').textContent = '✨ Nuevo Cliente';
+  document.getElementById('customerModal').classList.add('active');
   document.getElementById('customerForm').reset();
-  document.getElementById('customerId').value = '';
-  document.getElementById('customerModal').classList.add('active');
+  document.getElementById('custName').focus();
 }
-function closeModal() { document.getElementById('customerModal').classList.remove('active'); }
-function editCustomer(id) {
-  // For now, just open modal - in production fetch data
-  document.getElementById('modalTitle').textContent = '✏️ Editar Cliente';
-  document.getElementById('customerId').value = id;
-  document.getElementById('customerModal').classList.add('active');
+function closeModal() {
+  document.getElementById('customerModal').classList.remove('active');
 }
+document.getElementById('customerModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
 
-// Save customer
 async function saveCustomer(e) {
   e.preventDefault();
-  const id = document.getElementById('customerId').value;
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+  
   const data = {
     name: document.getElementById('custName').value,
     phone: document.getElementById('custPhone').value,
@@ -284,28 +179,36 @@ async function saveCustomer(e) {
   };
   
   try {
-    const url = id ? `/api/customers/${id}` : '/api/customers';
-    const method = id ? 'PUT' : 'POST';
-    await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
-    location.reload();
-  } catch(err) { alert('Error: ' + err.message); }
+    const res = await fetch('/api/customers', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      location.reload();
+    } else {
+      alert('Error: ' + result.error);
+    }
+  } catch(err) {
+    alert('Error de conexión: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💾 Guardar Cliente';
+  }
 }
 
-// Change status
 async function changeStatus(id, newStatus) {
-  if (!confirm(`¿Mover a "${newStatus}"?`)) return;
+  if (!confirm('¿Mover a "' + newStatus + '"?')) return;
   try {
-    await fetch(`/api/customers/${id}/status`, {
+    await fetch('/api/customers/' + id + '/status', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ status: newStatus })
     });
     location.reload();
-  } catch(err) { alert('Error: ' + err.message); }
+  } catch(err) {
+    alert('Error: ' + err.message);
+  }
 }
-
-// Close modal on outside click
-document.getElementById('customerModal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
 </script>

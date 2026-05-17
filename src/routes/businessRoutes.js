@@ -31,14 +31,10 @@ router.post('/api/customers', authMiddleware, async (req, res) => {
     try {
         const customer = await Customer.create({ ...req.body, assignedTo: req.session.userId });
         res.json({ success: true, customer });
-    } catch (error) { res.status(500).json({ success: false, error: error.message }); }
-});
-
-router.put('/api/customers/:id', authMiddleware, async (req, res) => {
-    try {
-        const customer = await Customer.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.json({ success: true, customer });
-    } catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    } catch (error) { 
+        console.error('Create customer error:', error);
+        res.status(500).json({ success: false, error: error.message }); 
+    }
 });
 
 router.post('/api/customers/:id/status', authMiddleware, async (req, res) => {
@@ -46,7 +42,9 @@ router.post('/api/customers/:id/status', authMiddleware, async (req, res) => {
         const { status } = req.body;
         const customer = await Customer.findByIdAndUpdate(req.params.id, { status }, { new: true });
         res.json({ success: true, customer });
-    } catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    } catch (error) { 
+        res.status(500).json({ success: false, error: error.message }); 
+    }
 });
 
 module.exports = router;
