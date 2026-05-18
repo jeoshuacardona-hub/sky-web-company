@@ -1,0 +1,362 @@
+<style>
+.leads-table th { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#8a8d9f; border-bottom:2px solid #f0f0f0; padding:10px 14px; white-space:nowrap; }
+.leads-table td { padding:12px 14px; vertical-align:middle; border-bottom:1px solid #f5f5f5; font-size:13px; }
+.leads-table tr:last-child td { border-bottom:none; }
+.leads-table tr:hover td { background:#fafafa; }
+.avatar-sm { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+.status-badge { font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.status-new { background:#e8eaff; color:#4a50d4; }
+.status-contacted { background:#fff0d6; color:#b36800; }
+.status-qualified { background:#e8f9fd; color:#0369a1; }
+.status-converted { background:#e8faef; color:#166534; }
+.status-lost { background:#fff0ee; color:#b32020; }
+.stat-pill { background:#fff; border-radius:12px; padding:14px 18px; border:1px solid #f0f0f0; display:flex; align-items:center; gap:12px; flex:1; min-width:160px; }
+.search-box { border:1px solid #f0f0f0; border-radius:10px; padding:8px 14px 8px 36px; font-size:13px; width:240px; outline:none; transition:border 0.15s; }
+.search-box:focus { border-color:#696cff; }
+</style>
+
+<%
+var colorMap = ['#696cff','#03c3ec','#71dd37','#ff3e1d','#ffab00','#20c997'];
+function getInitials(n){ if(!n)return'?'; return n.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2); }
+function getColor(s){ var h=0; for(var i=0;i<(s||'').length;i++) h=s.charCodeAt(i)+((h<<5)-h); return colorMap[Math.abs(h)%colorMap.length]; }
+var isAdmin = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin';
+var totalLeads = leads.length;
+var newLeads = leads.filter(function(l){ return l.status==='new'; }).length;
+var converted = leads.filter(function(l){ return l.status==='converted'; }).length;
+var contacted = leads.filter(function(l){ return l.status==='contacted'; }).length;
+%>
+
+<% if (isAdmin) { %>
+<div class="d-flex flex-wrap gap-3 mb-4">
+  <div class="stat-pill">
+    <div style="width:38px;height:38px;border-radius:10px;background:#696cff22;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-target-lock" style="font-size:20px;color:#696cff;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Total Leads</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;"><%= totalLeads %></p>
+    </div>
+  </div>
+  <div class="stat-pill">
+    <div style="width:38px;height:38px;border-radius:10px;background:#e8eaff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-user-plus" style="font-size:20px;color:#696cff;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Sin Llamar</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#696cff;"><%= newLeads %></p>
+    </div>
+  </div>
+  <div class="stat-pill">
+    <div style="width:38px;height:38px;border-radius:10px;background:#fff0d6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-phone" style="font-size:20px;color:#b36800;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Contactados</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#b36800;"><%= contacted %></p>
+    </div>
+  </div>
+  <div class="stat-pill">
+    <div style="width:38px;height:38px;border-radius:10px;background:#e8faef;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-check-circle" style="font-size:20px;color:#166534;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Convertidos</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#166534;"><%= converted %></p>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<div class="card" style="border-radius:12px;border:1px solid #f0f0f0;box-shadow:0 2px 12px rgba(0,0,0,0.04);">
+  <div class="card-header py-3 px-4" style="background:#fff;border-bottom:1px solid #f0f0f0;border-radius:12px 12px 0 0;">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <h6 class="mb-0" style="font-weight:700;">Base de Leads</h6>
+        <p class="mb-0" style="font-size:12px;color:#8a8d9f;"><%= totalLeads %> leads en total</p>
+      </div>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div style="position:relative;">
+          <i class="bx bx-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#8a8d9f;font-size:16px;"></i>
+          <input type="text" class="search-box" id="leadSearch" placeholder="Buscar lead..." oninput="filterLeads()">
+        </div>
+        <select class="form-select form-select-sm" id="statusFilter" style="width:auto;font-size:13px;border-radius:8px;" onchange="filterLeads()">
+          <option value="">Todos los estados</option>
+          <option value="new">Sin llamar</option>
+          <option value="contacted">Contactado</option>
+          <option value="qualified">Calificado</option>
+          <option value="converted">Convertido</option>
+          <option value="lost">Perdido</option>
+        </select>
+        <% if (isAdmin) { %>
+        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addLeadModal"><i class="bx bx-plus me-1"></i> Nuevo</button>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#importModal"><i class="bx bx-upload me-1"></i> Subir CSV</button>
+        <% if (leads.length > 0) { %>
+        <button class="btn btn-sm btn-danger" onclick="confirmarEliminarTodos()"><i class="bx bx-trash me-1"></i> Eliminar Todos</button>
+        <% } %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <% if (leads.length === 0) { %>
+    <div style="text-align:center;padding:56px 0;">
+      <i class="bx bx-target-lock" style="font-size:48px;color:#c5c7d4;display:block;margin-bottom:12px;"></i>
+      <p style="font-weight:600;color:#5d596c;margin-bottom:4px;">Sin leads aun</p>
+      <p style="font-size:13px;color:#c5c7d4;"><%= isAdmin ? 'Sube un CSV o agrega leads manualmente' : 'El administrador aun no ha cargado leads' %></p>
+    </div>
+  <% } %>
+
+  <div class="table-responsive">
+    <table class="table leads-table mb-0" id="leadsTable">
+      <thead>
+        <tr><th>Nombre</th><th>Empresa</th><th>Telefono</th><th>Ciudad</th><th>Notas</th><th>Estado</th><% if (isAdmin) { %><th style="text-align:right;">Acciones</th><% } %></tr>
+      </thead>
+      <tbody id="leadsBody">
+        <% leads.forEach(function(lead) {
+          var initials = getInitials(lead.name);
+          var color = getColor(lead.name);
+          var statusMap = { new:'Sin llamar', contacted:'Contactado', qualified:'Calificado', converted:'Convertido', lost:'Perdido' };
+          var statusCls = { new:'status-new', contacted:'status-contacted', qualified:'status-qualified', converted:'status-converted', lost:'status-lost' };
+        %>
+        <tr data-name="<%= lead.name.toLowerCase() %>" data-company="<%= (lead.company||'').toLowerCase() %>" data-status="<%= lead.status %>">
+          <td><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:<%= color %>22;color:<%= color %>;"><%= initials %></div><span style="font-size:13px;font-weight:600;"><%= lead.name %></span></div></td>
+          <td style="color:#8a8d9f;"><%= lead.company || '—' %></td>
+          <td><%= lead.phone || '—' %></td>
+          <td style="color:#8a8d9f;"><%= lead.city || '—' %></td>
+          <td style="color:#8a8d9f;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= lead.notes || '' %>"><%= lead.notes || '—' %></td>
+          <td><span class="status-badge <%= statusCls[lead.status] || 'status-new' %>"><%= statusMap[lead.status] || lead.status %></span></td>
+          <% if (isAdmin) { %>
+          <td style="text-align:right;">
+            <div class="d-flex gap-1 justify-content-end">
+              <button class="btn btn-sm btn-outline-secondary" style="padding:4px 10px;font-size:12px;border-radius:7px;" data-id="<%= lead._id %>" data-name="<%= lead.name %>" data-email="<%= lead.email || '' %>" data-phone="<%= lead.phone || '' %>" data-company="<%= lead.company || '' %>" data-city="<%= lead.city || '' %>" data-notes="<%= (lead.notes||'').replace(/"/g,'&quot;') %>" data-source="<%= lead.source || '' %>" onclick="abrirEditar(this)"><i class="bx bx-edit"></i></button>
+              <form action="/leads/delete/<%= lead._id %>" method="POST" style="display:inline;" onsubmit="return confirm('Eliminar este lead?')"><button type="submit" class="btn btn-sm btn-outline-danger" style="padding:4px 10px;font-size:12px;border-radius:7px;"><i class="bx bx-trash"></i></button></form>
+            </div>
+          </td>
+          <% } %>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<% if (isAdmin) { %>
+<div class="modal fade" id="addLeadModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
+      <div class="modal-header border-0 pb-0 px-4 pt-4"><div><h5 class="modal-title mb-0" style="font-weight:700;">Nuevo Lead</h5><p class="text-muted mb-0" style="font-size:13px;">Agregar lead manualmente</p></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <form action="/leads/add" method="POST">
+        <div class="modal-body px-4 pt-3">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Nombre *</label><input type="text" name="name" class="form-control" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Empresa</label><input type="text" name="company" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Telefono</label><input type="text" name="phone" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Ciudad</label><input type="text" name="city" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Email</label><input type="email" name="email" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Fuente</label><select name="source" class="form-select"><option value="referido">Referido</option><option value="web">Web</option><option value="redes">Redes Sociales</option><option value="csv_import">CSV Import</option><option value="otro">Otro</option></select></div>
+            <div class="col-12"><label class="form-label fw-semibold" style="font-size:13px;">Notas / Problema / Solucion</label><textarea name="notes" class="form-control" rows="2"></textarea></div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 px-4 pb-4 pt-2"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary px-4">Guardar</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="editLeadModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
+      <div class="modal-header border-0 pb-0 px-4 pt-4"><div><h5 class="modal-title mb-0" style="font-weight:700;">Editar Lead</h5></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <form id="editLeadForm" action="" method="POST">
+        <div class="modal-body px-4 pt-3">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Nombre *</label><input type="text" name="name" id="editName" class="form-control" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Empresa</label><input type="text" name="company" id="editCompany" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Telefono</label><input type="text" name="phone" id="editPhone" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Ciudad</label><input type="text" name="city" id="editCity" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Email</label><input type="email" name="email" id="editEmail" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Fuente</label><select name="source" id="editSource" class="form-select"><option value="referido">Referido</option><option value="web">Web</option><option value="redes">Redes Sociales</option><option value="csv_import">CSV Import</option><option value="otro">Otro</option></select></div>
+            <div class="col-12"><label class="form-label fw-semibold" style="font-size:13px;">Notas / Problema / Solucion</label><textarea name="notes" id="editNotes" class="form-control" rows="2"></textarea></div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 px-4 pb-4 pt-2"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary px-4">Guardar Cambios</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
+      <div class="modal-header border-0 pb-0 px-4 pt-4"><div><h5 class="modal-title mb-0" style="font-weight:700;">Importar CSV</h5><p class="text-muted mb-0" style="font-size:13px;">Soporta comas o punto y coma (;). Mapeo automatico de columnas.</p></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body px-4 pt-3">
+        <div id="dropZone" style="border:2px dashed #d0d0d8;border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all 0.15s;" onclick="document.getElementById('csvInput').click()" ondragover="event.preventDefault();this.style.borderColor='#696cff'" ondragleave="this.style.borderColor='#d0d0d8'" ondrop="handleDrop(event)">
+          <i class="bx bx-cloud-upload" style="font-size:36px;color:#696cff;display:block;margin-bottom:8px;"></i>
+          <p style="font-weight:600;margin:0;font-size:14px;">Arrastra tu CSV aqui</p>
+          <p style="font-size:12px;color:#8a8d9f;margin:4px 0 0;">o haz click para seleccionar</p>
+        </div>
+        <input type="file" id="csvInput" accept=".csv" style="display:none;" onchange="handleFile(this.files[0])">
+        <div id="importPreview" style="display:none;margin-top:14px;"><div style="background:#f5f5ff;border-radius:10px;padding:12px;font-size:13px;" id="previewText"></div></div>
+        <div id="importResult" style="display:none;margin-top:10px;"></div>
+      </div>
+      <div class="modal-footer border-0 px-4 pb-4 pt-2"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button id="importBtn" class="btn btn-primary px-4" onclick="submitImport()" disabled><i class="bx bx-upload me-1"></i> Importar</button></div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<script>
+var parsedLeads = [];
+
+function filterLeads() {
+  var q = document.getElementById('leadSearch').value.toLowerCase();
+  var st = document.getElementById('statusFilter').value;
+  document.querySelectorAll('#leadsBody tr').forEach(function(row) {
+    var name = row.dataset.name || '';
+    var company = row.dataset.company || '';
+    var status = row.dataset.status || '';
+    var matchQ = !q || name.includes(q) || company.includes(q);
+    var matchS = !st || status === st;
+    row.style.display = (matchQ && matchS) ? '' : 'none';
+  });
+}
+
+<% if (isAdmin) { %>
+function abrirEditar(btn) {
+  document.getElementById('editLeadForm').action = '/leads/edit/' + btn.dataset.id;
+  document.getElementById('editName').value = btn.dataset.name;
+  document.getElementById('editCompany').value = btn.dataset.company;
+  document.getElementById('editPhone').value = btn.dataset.phone;
+  document.getElementById('editCity').value = btn.dataset.city || '';
+  document.getElementById('editEmail').value = btn.dataset.email;
+  document.getElementById('editSource').value = btn.dataset.source || 'otro';
+  document.getElementById('editNotes').value = btn.dataset.notes;
+  new bootstrap.Modal(document.getElementById('editLeadModal')).show();
+}
+
+function handleDrop(e) { e.preventDefault(); document.getElementById('dropZone').style.borderColor = '#d0d0d8'; var file = e.dataTransfer.files[0]; if (file) handleFile(file); }
+
+function parseCSV(text) {
+  var lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+  var delimiter = lines[0].includes(';') ? ';' : ',';
+  var headers = lines[0].split(delimiter).map(function(h){ return h.trim().replace(/^"|"$/g, ''); });
+  var rows = [];
+  for (var i = 1; i < lines.length; i++) {
+    var line = lines[i]; if (!line.trim()) continue;
+    var values = [], inQuotes = false, current = '';
+    for (var j = 0; j < line.length; j++) {
+      var char = line[j];
+      if (char === '"') inQuotes = !inQuotes;
+      else if ((char === delimiter) && !inQuotes) { values.push(current.trim().replace(/^"|"$/g, '')); current = ''; }
+      else current += char;
+    }
+    values.push(current.trim().replace(/^"|"$/g, ''));
+    var obj = {}; headers.forEach(function(h, idx){ if (values[idx] !== undefined) obj[h] = values[idx]; });
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function handleFile(file) {
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    parsedLeads = parseCSV(e.target.result);
+    if (parsedLeads.length > 0) {
+      document.getElementById('previewText').textContent = parsedLeads.length + ' leads detectados. Columnas: ' + Object.keys(parsedLeads[0]).join(', ');
+      document.getElementById('importPreview').style.display = 'block';
+      document.getElementById('importBtn').disabled = false;
+    } else {
+      document.getElementById('previewText').textContent = 'No se pudieron leer los datos del CSV.';
+      document.getElementById('importPreview').style.display = 'block';
+      document.getElementById('importBtn').disabled = true;
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function submitImport() {
+  var btn = document.getElementById('importBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Importando...';
+  try {
+    var res = await fetch('/api/leads/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leads: parsedLeads }) });
+    var data = await res.json();
+    var el = document.getElementById('importResult');
+    if (data.success) {
+      el.innerHTML = '<div style="background:#e2f8ef;border-radius:10px;padding:12px;font-size:13px;font-weight:600;color:#1a7a50;"><i class="bx bx-check-circle me-1"></i>' + data.message + '</div>';
+      el.style.display = 'block';
+      setTimeout(function(){ location.reload(); }, 2000);
+    } else {
+      el.innerHTML = '<div style="background:#fde8e8;border-radius:10px;padding:12px;font-size:13px;color:#b32020;"><i class="bx bx-error-circle me-1"></i>' + (data.message || 'Error al importar') + '</div>';
+      el.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bx bx-upload me-1"></i> Importar';
+    }
+  } catch(err) {
+    alert('Error de conexion: ' + err.message);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bx bx-upload me-1"></i> Importar';
+  }
+}
+
+async function confirmarEliminarTodos() {
+  var total = <%= totalLeads %>;
+  if (!confirm('⚠️ ATENCIÓN: ¿Estás seguro de eliminar TODOS los ' + total + ' leads permanentemente?\n\nEsta acción NO se puede deshacer y los leads NO irán a seguimiento. Se borrarán completamente.')) return;
+  
+  var confirmText = prompt('Escribe "ELIMINAR" para confirmar la eliminación permanente de todos los leads:');
+  if (confirmText !== 'ELIMINAR') {
+    alert('Operación cancelada.');
+    return;
+  }
+  
+  try {
+    var res = await fetch('/api/leads/delete-all', { method: 'POST' });
+    var data = await res.json();
+    if (data.success) {
+      alert('✓ ' + data.message);
+      location.reload();
+    } else {
+      alert('Error: ' + (data.message || 'No se pudieron eliminar los leads'));
+    }
+  } catch(err) {
+    alert('Error de conexión: ' + err.message);
+  }
+}
+<% } %>
+</script>
+
+<% if (isAdmin) { %>
+<div class="card mt-4" style="border-radius:12px;border:1px solid #fee2e2;background:#fff5f5;">
+  <div class="card-body py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div>
+      <h6 class="mb-0" style="font-weight:700;color:#dc2626;"><i class="bx bx-error-circle me-2"></i>Zona de Reset Total</h6>
+      <p class="mb-0" style="font-size:12px;color:#991b1b;">Elimina Leads, Llamadas, Pipeline y Tareas. Queda todo en 0.</p>
+    </div>
+    <button class="btn btn-danger btn-sm" onclick="hardResetDB()" style="padding:8px 16px;font-weight:600;">
+      <i class="bx bx-trash me-1"></i> Resetear Todo a Cero
+    </button>
+  </div>
+</div>
+
+<script>
+async function hardResetDB() {
+  if (!confirm('⚠️ ATENCIÓN: ¿Estás seguro de ELIMINAR TODO?\n\nSe borrarán Leads, Llamadas, Pipeline y Tareas.\nQuedará absolutamente todo en 0.')) return;
+  if (!confirm('⚠️ CONFIRMACIÓN FINAL: Esta acción es irreversible.\n¿Continuar?')) return;
+  
+  try {
+    var res = await fetch('/api/admin/hard-reset', { method: 'POST' });
+    var data = await res.json();
+    if (data.success) {
+      alert('✅ ' + data.message);
+      location.reload();
+    } else {
+      alert('❌ ' + (data.message || 'Error al resetear'));
+    }
+  } catch(err) {
+    alert('Error de conexión');
+  }
+}
+</script>
+<% } %>

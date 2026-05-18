@@ -12,18 +12,6 @@ router.post('/leads/delete/:id', authMiddleware, leadController.deleteLead);
 router.post('/api/leads/import', authMiddleware, adminOnly, leadController.importLeads);
 router.post('/api/admin/hard-reset', authMiddleware, leadController.hardReset);
 
-
-// Eliminar todos los leads
-router.post('/delete-all', authMiddleware, async (req, res) => {
-    try {
-        const isAdmin = req.session.user.role === 'admin';
-        const filter = isAdmin ? {} : { assignedTo: req.session.userId };
-        await Lead.deleteMany(filter);
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
 module.exports = router;
 
 // Ruta para mostrar formulario nuevo lead
