@@ -7,12 +7,13 @@ const getTodayStart = () => { const d = new Date(); d.setUTCHours(0,0,0,0); retu
 
 exports.getLlamadas = async (req, res, next) => {
     try {
-        const leads = await Lead.find({ status: { $in: ['new', 'contacted'] } }).sort({ createdAt: -1 });
+        // ✅ SOLO leads 'new' (Sin llamar) - los 'contacted' ya no aparecen aquí
+        const leads = await Lead.find({ status: 'new' }).sort({ createdAt: -1 });
         const todayStart = getTodayStart();
         
         const callsToday = await CallLog.countDocuments({ createdAt: { $gte: todayStart } });
         const scheduledToday = await CallLog.countDocuments({ outcome: 'scheduled', createdAt: { $gte: todayStart } });
-        const totalNew = leads.filter(l => l.status === 'new').length;
+        const totalNew = leads.length; // Ya están filtrados, todos son 'new'
         
         res.render('pages/llamadas', { title: 'Llamadas', leads, callsToday, scheduledToday, totalNew });
     } catch (error) { next(error); }
@@ -21,11 +22,11 @@ exports.getLlamadas = async (req, res, next) => {
 exports.getStats = async (req, res, next) => {
     try {
         const todayStart = getTodayStart();
-        const leads = await Lead.find({ status: { $in: ['new', 'contacted'] } });
+        // ✅ Solo contar leads 'new' para las estadísticas
+        const totalNew = await Lead.countDocuments({ status: 'new' });
         
         const callsToday = await CallLog.countDocuments({ createdAt: { $gte: todayStart } });
         const scheduledToday = await CallLog.countDocuments({ outcome: 'scheduled', createdAt: { $gte: todayStart } });
-        const totalNew = leads.filter(l => l.status === 'new').length;
         
         res.json({ success: true, stats: { totalNew, callsToday, scheduledToday } });
     } catch (error) { next(error); }
@@ -33,6 +34,7 @@ exports.getStats = async (req, res, next) => {
 
 exports.getSeguimiento = async (req, res, next) => {
     try {
+        // ✅ Seguimiento muestra los que ya fueron contactados y necesitan follow-up
         const followups = await CallLog.find({ outcome: { $in: ['callback', 'rejected'] }, resolved: false })
             .populate('lead').populate('calledBy').sort({ callbackDate: 1, createdAt: -1 });
         res.render('pages/seguimiento', { title: 'Seguimiento', followups, today: new Date() });
@@ -65,12 +67,16 @@ exports.registrarLlamada = async (req, res, next) => {
             customerId = customer._id;
             callLog.customerId = customerId;
             await callLog.save();
+            // ✅ Agendó reunión → pasa a 'converted' (ya está en Pipeline)
             await Lead.findByIdAndUpdate(leadId, { status: 'converted' });
         } else if (outcome === 'callback') {
+            // ✅ Volver a llamar → pasa a 'contacted' (aparece en Seguimiento)
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
         } else if (outcome === 'rejected') {
+            // ✅ No interesado → pasa a 'lost'
             await Lead.findByIdAndUpdate(leadId, { status: 'lost' });
         } else {
+            // ✅ No contestó → pasa a 'contacted' (para seguimiento posterior)
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
         }
         res.json({ success: true, outcome });
