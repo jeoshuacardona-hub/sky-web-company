@@ -2,18 +2,16 @@ const CallLog = require('../models/CallLog');
 const Lead = require('../models/Lead');
 const Customer = require('../models/Customer');
 
-// Helper para fecha inicio de hoy en UTC (evita desfases de zona horaria)
 const getTodayStart = () => { const d = new Date(); d.setUTCHours(0,0,0,0); return d; };
 
 exports.getLlamadas = async (req, res, next) => {
     try {
-        // ✅ SOLO leads 'new' (Sin llamar) - los 'contacted' ya no aparecen aquí
         const leads = await Lead.find({ status: 'new' }).sort({ createdAt: -1 });
         const todayStart = getTodayStart();
         
         const callsToday = await CallLog.countDocuments({ createdAt: { $gte: todayStart } });
         const scheduledToday = await CallLog.countDocuments({ outcome: 'scheduled', createdAt: { $gte: todayStart } });
-        const totalNew = leads.length; // Ya están filtrados, todos son 'new'
+        const totalNew = leads.length;
         
         res.render('pages/llamadas', { title: 'Llamadas', leads, callsToday, scheduledToday, totalNew });
     } catch (error) { next(error); }
@@ -22,7 +20,6 @@ exports.getLlamadas = async (req, res, next) => {
 exports.getStats = async (req, res, next) => {
     try {
         const todayStart = getTodayStart();
-        // ✅ Solo contar leads 'new' para las estadísticas
         const totalNew = await Lead.countDocuments({ status: 'new' });
         
         const callsToday = await CallLog.countDocuments({ createdAt: { $gte: todayStart } });
@@ -34,9 +31,15 @@ exports.getStats = async (req, res, next) => {
 
 exports.getSeguimiento = async (req, res, next) => {
     try {
-        // ✅ Seguimiento muestra los que ya fueron contactados y necesitan follow-up
-        const followups = await CallLog.find({ outcome: { $in: ['callback', 'rejected'] }, resolved: false })
-            .populate('lead').populate('calledBy').sort({ callbackDate: 1, createdAt: -1 });
+        // ✅ Ahora incluye 'no_answer' además de 'callback' y 'rejected'
+        const followups = await CallLog.find({ 
+            outcome: { $in: ['callback', 'rejected', 'no_answer'] }, 
+            resolved: false 
+        })
+        .populate('lead')
+        .populate('calledBy')
+        .sort({ callbackDate: 1, createdAt: -1 });
+        
         res.render('pages/seguimiento', { title: 'Seguimiento', followups, today: new Date() });
     } catch (error) { next(error); }
 };
@@ -54,6 +57,7 @@ exports.registrarLlamada = async (req, res, next) => {
 
         let customerId = null;
         if (outcome === 'scheduled') {
+            // ✅ Agendó reunión → Pipeline (Customer)
             let customer = await Customer.findOne({ $or: [{ phone: lead.phone }, { email: lead.email }] });
             if (!customer) {
                 customer = await Customer.create({
@@ -67,18 +71,18 @@ exports.registrarLlamada = async (req, res, next) => {
             customerId = customer._id;
             callLog.customerId = customerId;
             await callLog.save();
-            // ✅ Agendó reunión → pasa a 'converted' (ya está en Pipeline)
             await Lead.findByIdAndUpdate(leadId, { status: 'converted' });
         } else if (outcome === 'callback') {
-            // ✅ Volver a llamar → pasa a 'contacted' (aparece en Seguimiento)
+            // ✅ Volver a llamar → Seguimiento
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
         } else if (outcome === 'rejected') {
-            // ✅ No interesado → pasa a 'lost'
-            await Lead.findByIdAndUpdate(leadId, { status: 'lost' });
-        } else {
-            // ✅ No contestó → pasa a 'contacted' (para seguimiento posterior)
+            // ✅ No interesado → Seguimiento
+            await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
+        } else if (outcome === 'no_answer') {
+            // ✅ No contestó → Seguimiento
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
         }
+        
         res.json({ success: true, outcome });
     } catch (error) { next(error); }
 };
