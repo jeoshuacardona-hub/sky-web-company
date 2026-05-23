@@ -31,9 +31,9 @@ exports.getStats = async (req, res, next) => {
 
 exports.getSeguimiento = async (req, res, next) => {
     try {
-        // ✅ Ahora incluye 'no_answer' además de 'callback' y 'rejected'
+        // ✅ Ahora incluye 'interested' además de los otros
         const followups = await CallLog.find({ 
-            outcome: { $in: ['callback', 'rejected', 'no_answer'] }, 
+            outcome: { $in: ['callback', 'rejected', 'no_answer', 'interested'] }, 
             resolved: false 
         })
         .populate('lead')
@@ -80,6 +80,9 @@ exports.registrarLlamada = async (req, res, next) => {
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
         } else if (outcome === 'no_answer') {
             // ✅ No contestó → Seguimiento
+            await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
+        } else if (outcome === 'interested') {
+            // ✅ Interesado → Seguimiento (nuevo)
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
         }
         
