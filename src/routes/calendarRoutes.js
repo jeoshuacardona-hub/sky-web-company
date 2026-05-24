@@ -8,6 +8,8 @@ const User = require('../models/User');
 router.get('/calendar', authMiddleware, async (req, res) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
+        
+        // Admin ve todo, Usuario ve solo lo suyo
         const meetingFilter = isAdmin ? {} : { $or: [{ createdBy: req.session.userId }, { assignedTo: req.session.userId }] };
         const taskFilter = isAdmin ? {} : { assignedTo: req.session.userId };
         
@@ -25,10 +27,31 @@ router.get('/calendar', authMiddleware, async (req, res) => {
 router.post('/calendar/save', authMiddleware, async (req, res) => {
     try {
         const { title, date, time, type, description } = req.body;
+        const isAdmin = req.session.user.role === 'admin';
+
+        // 1. SOLO ADMIN puede crear tareas
+        if (type === 'task' && !isAdmin) {
+            return res.status(403).json({ error: 'Solo los administradores pueden crear tareas' });
+        }
+
         if (type === 'task') {
-            await Task.create({ title, dueDate: new Date(date), description: description || '', assignedTo: req.session.userId, status: 'todo' });
+            await Task.create({ 
+                title, 
+                dueDate: new Date(date), 
+                description: description || '', 
+                assignedTo: req.session.userId, 
+                status: 'todo' 
+            });
         } else {
-            await Meeting.create({ title, date: new Date(date), time: time || '09:00', description: description || '', createdBy: req.session.userId, type: 'reunion' });
+            // 2. Crear reunión asegurando vinculación con el usuario (para que Admin la vea)
+            await Meeting.create({ 
+                title, 
+                date: new Date(date), 
+                time: time || '09:00', 
+                description: description || '', 
+                createdBy: req.session.userId, // El usuario que la creó
+                type: 'reunion' 
+            });
         }
         res.redirect('/calendar');
     } catch (error) {
