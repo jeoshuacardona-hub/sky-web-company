@@ -4,6 +4,8 @@
 .avatar-sm { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; }
 .badge-callback { background:#fff8e6; color:#b36800; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
 .badge-rejected { background:#fff0ee; color:#b32020; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.badge-interested { background:#e8f5e9; color:#2e7d32; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
+.badge-noanswer { background:#f5f5f5; color:#616161; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
 .due-overdue { background:#fde8e8; color:#b32020; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
 .due-today { background:#e8eaff; color:#4a50d4; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
 .due-upcoming { background:#f5f5f5; color:#8a8d9f; font-size:11px; font-weight:600; padding:2px 10px; border-radius:20px; }
@@ -14,25 +16,44 @@
 .outcome-option.selected-callback { border-color:#ffab00!important; background:#fff8e6!important; }
 .outcome-option.selected-rejected { border-color:#ff3e1d!important; background:#fff0ee!important; }
 .outcome-option.selected-no_answer { border-color:#8a8d9f!important; background:#f5f5f5!important; }
+/* Tabs styles */
+.nav-pills .nav-link { border-radius:8px; padding:10px 16px; font-size:13px; font-weight:600; margin-right:8px; margin-bottom:8px; }
+.nav-pills .nav-link.active { background:#696cff; }
+.nav-pills .nav-link:not(.active) { background:#f5f5f5; color:#5d596c; }
+.nav-pills .nav-link:hover:not(.active) { background:#e8e8e8; }
+.tab-badge { margin-left:6px; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; }
 </style>
 
 <%
 var colorMap = ['#696cff','#03c3ec','#71dd37','#ff3e1d','#ffab00','#20c997'];
 function getInitials(name){ if(!name)return'?'; return name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2); }
 function getColor(str){ var h=0; for(var i=0;i<(str||'').length;i++) h=str.charCodeAt(i)+((h<<5)-h); return colorMap[Math.abs(h)%colorMap.length]; }
-var pendingCallbacks = followups.filter(function(f){ return f.outcome === 'callback'; }).length;
-var pendingRejected = followups.filter(function(f){ return f.outcome === 'rejected'; }).length;
-var overdueCount = followups.filter(function(f){ return f.callbackDate && new Date(f.callbackDate) < today; }).length;
+
+// Agrupar por tipo
+var overdueFollowups = followups.filter(function(f){ return f.callbackDate && new Date(f.callbackDate) < today; });
+var callbackFollowups = followups.filter(function(f){ return f.outcome === 'callback' && (!f.callbackDate || new Date(f.callbackDate) >= today); });
+var interestedFollowups = followups.filter(function(f){ return f.outcome === 'interested'; });
+var rejectedFollowups = followups.filter(function(f){ return f.outcome === 'rejected'; });
+var noAnswerFollowups = followups.filter(function(f){ return f.outcome === 'no_answer'; });
 %>
 
 <div class="d-flex flex-wrap gap-3 mb-4">
+  <div class="stat-sm">
+    <div style="width:38px;height:38px;border-radius:10px;background:#b3202022;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-alarm-exclamation" style="font-size:20px;color:#b32020;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Vencidos</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#b32020;"><%= overdueFollowups.length %></p>
+    </div>
+  </div>
   <div class="stat-sm">
     <div style="width:38px;height:38px;border-radius:10px;background:#ffab0022;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
       <i class="bx bx-time" style="font-size:20px;color:#ffab00;"></i>
     </div>
     <div>
       <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Para Rellamar</p>
-      <p class="mb-0" style="font-size:22px;font-weight:700;"><%= pendingCallbacks %></p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;"><%= callbackFollowups.length %></p>
     </div>
   </div>
   <div class="stat-sm">
@@ -41,16 +62,7 @@ var overdueCount = followups.filter(function(f){ return f.callbackDate && new Da
     </div>
     <div>
       <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">No Interesados</p>
-      <p class="mb-0" style="font-size:22px;font-weight:700;color:#ff3e1d;"><%= pendingRejected %></p>
-    </div>
-  </div>
-  <div class="stat-sm">
-    <div style="width:38px;height:38px;border-radius:10px;background:#b3202022;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <i class="bx bx-alarm-exclamation" style="font-size:20px;color:#b32020;"></i>
-    </div>
-    <div>
-      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Vencidos</p>
-      <p class="mb-0" style="font-size:22px;font-weight:700;color:#b32020;"><%= overdueCount %></p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#ff3e1d;"><%= rejectedFollowups.length %></p>
     </div>
   </div>
 </div>
@@ -59,71 +71,169 @@ var overdueCount = followups.filter(function(f){ return f.callbackDate && new Da
   <div class="card-header d-flex align-items-center justify-content-between py-3 px-4" style="background:#fff;border-bottom:1px solid #f0f0f0;border-radius:12px 12px 0 0;">
     <div>
       <h6 class="mb-0" style="font-weight:700;">Seguimiento</h6>
-      <p class="mb-0" style="font-size:12px;color:#8a8d9f;">Leads que requieren una segunda llamada</p>
+      <p class="mb-0" style="font-size:12px;color:#8a8d9f;">Leads organizados por prioridad</p>
     </div>
     <a href="/llamadas" class="btn btn-sm btn-primary"><i class="bx bx-phone me-1"></i> Ir a Llamadas</a>
   </div>
 
-  <% if (followups.length === 0) { %>
-    <div style="text-align:center;padding:56px 0;">
-      <i class="bx bx-check-double" style="font-size:48px;color:#71dd37;display:block;margin-bottom:12px;"></i>
-      <p style="font-weight:600;color:#5d596c;margin-bottom:4px;">Todo al dia</p>
-      <p style="font-size:13px;color:#c5c7d4;margin:0;">No hay leads pendientes de seguimiento</p>
-    </div>
-  <% } %>
+  <!-- Tabs de navegación -->
+  <div class="px-4 pt-3">
+    <ul class="nav nav-pills" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="pill" href="#tab-overdue" role="tab">
+          🔴 Vencidos <span class="tab-badge" style="background:rgba(179,32,32,0.2);color:#b32020;"><%= overdueFollowups.length %></span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="pill" href="#tab-callback" role="tab">
+          🟡 Para Rellamar <span class="tab-badge" style="background:rgba(255,171,0,0.2);color:#ffab00;"><%= callbackFollowups.length %></span>
+        </a>
+      </li>
+      <% if (interestedFollowups.length > 0) { %>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="pill" href="#tab-interested" role="tab">
+          ✅ Interesados <span class="tab-badge" style="background:rgba(46,125,50,0.2);color:#2e7d32;"><%= interestedFollowups.length %></span>
+        </a>
+      </li>
+      <% } %>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="pill" href="#tab-rejected" role="tab">
+          ❌ No Interesado <span class="tab-badge" style="background:rgba(255,62,29,0.2);color:#ff3e1d;"><%= rejectedFollowups.length %></span>
+        </a>
+      </li>
+      <% if (noAnswerFollowups.length > 0) { %>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="pill" href="#tab-noanswer" role="tab">
+          📵 No Contestó <span class="tab-badge" style="background:rgba(138,141,159,0.2);color:#8a8d9f;"><%= noAnswerFollowups.length %></span>
+        </a>
+      </li>
+      <% } %>
+    </ul>
+  </div>
 
-  <div class="px-4 py-3">
-    <% followups.forEach(function(f) {
-      if (!f.lead) return;
-      var initials = getInitials(f.lead.name);
-      var color = getColor(f.lead.name);
-      var cbDate = f.callbackDate ? new Date(f.callbackDate) : null;
-      var isOverdue = cbDate && cbDate < today;
-      var isToday = cbDate && cbDate.toDateString() === today.toDateString();
-      var dueCls = isOverdue ? 'due-overdue' : isToday ? 'due-today' : 'due-upcoming';
-      var dueLabel = isOverdue ? 'Vencido' : isToday ? 'Hoy' : (cbDate ? cbDate.toLocaleDateString('es-CO',{day:'2-digit',month:'short'}) : '');
-    %>
-    <div class="followup-card" id="followup-<%= f._id %>">
-      <div class="d-flex align-items-start gap-3">
-        <div class="avatar-sm mt-1" style="background:<%= color %>22;color:<%= color %>;"><%= initials %></div>
-        <div style="flex:1;min-width:0;">
-          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-            <p class="mb-0" style="font-size:14px;font-weight:700;"><%= f.lead.name %></p>
-            <span class="<%= f.outcome === 'callback' ? 'badge-callback' : 'badge-rejected' %>">
-              <%= f.outcome === 'callback' ? 'Rellamar' : 'No interesado' %>
-            </span>
-            <% if (dueLabel) { %>
-              <span class="<%= dueCls %>"><i class="bx bx-calendar me-1"></i><%= dueLabel %></span>
-            <% } %>
-          </div>
-          <div class="d-flex gap-3 flex-wrap mb-2">
-            <% if (f.lead.phone) { %><span style="font-size:12px;color:#5d596c;"><i class="bx bx-phone" style="font-size:12px;"></i> <%= f.lead.phone %></span><% } %>
-            <% if (f.lead.company) { %><span style="font-size:12px;color:#8a8d9f;"><i class="bx bx-buildings" style="font-size:12px;"></i> <%= f.lead.company %></span><% } %>
-          </div>
-          <% if (f.rejectionReason) { %><p style="font-size:12px;color:#8a8d9f;margin:0;"><strong>Motivo:</strong> <%= f.rejectionReason %></p><% } %>
-          <% if (f.notes) { %><p style="font-size:12px;color:#8a8d9f;margin:0;"><strong>Notas:</strong> <%= f.notes %></p><% } %>
+  <!-- Contenido de tabs -->
+  <div class="tab-content px-4 py-3">
+    
+    <!-- Tab: Vencidos -->
+    <div class="tab-pane fade show active" id="tab-overdue" role="tabpanel">
+      <% if (overdueFollowups.length === 0) { %>
+        <div style="text-align:center;padding:40px 0;color:#8a8d9f;">
+          <i class="bx bx-check-circle" style="font-size:40px;color:#71dd37;"></i>
+          <p style="margin-top:12px;">No hay seguimientos vencidos</p>
         </div>
-        <div class="d-flex flex-column gap-2 flex-shrink-0">
-          <button class="btn btn-sm btn-outline-secondary"
-            data-id="<%= f._id %>"
-            data-leadid="<%= f.lead._id %>"
-            data-name="<%= f.lead.name %>"
-            data-phone="<%= f.lead.phone || '' %>"
-            data-company="<%= f.lead.company || '' %>"
-            onclick="abrirRellamar(this)">
-            <i class="bx bx-phone me-1"></i> Llamar de nuevo
-          </button>
-          <button class="btn btn-sm btn-outline-danger"
-            data-id="<%= f._id %>"
-            onclick="resolverSeguimiento(this)">
-            <i class="bx bx-archive me-1"></i> Archivar
-          </button>
-        </div>
-      </div>
+      <% } else { %>
+        <% overdueFollowups.forEach(function(f) { renderFollowupCard(f); }); %>
+      <% } %>
     </div>
-    <% }); %>
+
+    <!-- Tab: Para Rellamar -->
+    <div class="tab-pane fade" id="tab-callback" role="tabpanel">
+      <% if (callbackFollowups.length === 0) { %>
+        <div style="text-align:center;padding:40px 0;color:#8a8d9f;">
+          <i class="bx bx-check-circle" style="font-size:40px;color:#71dd37;"></i>
+          <p style="margin-top:12px;">No hay pendientes por rellamar</p>
+        </div>
+      <% } else { %>
+        <% callbackFollowups.forEach(function(f) { renderFollowupCard(f); }); %>
+      <% } %>
+    </div>
+
+    <!-- Tab: Interesados -->
+    <div class="tab-pane fade" id="tab-interested" role="tabpanel">
+      <% if (interestedFollowups.length === 0) { %>
+        <div style="text-align:center;padding:40px 0;color:#8a8d9f;">
+          <i class="bx bx-check-circle" style="font-size:40px;color:#71dd37;"></i>
+          <p style="margin-top:12px;">No hay leads interesados</p>
+        </div>
+      <% } else { %>
+        <% interestedFollowups.forEach(function(f) { renderFollowupCard(f); }); %>
+      <% } %>
+    </div>
+
+    <!-- Tab: No Interesado -->
+    <div class="tab-pane fade" id="tab-rejected" role="tabpanel">
+      <% if (rejectedFollowups.length === 0) { %>
+        <div style="text-align:center;padding:40px 0;color:#8a8d9f;">
+          <i class="bx bx-check-circle" style="font-size:40px;color:#71dd37;"></i>
+          <p style="margin-top:12px;">No hay leads no interesados</p>
+        </div>
+      <% } else { %>
+        <% rejectedFollowups.forEach(function(f) { renderFollowupCard(f); }); %>
+      <% } %>
+    </div>
+
+    <!-- Tab: No Contestó -->
+    <div class="tab-pane fade" id="tab-noanswer" role="tabpanel">
+      <% if (noAnswerFollowups.length === 0) { %>
+        <div style="text-align:center;padding:40px 0;color:#8a8d9f;">
+          <i class="bx bx-check-circle" style="font-size:40px;color:#71dd37;"></i>
+          <p style="margin-top:12px;">No hay llamadas sin contestar</p>
+        </div>
+      <% } else { %>
+        <% noAnswerFollowups.forEach(function(f) { renderFollowupCard(f); }); %>
+      <% } %>
+    </div>
+
   </div>
 </div>
+
+<!-- Función helper para renderizar cards (reutilizable) -->
+<%
+function renderFollowupCard(f) {
+  if (!f.lead) return;
+  var initials = getInitials(f.lead.name);
+  var color = getColor(f.lead.name);
+  var cbDate = f.callbackDate ? new Date(f.callbackDate) : null;
+  var isOverdue = cbDate && cbDate < today;
+  var isToday = cbDate && cbDate.toDateString() === today.toDateString();
+  var dueCls = isOverdue ? 'due-overdue' : isToday ? 'due-today' : 'due-upcoming';
+  var dueLabel = isOverdue ? 'Vencido' : isToday ? 'Hoy' : (cbDate ? cbDate.toLocaleDateString('es-CO',{day:'2-digit',month:'short'}) : '');
+  
+  var outcomeLabel = f.outcome === 'callback' ? 'Rellamar' : 
+                     f.outcome === 'rejected' ? 'No interesado' : 
+                     f.outcome === 'interested' ? 'Interesado' : 
+                     f.outcome === 'no_answer' ? 'No contestó' : 'Seguimiento';
+  var outcomeBadge = f.outcome === 'callback' ? 'badge-callback' : 
+                     f.outcome === 'rejected' ? 'badge-rejected' : 
+                     f.outcome === 'interested' ? 'badge-interested' : 'badge-noanswer';
+%>
+  <div class="followup-card" id="followup-<%= f._id %>">
+    <div class="d-flex align-items-start gap-3">
+      <div class="avatar-sm mt-1" style="background:<%= color %>22;color:<%= color %>;"><%= initials %></div>
+      <div style="flex:1;min-width:0;">
+        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+          <p class="mb-0" style="font-size:14px;font-weight:700;"><%= f.lead.name %></p>
+          <span class="<%= outcomeBadge %>"><%= outcomeLabel %></span>
+          <% if (dueLabel) { %>
+            <span class="<%= dueCls %>"><i class="bx bx-calendar me-1"></i><%= dueLabel %></span>
+          <% } %>
+        </div>
+        <div class="d-flex gap-3 flex-wrap mb-2">
+          <% if (f.lead.phone) { %><span style="font-size:12px;color:#5d596c;"><i class="bx bx-phone" style="font-size:12px;"></i> <%= f.lead.phone %></span><% } %>
+          <% if (f.lead.company) { %><span style="font-size:12px;color:#8a8d9f;"><i class="bx bx-buildings" style="font-size:12px;"></i> <%= f.lead.company %></span><% } %>
+        </div>
+        <% if (f.rejectionReason) { %><p style="font-size:12px;color:#8a8d9f;margin:0;"><strong>Motivo:</strong> <%= f.rejectionReason %></p><% } %>
+        <% if (f.notes) { %><p style="font-size:12px;color:#8a8d9f;margin:0;"><strong>Notas:</strong> <%= f.notes %></p><% } %>
+      </div>
+      <div class="d-flex flex-column gap-2 flex-shrink-0">
+        <button class="btn btn-sm btn-outline-secondary"
+          data-id="<%= f._id %>"
+          data-leadid="<%= f.lead._id %>"
+          data-name="<%= f.lead.name %>"
+          data-phone="<%= f.lead.phone || '' %>"
+          data-company="<%= f.lead.company || '' %>"
+          onclick="abrirRellamar(this)">
+          <i class="bx bx-phone me-1"></i> Llamar de nuevo
+        </button>
+        <button class="btn btn-sm btn-outline-danger"
+          data-id="<%= f._id %>"
+          onclick="resolverSeguimiento(this)">
+          <i class="bx bx-archive me-1"></i> Archivar
+        </button>
+      </div>
+    </div>
+  </div>
+<% } %>
 
 <!-- Modal Rellamar -->
 <div class="modal fade" id="rellamarModal" tabindex="-1" aria-hidden="true">
