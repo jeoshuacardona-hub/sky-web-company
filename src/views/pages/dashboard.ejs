@@ -207,3 +207,60 @@ async function loadWidgets(){
 loadWidgets();
 setInterval(loadWidgets, 60000);
 </script>
+
+<script>
+// Gráfico Donut - Se ejecuta con loadWidgets()
+function updateDonutChart(data){
+  const p=data.pipe;
+  const total=p.p+p.q+p.pr+p.n+p.w+p.l;
+  if(total===0)return;
+  
+  const colors={p:'#696cff',q:'#71dd37',pr:'#ffab00',n:'#8b5cf6',w:'#34c759',l:'#ff3b30'};
+  const labels={p:'Prospectos',q:'Calificados',pr:'Propuesta',n:'Negociación',w:'Ganados',l:'Perdidos'};
+  
+  let html='<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">';
+  html+='<div style="position:relative;width:180px;height:180px;">';
+  html+='<svg width="180" height="180" style="transform:rotate(-90deg)">';
+  
+  const radius=70,circumference=2*Math.PI*radius;
+  let offset=0;
+  ['p','q','pr','n','w','l'].forEach(k=>{
+    if(p[k]>0){
+      const percent=p[k]/total;
+      const dasharray=percent*circumference;
+      html+=`<circle cx="90" cy="90" r="${radius}" fill="none" stroke="${colors[k]}" stroke-width="20" stroke-dasharray="${dasharray}" stroke-dashoffset="${-offset}" style="transition:all 0.5s"/>`;
+      offset+=dasharray;
+    }
+  });
+  
+  html+='</svg>';
+  html+='<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">';
+  html+='<div style="font-size:28px;font-weight:700;color:#566a7f">'+total+'</div>';
+  html+='<div style="font-size:11px;color:#697a8d">Total</div></div></div>';
+  
+  html+='<div style="flex:1;min-width:200px">';
+  ['p','q','pr','n','w','l'].forEach(k=>{
+    if(p[k]>0){
+      html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
+      html+='<div style="width:12px;height:12px;border-radius:3px;background:'+colors[k]+'"></div>';
+      html+='<span style="font-size:13px;color:#697a8d;flex:1">'+labels[k]+'</span>';
+      html+='<strong style="font-size:13px;color:#566a7f">'+p[k]+'</strong>';
+      html+='<span style="font-size:11px;color:#999">'+(p[k]/total*100).toFixed(0)+'%</span>';
+      html+='</div>';
+    }
+  });
+  html+='</div></div>';
+  
+  const container=document.querySelector('.widget-pipeline .card-body') || document.querySelector('.widget-pipeline');
+  if(container) container.innerHTML=html;
+}
+
+// Integrar con loadWidgets existente
+const origLoadWidgets=window.loadWidgets;
+window.loadWidgets=function(){
+  origLoadWidgets();
+  fetch('/api/dashboard/widgets').then(r=>r.json()).then(j=>{
+    if(j.success) updateDonutChart(j.data);
+  }).catch(()=>{});
+};
+</script>
