@@ -156,3 +156,68 @@ loadNextBatch();
     <div class="modal-footer border-0 px-4 pb-4 pt-2"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button id="submitCallBtn" class="btn btn-primary px-4" onclick="submitLlamada()" disabled><i class="bx bx-check me-1"></i> Guardar</button></div>
   </div></div>
 </div>
+
+<script>
+// Integrar Toast con submitLlamada existente
+const origSubmitLlamada = window.submitLlamada;
+window.submitLlamada = async function() {
+  if (!selectedOutcome) return;
+  
+  // Llamar función original
+  const btn = document.getElementById('submitCallBtn');
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Guardando...';
+  
+  try {
+    const { leadId, outcome, notes, callbackDate, rejectionReason, value } = {
+      leadId: document.getElementById('callLeadId').value,
+      outcome: selectedOutcome,
+      notes: document.getElementById('callNotes').value,
+      callbackDate: document.getElementById('callCallbackDate').value,
+      rejectionReason: document.getElementById('callRejectionReason').value,
+      value: document.getElementById('callValue').value
+    };
+    
+    const res = await fetch('/api/llamadas', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ leadId, outcome, notes, callbackDate, rejectionReason, value })
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      // Mostrar Toast
+      const messages = {
+        scheduled: '📅 Reunión agendada - Pasó a Pipeline',
+        callback: '⏰ Seguimiento programado',
+        rejected: '❌ Marcado como no interesado',
+        no_answer: '📞 Llamada registrada - Sin respuesta',
+        interested: '💚 Marcado como interesado'
+      };
+      
+      showToast(messages[outcome] || '✅ Llamada guardada', 'success');
+      
+      // Push notification si es reunión
+      if (outcome === 'scheduled') {
+        sendPushNotification('Reunión Agendada', 'Se agregó una nueva reunión al pipeline');
+      }
+      
+      // Cerrar modal y recargar
+      setTimeout(() => {
+        bootstrap.Modal.getInstance(document.getElementById('callModal')).hide();
+        location.reload();
+      }, 1500);
+    } else {
+      showToast('Error: ' + (data.message || 'No se pudo guardar'), 'error');
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  } catch(e) {
+    showToast('Error de conexión', 'error');
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
+};
+</script>

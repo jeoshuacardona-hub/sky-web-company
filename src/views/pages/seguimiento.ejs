@@ -394,3 +394,75 @@ async function submitRellamar() {
   }
 }
 </script>
+
+<script>
+// Integrar Toast con submitRellamar existente
+const origSubmitRellamar = window.submitRellamar;
+window.submitRellamar = async function() {
+  if (!selectedOutcomeR) return;
+  
+  const btn = document.getElementById('submitRellamarBtn');
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Guardando...';
+  
+  try {
+    const followupId = document.getElementById('rellamarFollowupId').value;
+    
+    // Resolver seguimiento anterior
+    await fetch('/api/seguimiento/' + followupId + '/resolver', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    // Crear nueva llamada
+    const res = await fetch('/api/llamadas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        leadId: document.getElementById('rellamarLeadId').value,
+        outcome: selectedOutcomeR,
+        notes: document.getElementById('rNotes').value,
+        value: document.getElementById('rCallValue').value,
+        callbackDate: document.getElementById('rCallbackDate').value,
+        rejectionReason: document.getElementById('rRejectionReason').value
+      })
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      const msgs = {
+        scheduled: '📅 Reunión agendada',
+        callback: '⏰ Rellamar programado',
+        rejected: '❌ Archivado - No interesado',
+        no_answer: '📞 Sin respuesta'
+      };
+      
+      showToast(msgs[selectedOutcomeR] || '✅ Guardado', 'success');
+      
+      if (selectedOutcomeR === 'scheduled') {
+        sendPushNotification('Reunión Confirmada', 'El cliente agendó una reunión');
+      }
+      
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      showToast('Error al guardar', 'error');
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  } catch(e) {
+    showToast('Error de conexión', 'error');
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
+};
+
+// Notificar sobre seguimientos vencidos al cargar
+document.addEventListener('DOMContentLoaded', function() {
+  const overdueCount = document.querySelectorAll('.due-overdue').length;
+  if (overdueCount > 0) {
+    showToast(`⚠️ Tienes ${overdueCount} seguimiento${overdueCount > 1 ? 's' : ''} vencido${overdueCount > 1 ? 's' : ''}`, 'warning', 5000);
+  }
+});
+</script>
