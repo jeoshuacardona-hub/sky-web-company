@@ -48,3 +48,25 @@ router.post('/api/customers/:id/status', authMiddleware, async (req, res) => {
 });
 
 module.exports = router;
+
+// Eliminar cliente
+router.delete('/api/customers/:id', authMiddleware, async (req, res) => {
+    try {
+        await Customer.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Delete error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Eliminar cliente
+router.delete('/api/customers/:id', authMiddleware, async (req, res) => {
+    try {
+        await Customer.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Delete error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
