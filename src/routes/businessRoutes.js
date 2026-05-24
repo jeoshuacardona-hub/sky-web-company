@@ -70,3 +70,35 @@ router.delete('/api/customers/:id', authMiddleware, async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
+// Quick Actions API (Solo agrega, no modifica)
+router.post('/api/customers/:id/note', authMiddleware, async (req, res) => {
+    try {
+        const { note, append } = req.body;
+        const customer = await Customer.findById(req.params.id);
+        if (!customer) return res.status(404).json({ error: 'No encontrado' });
+        
+        if (append && customer.notes) {
+            customer.notes = customer.notes + '\n[' + new Date().toLocaleString() + '] ' + note;
+        } else {
+            customer.notes = note;
+        }
+        await customer.save();
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.post('/api/customers/:id/reminder', authMiddleware, async (req, res) => {
+    try {
+        const { reminderDate } = req.body;
+        await Customer.findByIdAndUpdate(req.params.id, { 
+            reminderDate: new Date(reminderDate),
+            hasReminder: true
+        });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
