@@ -1,0 +1,151 @@
+<style>
+.report-card { background:#fff; border-radius:12px; padding:24px; border:1px solid #f0f2f4; margin-bottom:20px; }
+.stat-big { text-align:center; padding:20px; }
+.stat-big-value { font-size:42px; font-weight:700; color:#696cff; margin-bottom:8px; }
+.stat-big-label { font-size:13px; color:#697a8d; text-transform:uppercase; letter-spacing:0.5px; }
+.chart-container { position:relative; height:300px; margin-top:20px; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 style="font-size:24px; font-weight:700; color:#566a7f; margin:0;">
+      <i class='bx bx-bar-chart-alt-2 me-2'></i>Reportes
+    </h2>
+    <p style="color:#697a8d; margin:4px 0 0 0; font-size:14px;">Análisis y métricas de rendimiento</p>
+  </div>
+  <button class="btn btn-outline-primary" onclick="window.print()">
+    <i class='bx bx-download me-1'></i> Exportar PDF
+  </button>
+</div>
+
+<!-- Stats Principales -->
+<div class="row mb-4">
+  <div class="col-md-3 col-sm-6">
+    <div class="report-card stat-big">
+      <div class="stat-big-value"><%= stats.totalLeads || 0 %></div>
+      <div class="stat-big-label">Total Leads</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="report-card stat-big" style="background:linear-gradient(135deg,#71dd37,#55c92a); color:#fff; border:none;">
+      <div class="stat-big-value" style="color:#fff;"><%= stats.convertedLeads || 0 %></div>
+      <div class="stat-big-label" style="color:rgba(255,255,255,0.9);">Convertidos</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="report-card stat-big">
+      <div class="stat-big-value" style="color:#ffab00;"><%= stats.conversionRate || 0 %>%</div>
+      <div class="stat-big-label">Tasa Conversión</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="report-card stat-big">
+      <div class="stat-big-value" style="color:#16a34a;">$<%= ((stats.revenue || 0)/1000000).toFixed(1) %>M</div>
+      <div class="stat-big-label">Ingresos</div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Resumen de Leads -->
+  <div class="col-md-6 mb-4">
+    <div class="report-card">
+      <h5 style="font-weight:700; margin-bottom:20px; color:#566a7f;">
+        <i class='bx bx-target-lock me-2'></i>Resumen de Leads
+      </h5>
+      <div class="mb-3">
+        <div class="d-flex justify-content-between mb-2">
+          <span style="font-size:13px; color:#697a8d;">Contactados</span>
+          <strong style="color:#566a7f;"><%= stats.contactedLeads || 0 %></strong>
+        </div>
+        <div style="background:#f0f2f4; height:8px; border-radius:4px;">
+          <div style="background:#03c3ec; height:100%; border-radius:4px; width:<%= stats.totalLeads > 0 ? (stats.contactedLeads/stats.totalLeads*100) : 0 %>%; transition:width 0.5s;"></div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="d-flex justify-content-between mb-2">
+          <span style="font-size:13px; color:#697a8d;">Convertidos</span>
+          <strong style="color:#566a7f;"><%= stats.convertedLeads || 0 %></strong>
+        </div>
+        <div style="background:#f0f2f4; height:8px; border-radius:4px;">
+          <div style="background:#71dd37; height:100%; border-radius:4px; width:<%= stats.totalLeads > 0 ? (stats.convertedLeads/stats.totalLeads*100) : 0 %>%; transition:width 0.5s;"></div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="d-flex justify-content-between mb-2">
+          <span style="font-size:13px; color:#697a8d;">Perdidos</span>
+          <strong style="color:#566a7f;"><%= stats.lostLeads || 0 %></strong>
+        </div>
+        <div style="background:#f0f2f4; height:8px; border-radius:4px;">
+          <div style="background:#ff3e1d; height:100%; border-radius:4px; width:<%= stats.totalLeads > 0 ? (stats.lostLeads/stats.totalLeads*100) : 0 %>%; transition:width 0.5s;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actividad -->
+  <div class="col-md-6 mb-4">
+    <div class="report-card">
+      <h5 style="font-weight:700; margin-bottom:20px; color:#566a7f;">
+        <i class='bx bx-phone me-2'></i>Actividad del Mes
+      </h5>
+      <div class="d-flex justify-content-around text-center">
+        <div>
+          <div style="font-size:36px; font-weight:700; color:#696cff; margin-bottom:8px;"><%= stats.callsThisMonth || 0 %></div>
+          <div style="font-size:12px; color:#697a8d;">Llamadas</div>
+        </div>
+        <div style="border-left:1px solid #f0f2f4; margin:0 20px;"></div>
+        <div>
+          <div style="font-size:36px; font-weight:700; color:#71dd37; margin-bottom:8px;"><%= stats.wonCustomers || 0 %></div>
+          <div style="font-size:12px; color:#697a8d;">Clientes</div>
+        </div>
+        <div style="border-left:1px solid #f0f2f4; margin:0 20px;"></div>
+        <div>
+          <div style="font-size:36px; font-weight:700; color:#ffab00; margin-bottom:8px;"><%= stats.totalCustomers || 0 %></div>
+          <div style="font-size:12px; color:#697a8d;">Total</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Resumen Final -->
+<div class="report-card">
+  <h5 style="font-weight:700; margin-bottom:16px; color:#566a7f;">
+    <i class='bx bx-info-circle me-2'></i>Resumen General
+  </h5>
+  <div class="row">
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div style="padding:16px; background:#f8f9fa; border-radius:8px; text-align:center;">
+        <div style="font-size:24px; font-weight:700; color:#566a7f; margin-bottom:4px;">
+          <%= stats.totalLeads > 0 ? ((stats.contactedLeads/stats.totalLeads*100).toFixed(0)) : 0 %>%
+        </div>
+        <div style="font-size:11px; color:#697a8d;">Tasa Contacto</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div style="padding:16px; background:#f8f9fa; border-radius:8px; text-align:center;">
+        <div style="font-size:24px; font-weight:700; color:#566a7f; margin-bottom:4px;">
+          $<%= stats.totalCustomers > 0 ? (stats.revenue/stats.totalCustomers).toFixed(0) : 0 %>
+        </div>
+        <div style="font-size:11px; color:#697a8d;">Ticket Promedio</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div style="padding:16px; background:#f8f9fa; border-radius:8px; text-align:center;">
+        <div style="font-size:24px; font-weight:700; color:#566a7f; margin-bottom:4px;">
+          <%= stats.wonCustomers || 0 %>
+        </div>
+        <div style="font-size:11px; color:#697a8d;">Clientes Ganados</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div style="padding:16px; background:#f8f9fa; border-radius:8px; text-align:center;">
+        <div style="font-size:24px; font-weight:700; color:#566a7f; margin-bottom:4px;">
+          <%= stats.lostLeads || 0 %>
+        </div>
+        <div style="font-size:11px; color:#697a8d;">Leads Perdidos</div>
+      </div>
+    </div>
+  </div>
+</div>

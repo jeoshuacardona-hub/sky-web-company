@@ -102,3 +102,62 @@ router.post('/api/customers/:id/reminder', authMiddleware, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+// Reports route
+router.get('/reports', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.session.user.role === 'admin';
+        const filter = isAdmin ? {} : { assignedTo: req.session.userId };
+        
+        // Stats básicos
+        const totalLeads = await Lead.countDocuments(filter);
+        const contactedLeads = await Lead.countDocuments({ ...filter, status: 'contacted' });
+        const convertedLeads = await Lead.countDocuments({ ...filter, status: 'converted' });
+        const lostLeads = await Lead.countDocuments({ ...filter, status: 'lost' });
+        
+        const totalCustomers = await Customer.countDocuments(filter);
+        const wonCustomers = await Customer.countDocuments({ ...filter, status: 'won' });
+        const totalValue = await Customer.aggregate([
+            { $match: { ...filter, status: 'won' } },
+            { $group: { _id: null, total: { $sum: '$value' } } }
+        ]);
+        const revenue = totalValue.length > 0 ? totalValue[0].total : 0;
+        
+        // Llamadas del mes
+        const startMonth = new Date();
+        startMonth.setDate(1);
+        startMonth.setHours(0,0,0,0);
+        const callsThisMonth = await CallLog.countDocuments({
+            ...filter,
+            createdAt: { $gte: startMonth }
+        });
+        
+        // Tasa de conversión
+        const conversionRate = totalLeads > 0 ? ((convertedLeads / totalLeads) * 100).toFixed(1) : 0;
+        
+        res.render('pages/reports', {
+            title: 'Reportes',
+            stats: {
+                totalLeads,
+                contactedLeads,
+                convertedLeads,
+                lostLeads,
+                totalCustomers,
+                wonCustomers,
+                revenue,
+                callsThisMonth,
+                conversionRate
+            },
+            isAdmin,
+            currentUser: req.session.user
+        });
+    } catch (error) {
+        console.error('Reports error:', error);
+        res.render('pages/reports', {
+            title: 'Reportes',
+            stats: {},
+            isAdmin: false,
+            currentUser: req.session.user
+        });
+    }
+});
