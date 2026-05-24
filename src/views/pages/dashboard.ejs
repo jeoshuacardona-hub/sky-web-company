@@ -134,3 +134,76 @@
     // Ejecutar cada 30 segundos
     setInterval(updateStats, 30000);
 </script>
+<style>
+.widget-box { background:#fff; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.04); border:1px solid #f0f2f4; }
+.widget-box.green { background:linear-gradient(135deg,#10b981,#059669); color:#fff; border:none; }
+.w-title { font-size:13px; font-weight:600; color:#697a8d; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.widget-box.green .w-title { color:rgba(255,255,255,0.9); }
+.w-val { font-size:30px; font-weight:700; margin-bottom:4px; }
+.w-sub { font-size:11px; opacity:0.8; }
+.pipe-row { display:flex; align-items:center; margin-bottom:8px; }
+.pipe-row span { font-size:12px; width:80px; color:#697a8d; }
+.pipe-bar { flex:1; height:6px; background:#f0f2f4; border-radius:3px; margin:0 10px; overflow:hidden; }
+.pipe-fill { height:100%; border-radius:3px; transition:width 0.6s ease; }
+.circ-box { width:90px; height:90px; position:relative; margin:0 auto 8px; }
+.circ-box svg { transform:rotate(-90deg); }
+.circ-txt { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:18px; font-weight:700; color:#566a7f; }
+</style>
+
+<div style="margin-top:24px;">
+  <h3 style="font-size:16px; font-weight:600; color:#566a7f; margin-bottom:14px;"><i class='bx bx-line-chart'></i> Análisis de Ventas</h3>
+  <div class="content-grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));">
+    
+    <div class="widget-box green">
+      <div class="w-title"><i class='bx bx-dollar-circle'></i> Ingresos del Mes</div>
+      <div class="w-val" id="wIng">$0</div>
+      <div class="w-sub">Clientes ganados este mes</div>
+    </div>
+
+    <div class="widget-box">
+      <div class="w-title"><i class='bx bx-target-lock' style="color:#696cff"></i> Conversión</div>
+      <div class="circ-box">
+        <svg width="90" height="90"><circle cx="45" cy="45" r="38" fill="none" stroke="#f0f2f4" stroke-width="7"/><circle id="wCirc" cx="45" cy="45" r="38" fill="none" stroke="#696cff" stroke-width="7" stroke-dasharray="238.76" stroke-dashoffset="238.76" style="transition:1s"/></svg>
+        <div class="circ-txt" id="wConv">0%</div>
+      </div>
+      <div class="w-sub" style="text-align:center">Leads → Clientes</div>
+    </div>
+
+    <div class="widget-box" style="grid-column:span 2;">
+      <div class="w-title"><i class='bx bx-bar-chart-alt-2' style="color:#696cff"></i> Pipeline</div>
+      <div class="pipe-row"><span>Prospectos</span><div class="pipe-bar"><div id="bp" class="pipe-fill" style="background:#696cff"></div></div><strong id="bpn" style="font-size:12px;width:25px;text-align:right">0</strong></div>
+      <div class="pipe-row"><span>Calificados</span><div class="pipe-bar"><div id="bq" class="pipe-fill" style="background:#71dd37"></div></div><strong id="bqn" style="font-size:12px;width:25px;text-align:right">0</strong></div>
+      <div class="pipe-row"><span>Propuesta</span><div class="pipe-bar"><div id="bpr" class="pipe-fill" style="background:#ffab00"></div></div><strong id="bprn" style="font-size:12px;width:25px;text-align:right">0</strong></div>
+      <div class="pipe-row"><span>Negociación</span><div class="pipe-bar"><div id="bn" class="pipe-fill" style="background:#8b5cf6"></div></div><strong id="bnn" style="font-size:12px;width:25px;text-align:right">0</strong></div>
+      <div style="display:flex;gap:20px;margin-top:12px;padding-top:10px;border-top:1px solid #f0f2f4;">
+        <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:700;color:#34c759" id="bw">0</div><div style="font-size:10px;color:#697a8d">Ganados</div></div>
+        <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:700;color:#ff3b30" id="bl">0</div><div style="font-size:10px;color:#697a8d">Perdidos</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function loadWidgets(){
+  try{
+    const r=await fetch('/api/dashboard/widgets');
+    if(!r.ok)return;
+    const j=await r.json();
+    if(!j.success)return;
+    const d=j.data;
+    document.getElementById('wIng').textContent='$'+d.ingresos.toLocaleString('es-CO');
+    const p=Math.min(d.conv,100);
+    document.getElementById('wCirc').style.strokeDashoffset=238.76-(238.76*p/100);
+    document.getElementById('wConv').textContent=p+'%';
+    const t=d.pipe.p+d.pipe.q+d.pipe.pr+d.pipe.n+d.pipe.w+d.pipe.l||1;
+    document.getElementById('bp').style.width=(d.pipe.p/t*100)+'%'; document.getElementById('bpn').textContent=d.pipe.p;
+    document.getElementById('bq').style.width=(d.pipe.q/t*100)+'%'; document.getElementById('bqn').textContent=d.pipe.q;
+    document.getElementById('bpr').style.width=(d.pipe.pr/t*100)+'%'; document.getElementById('bprn').textContent=d.pipe.pr;
+    document.getElementById('bn').style.width=(d.pipe.n/t*100)+'%'; document.getElementById('bnn').textContent=d.pipe.n;
+    document.getElementById('bw').textContent=d.pipe.w;
+    document.getElementById('bl').textContent=d.pipe.l;
+  }catch(e){}
+}
+loadWidgets();
+setInterval(loadWidgets, 60000);
+</script>

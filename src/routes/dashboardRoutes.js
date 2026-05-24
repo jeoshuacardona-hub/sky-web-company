@@ -72,3 +72,31 @@ router.get('/api/stats', authMiddleware, async (req, res) => {
 });
 
 module.exports = router;
+
+// Widgets API (Seguro - solo lectura)
+const Customer = require('../models/Customer');
+
+router.get('/api/dashboard/widgets', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.session.user.role === 'admin';
+        const f = isAdmin ? {} : { assignedTo: req.session.userId };
+        const startMonth = new Date(); startMonth.setDate(1); startMonth.setHours(0,0,0,0);
+        
+        const won = await Customer.find({ ...f, status: 'won', createdAt: { $gte: startMonth } });
+        const ingresos = won.reduce((s, c) => s + (c.value || 0), 0);
+        
+        const pipe = {
+            p: await Customer.countDocuments({ ...f, status: 'prospect' }),
+            q: await Customer.countDocuments({ ...f, status: 'qualified' }),
+            pr: await Customer.countDocuments({ ...f, status: 'proposal' }),
+            n: await Customer.countDocuments({ ...f, status: 'negotiation' }),
+            w: await Customer.countDocuments({ ...f, status: 'won' }),
+            l: await Customer.countDocuments({ ...f, status: 'lost' })
+        };
+        
+        const leads = await Lead.countDocuments(f);
+        const conv = leads > 0 ? ((pipe.w / leads) * 100).toFixed(1) : 0;
+        
+        res.json({ success: true, data: { ingresos, pipe, conv } });
+    } catch(e) { res.json({ success: false, error: e.message }); }
+});
