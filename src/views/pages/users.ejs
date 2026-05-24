@@ -1,0 +1,182 @@
+<style>
+.user-card { background:#fff; border-radius:12px; padding:20px; border:1px solid #f0f2f4; margin-bottom:16px; }
+.user-header { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+.user-avatar { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#696cff,#8b9aff); display:flex; align-items:center; justify-content:center; color:#fff; font-size:24px; font-weight:700; }
+.user-info h3 { margin:0 0 4px 0; font-size:16px; color:#566a7f; }
+.user-info p { margin:0; font-size:13px; color:#697a8d; }
+.badge-role { display:inline-block; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:600; margin-top:8px; }
+.badge-admin { background:rgba(105,108,255,0.15); color:#696cff; }
+.badge-user { background:rgba(113,221,55,0.15); color:#71dd37; }
+.badge-comercial { background:rgba(3,195,236,0.15); color:#03c3ec; }
+.stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; padding-top:16px; border-top:1px solid #f0f2f4; }
+.stat-item text-align:center; }
+.stat-item strong { display:block; font-size:20px; color:#566a7f; }
+.stat-item span { font-size:11px; color:#697a8d; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 style="font-size:24px; font-weight:700; color:#566a7f; margin:0;">Usuarios</h2>
+    <p style="color:#697a8d; margin:4px 0 0 0; font-size:14px;">Gestión de usuarios del sistema</p>
+  </div>
+  <button class="btn btn-primary" onclick="showAddUserModal()">
+    <i class='bx bx-plus me-1'></i> Nuevo Usuario
+  </button>
+</div>
+
+<div class="row">
+  <% if (users && users.length > 0) { %>
+    <% users.forEach(function(user) { %>
+      <div class="col-md-6 col-lg-4">
+        <div class="user-card">
+          <div class="user-header">
+            <div class="user-avatar">
+              <%= (user.fullName || user.username).charAt(0).toUpperCase() %>
+            </div>
+            <div class="user-info">
+              <h3><%= user.fullName || user.username %></h3>
+              <p><i class='bx bx-envelope me-1'></i><%= user.email %></p>
+              <span class="badge-role badge-<%= user.role === 'admin' ? 'admin' : user.role === 'comercial' ? 'comercial' : 'user' %>">
+                <%= user.role === 'admin' ? 'Administrador' : user.role === 'comercial' ? 'Comercial' : 'Usuario' %>
+              </span>
+            </div>
+          </div>
+          
+          <div class="stat-grid">
+            <div class="stat-item">
+              <strong><%= user.leadsCount || 0 %></strong>
+              <span>Leads</span>
+            </div>
+            <div class="stat-item">
+              <strong><%= user.callsCount || 0 %></strong>
+              <span>Llamadas</span>
+            </div>
+            <div class="stat-item">
+              <strong><%= user.meetingsCount || 0 %></strong>
+              <span>Reuniones</span>
+            </div>
+          </div>
+          
+          <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-sm btn-outline-primary flex-fill" onclick="editUser('<%= user._id %>')">
+              <i class='bx bx-edit me-1'></i> Editar
+            </button>
+            <% if (user.role !== 'admin') { %>
+              <button class="btn btn-sm btn-outline-danger flex-fill" onclick="deleteUser('<%= user._id %>')">
+                <i class='bx bx-trash me-1'></i> Eliminar
+              </button>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <div class="col-12">
+      <div style="text-align:center; padding:60px 0; color:#697a8d;">
+        <i class='bx bx-user-x' style="font-size:48px; opacity:0.3;"></i>
+        <p style="margin-top:16px; font-size:16px;">No hay usuarios registrados</p>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<!-- Modal Nuevo Usuario -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px; border:none;">
+      <div class="modal-header border-0 pb-0 px-4 pt-4">
+        <h5 class="modal-title" style="font-weight:700;">Nuevo Usuario</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4 pt-3">
+        <form id="userForm">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Nombre completo</label>
+            <input type="text" class="form-control" id="userFullName" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Email</label>
+            <input type="email" class="form-control" id="userEmail" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Usuario</label>
+            <input type="text" class="form-control" id="userUsername" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Contraseña</label>
+            <input type="password" class="form-control" id="userPassword" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Rol</label>
+            <select class="form-select" id="userRole">
+              <option value="user">Usuario</option>
+              <option value="comercial">Comercial</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-0 px-4 pb-4 pt-2">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary px-4" onclick="saveUser()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showAddUserModal() {
+  document.getElementById('userForm').reset();
+  new bootstrap.Modal(document.getElementById('userModal')).show();
+}
+
+async function saveUser() {
+  const data = {
+    fullName: document.getElementById('userFullName').value,
+    email: document.getElementById('userEmail').value,
+    username: document.getElementById('userUsername').value,
+    password: document.getElementById('userPassword').value,
+    role: document.getElementById('userRole').value
+  };
+  
+  try {
+    const res = await fetch('/api/users', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+    
+    if (res.ok) {
+      location.reload();
+    } else {
+      const error = await res.json();
+      alert('Error: ' + error.message);
+    }
+  } catch(e) {
+    alert('Error de conexión');
+  }
+}
+
+async function editUser(id) {
+  // Implementar edición
+  alert('Función de edición - implementar según necesidad');
+}
+
+async function deleteUser(id) {
+  if (!confirm('¿Eliminar este usuario?')) return;
+  
+  try {
+    const res = await fetch('/api/users/' + id, {
+      method: 'DELETE'
+    });
+    
+    if (res.ok) {
+      location.reload();
+    } else {
+      alert('Error al eliminar');
+    }
+  } catch(e) {
+    alert('Error de conexión');
+  }
+}
+</script>
