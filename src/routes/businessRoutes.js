@@ -161,3 +161,19 @@ router.get('/reports', authMiddleware, async (req, res) => {
         });
     }
 });
+
+// RUTAS DE USUARIOS (Agregar al final del archivo)
+const userController = require('../controllers/userController');
+
+// API para crear usuarios
+router.post('/api/users', authMiddleware, userController.createUser);
+
+// API para eliminar usuarios (por si acaso también lo necesitas)
+router.delete('/api/users/:id', authMiddleware, async (req, res) => {
+    try {
+        await User.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});

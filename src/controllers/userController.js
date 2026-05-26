@@ -94,3 +94,40 @@ exports.deleteUser = async (req, res, next) => {
         res.json({ success: true, message: 'Usuario eliminado' });
     } catch (error) { next(error); }
 };
+
+exports.createUser = async (req, res) => {
+    try {
+        const { fullName, email, username, password, role } = req.body;
+        
+        // Validación básica
+        if (!fullName || !email || !username || !password) {
+            return res.status(400).json({ message: 'Faltan datos obligatorios' });
+        }
+
+        // Verificar si ya existe el correo o usuario
+        const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+        if (existingUser) {
+            return res.status(400).json({ message: 'El email o usuario ya existe' });
+        }
+
+        // Crear nuevo usuario
+        // Usamos bcrypt para encriptar la contraseña (asegúrate de tenerlo importado arriba o usa tu método actual)
+        const User = require('../models/User');
+        const bcrypt = require('bcrypt');
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        await User.create({
+            fullName,
+            email,
+            username,
+            password: hashedPassword,
+            role: role || 'user'
+        });
+
+        res.json({ success: true, message: 'Usuario creado exitosamente' });
+    } catch (error) {
+        console.error('Error creando usuario:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
