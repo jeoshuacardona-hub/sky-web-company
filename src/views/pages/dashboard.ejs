@@ -264,3 +264,44 @@ window.loadWidgets=function(){
   }).catch(()=>{});
 };
 </script>
+
+<!-- Stats de Proveedores (Solo Admin) -->
+<% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+<div class="content-grid mt-4" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">
+  <div class="card" style="background:linear-gradient(135deg,#696cff,#8b9aff); color:#fff; border:none;">
+    <div style="padding:20px;">
+      <div style="font-size:13px; opacity:0.9; margin-bottom:8px;">Leads de Angel Mateo</div>
+      <div id="statsAngel" style="font-size:36px; font-weight:700;">Cargando...</div>
+    </div>
+  </div>
+  <div class="card" style="background:linear-gradient(135deg,#71dd37,#55c92a); color:#fff; border:none;">
+    <div style="padding:20px;">
+      <div style="font-size:13px; opacity:0.9; margin-bottom:8px;">Leads de Danilo</div>
+      <div id="statsDanilo" style="font-size:36px; font-weight:700;">Cargando...</div>
+    </div>
+  </div>
+  <div class="card" style="background:linear-gradient(135deg,#03c3ec,#00a8cc); color:#fff; border:none;">
+    <div style="padding:20px;">
+      <div style="font-size:13px; opacity:0.9; margin-bottom:8px;">Leads de Julian</div>
+      <div id="statsJulian" style="font-size:36px; font-weight:700;">Cargando...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Cargar stats de proveedores
+async function loadProviderStats() {
+  try {
+    const res = await fetch('/api/dashboard/providers');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('statsAngel').textContent = data.providers['Angel Mateo'] || 0;
+      document.getElementById('statsDanilo').textContent = data.providers['Danilo'] || 0;
+      document.getElementById('statsJulian').textContent = data.providers['Julian'] || 0;
+    }
+  } catch(e) { console.error('Error loading provider stats', e); }
+}
+if (typeof isAdmin !== 'undefined' && isAdmin) loadProviderStats();
+</script>
+<% } %>
