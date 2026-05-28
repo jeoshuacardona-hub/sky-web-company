@@ -203,7 +203,11 @@ function renderFollowupCard(f) {
       <div style="flex:1;min-width:0;">
         <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
           <p class="mb-0" style="font-size:14px;font-weight:700;"><%= f.lead.name %></p>
-          <span class="<%= outcomeBadge %>"><%= outcomeLabel %></span>
+          <span class="<%= outcomeBadge %>"><%= outcomeLabel %></span><% if (typeof isAdmin !== 'undefined' && isAdmin && f.calledBy) { %>
+<span style="font-size:11px; color:#696cff; background:rgba(105,108,255,0.1); padding:2px 8px; border-radius:10px; margin-left:8px;">
+👤 <%= f.calledBy.fullName || f.calledBy.username %>
+</span>
+<% } %>
           <% if (dueLabel) { %>
             <span class="<%= dueCls %>"><i class="bx bx-calendar me-1"></i><%= dueLabel %></span>
           <% } %>

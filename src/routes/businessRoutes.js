@@ -177,3 +177,37 @@ router.delete('/api/users/:id', authMiddleware, async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
+// API para comisiones por usuario (solo admin)
+router.get('/api/reports/commissions', authMiddleware, async (req, res) => {
+    try {
+        if (req.session.user.role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'No autorizado' });
+        }
+        
+        const users = await User.find({}).select('username fullName');
+        const result = [];
+        
+        for (const user of users) {
+            const calls = await CallLog.countDocuments({ calledBy: user._id });
+            const meetings = await CallLog.countDocuments({ calledBy: user._id, outcome: 'scheduled' });
+            const revenue = await Customer.aggregate([
+                { $match: { assignedTo: user._id, status: 'won' } },
+                { $group: { _id: null, total: { $sum: '$value' } } }
+            ]);
+            
+            result.push({
+                _id: user._id,
+                username: user.username,
+                fullName: user.fullName,
+                calls,
+                meetings,
+                revenue: revenue.length > 0 ? revenue[0].total : 0
+            });
+        }
+        
+        res.json({ success: true, users: result });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});

@@ -6,24 +6,41 @@ const getTodayStart = () => { const d = new Date(); d.setUTCHours(0,0,0,0); retu
 
 exports.getLlamadas = async (req, res, next) => {
     try {
-        const leads = await Lead.find({ status: 'new' }).sort({ createdAt: -1 });
+        const isAdmin = req.session.user.role === 'admin';
+        // ✅ FILTRO: Admin ve todo, comercial solo ve las SUYAS
+        const leadFilter = isAdmin ? {} : { assignedTo: req.session.userId };
+        
+        const leads = await Lead.find({ status: 'new', ...leadFilter }).sort({ createdAt: -1 });
         const todayStart = getTodayStart();
         
-        const callsToday = await CallLog.countDocuments({ createdAt: { $gte: todayStart } });
-        const scheduledToday = await CallLog.countDocuments({ outcome: 'scheduled', createdAt: { $gte: todayStart } });
+        // Stats con filtro por usuario
+        const callsFilter = isAdmin ? {} : { calledBy: req.session.userId };
+        const callsToday = await CallLog.countDocuments({ ...callsFilter, createdAt: { $gte: todayStart } });
+        const scheduledToday = await CallLog.countDocuments({ ...callsFilter, outcome: 'scheduled', createdAt: { $gte: todayStart } });
         const totalNew = leads.length;
         
-        res.render('pages/llamadas', { title: 'Llamadas', leads, callsToday, scheduledToday, totalNew });
+        res.render('pages/llamadas', { 
+            title: 'Llamadas', 
+            leads, 
+            callsToday, 
+            scheduledToday, 
+            totalNew,
+            isAdmin, // ✅ Pasar isAdmin a la vista
+            currentUser: req.session.user
+        });
     } catch (error) { next(error); }
 };
 
 exports.getStats = async (req, res, next) => {
     try {
+        const isAdmin = req.session.user.role === 'admin';
         const todayStart = getTodayStart();
-        const totalNew = await Lead.countDocuments({ status: 'new' });
+        const filter = isAdmin ? {} : { assignedTo: req.session.userId };
         
-        const callsToday = await CallLog.countDocuments({ createdAt: { $gte: todayStart } });
-        const scheduledToday = await CallLog.countDocuments({ outcome: 'scheduled', createdAt: { $gte: todayStart } });
+        const totalNew = await Lead.countDocuments({ status: 'new', ...filter });
+        const callsFilter = isAdmin ? {} : { calledBy: req.session.userId };
+        const callsToday = await CallLog.countDocuments({ ...callsFilter, createdAt: { $gte: todayStart } });
+        const scheduledToday = await CallLog.countDocuments({ ...callsFilter, outcome: 'scheduled', createdAt: { $gte: todayStart } });
         
         res.json({ success: true, stats: { totalNew, callsToday, scheduledToday } });
     } catch (error) { next(error); }
@@ -31,16 +48,25 @@ exports.getStats = async (req, res, next) => {
 
 exports.getSeguimiento = async (req, res, next) => {
     try {
-        // ✅ Ahora incluye 'interested' además de los otros
+        const isAdmin = req.session.user.role === 'admin';
+        // ✅ FILTRO: Admin ve todo, comercial solo ve los SUYOS
+        const filter = isAdmin ? {} : { 'lead.assignedTo': req.session.userId };
+        
         const followups = await CallLog.find({ 
             outcome: { $in: ['callback', 'rejected', 'no_answer', 'interested'] }, 
-            resolved: false 
+            resolved: false,
+            ...filter
         })
         .populate('lead')
-        .populate('calledBy')
+        .populate('calledBy', 'username fullName') // ✅ Traer datos del usuario que llamó
         .sort({ callbackDate: 1, createdAt: -1 });
         
-        res.render('pages/seguimiento', { title: 'Seguimiento', followups, today: new Date() });
+        res.render('pages/seguimiento', { 
+            title: 'Seguimiento', 
+            followups, 
+            today: new Date(),
+            isAdmin // ✅ Pasar isAdmin a la vista
+        });
     } catch (error) { next(error); }
 };
 
@@ -50,14 +76,18 @@ exports.registrarLlamada = async (req, res, next) => {
         const lead = await Lead.findById(leadId);
         if (!lead) return res.status(404).json({ success: false, message: 'Lead no encontrado' });
 
+        // ✅ GUARDAR quién hizo la llamada (req.session.userId)
         const callLog = await CallLog.create({
-            lead: leadId, calledBy: req.session.userId, outcome,
-            notes: notes || '', callbackDate: callbackDate ? new Date(callbackDate) : null, rejectionReason: rejectionReason || ''
+            lead: leadId, 
+            calledBy: req.session.userId, // ✅ ESTO YA ESTABA, pero lo confirmamos
+            outcome,
+            notes: notes || '', 
+            callbackDate: callbackDate ? new Date(callbackDate) : null, 
+            rejectionReason: rejectionReason || ''
         });
 
         let customerId = null;
         if (outcome === 'scheduled') {
-            // ✅ Agendó reunión → Pipeline (Customer)
             let customer = await Customer.findOne({ $or: [{ phone: lead.phone }, { email: lead.email }] });
             if (!customer) {
                 customer = await Customer.create({
@@ -73,16 +103,12 @@ exports.registrarLlamada = async (req, res, next) => {
             await callLog.save();
             await Lead.findByIdAndUpdate(leadId, { status: 'converted' });
         } else if (outcome === 'callback') {
-            // ✅ Volver a llamar → Seguimiento
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
         } else if (outcome === 'rejected') {
-            // ✅ No interesado → Seguimiento
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
         } else if (outcome === 'no_answer') {
-            // ✅ No contestó → Seguimiento
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
         } else if (outcome === 'interested') {
-            // ✅ Interesado → Seguimiento (nuevo)
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
         }
         
