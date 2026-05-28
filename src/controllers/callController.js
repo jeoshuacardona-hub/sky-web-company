@@ -7,13 +7,13 @@ const getTodayStart = () => { const d = new Date(); d.setUTCHours(0,0,0,0); retu
 exports.getLlamadas = async (req, res, next) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
-        // ✅ FILTRO: Admin ve todo, comercial solo ve las SUYAS
-        const leadFilter = isAdmin ? {} : { assignedTo: req.session.userId };
         
-        const leads = await Lead.find({ status: 'new', ...leadFilter }).sort({ createdAt: -1 });
+        // ✅ TODOS (admin y comerciales) ven TODOS los leads 'new'
+        // Así Ever, Angel y Camila tienen trabajo para llamar
+        const leads = await Lead.find({ status: 'new' }).sort({ createdAt: -1 });
         const todayStart = getTodayStart();
         
-        // Stats con filtro por usuario
+        // Stats: cada quien ve SUS propias llamadas (para sus métricas personales)
         const callsFilter = isAdmin ? {} : { calledBy: req.session.userId };
         const callsToday = await CallLog.countDocuments({ ...callsFilter, createdAt: { $gte: todayStart } });
         const scheduledToday = await CallLog.countDocuments({ ...callsFilter, outcome: 'scheduled', createdAt: { $gte: todayStart } });
@@ -25,7 +25,7 @@ exports.getLlamadas = async (req, res, next) => {
             callsToday, 
             scheduledToday, 
             totalNew,
-            isAdmin, // ✅ Pasar isAdmin a la vista
+            isAdmin,
             currentUser: req.session.user
         });
     } catch (error) { next(error); }
@@ -35,9 +35,11 @@ exports.getStats = async (req, res, next) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
         const todayStart = getTodayStart();
-        const filter = isAdmin ? {} : { assignedTo: req.session.userId };
         
-        const totalNew = await Lead.countDocuments({ status: 'new', ...filter });
+        // Todos ven el total global de leads new (para contexto)
+        const totalNew = await Lead.countDocuments({ status: 'new' });
+        
+        // Stats de llamadas: admin ve todo, comercial ve solo las suyas
         const callsFilter = isAdmin ? {} : { calledBy: req.session.userId };
         const callsToday = await CallLog.countDocuments({ ...callsFilter, createdAt: { $gte: todayStart } });
         const scheduledToday = await CallLog.countDocuments({ ...callsFilter, outcome: 'scheduled', createdAt: { $gte: todayStart } });
@@ -49,8 +51,9 @@ exports.getStats = async (req, res, next) => {
 exports.getSeguimiento = async (req, res, next) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
-        // ✅ FILTRO: Admin ve todo, comercial solo ve los SUYOS
-        const filter = isAdmin ? {} : { 'lead.assignedTo': req.session.userId };
+        
+        // Admin ve todo, comercial ve solo los follow-ups que él generó
+        const filter = isAdmin ? {} : { calledBy: req.session.userId };
         
         const followups = await CallLog.find({ 
             outcome: { $in: ['callback', 'rejected', 'no_answer', 'interested'] }, 
@@ -58,14 +61,14 @@ exports.getSeguimiento = async (req, res, next) => {
             ...filter
         })
         .populate('lead')
-        .populate('calledBy', 'username fullName') // ✅ Traer datos del usuario que llamó
+        .populate('calledBy', 'username fullName') // ✅ Traer quién hizo la llamada
         .sort({ callbackDate: 1, createdAt: -1 });
         
         res.render('pages/seguimiento', { 
             title: 'Seguimiento', 
             followups, 
             today: new Date(),
-            isAdmin // ✅ Pasar isAdmin a la vista
+            isAdmin
         });
     } catch (error) { next(error); }
 };
@@ -76,10 +79,10 @@ exports.registrarLlamada = async (req, res, next) => {
         const lead = await Lead.findById(leadId);
         if (!lead) return res.status(404).json({ success: false, message: 'Lead no encontrado' });
 
-        // ✅ GUARDAR quién hizo la llamada (req.session.userId)
+        // ✅ GUARDAR quién hizo la llamada (req.session.userId) - CLAVE PARA COMISIONES
         const callLog = await CallLog.create({
             lead: leadId, 
-            calledBy: req.session.userId, // ✅ ESTO YA ESTABA, pero lo confirmamos
+            calledBy: req.session.userId, // 👈 ESTO ES LO IMPORTANTE
             outcome,
             notes: notes || '', 
             callbackDate: callbackDate ? new Date(callbackDate) : null, 
