@@ -100,25 +100,3 @@ router.get('/api/dashboard/widgets', authMiddleware, async (req, res) => {
         res.json({ success: true, data: { ingresos, pipe, conv } });
     } catch(e) { res.json({ success: false, error: e.message }); }
 });
-
-// API para stats de proveedores (solo admin)
-router.get('/api/dashboard/providers', authMiddleware, async (req, res) => {
-    try {
-        if (req.session.user.role !== 'admin') {
-            return res.status(403).json({ success: false, message: 'No autorizado' });
-        }
-        
-        const providers = await Lead.aggregate([
-            { $group: { _id: '$providedBy', count: { $sum: 1 } } }
-        ]);
-        
-        const result = {};
-        providers.forEach(p => {
-            result[p._id] = p.count;
-        });
-        
-        res.json({ success: true, providers: result });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
