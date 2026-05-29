@@ -146,7 +146,7 @@ var contacted = leads.filter(function(l){ return l.status==='contacted'; }).leng
     <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
       <div class="modal-header border-0 pb-0 px-4 pt-4"><div><h5 class="modal-title mb-0" style="font-weight:700;">Nuevo Lead</h5><p class="text-muted mb-0" style="font-size:13px;">Agregar lead manualmente</p></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <form action="/leads/add" method="POST">
-        <div class="modal-body px-4 pt-3"><div class="mb-3">
+        <div class="modal-body px-4 pt-3"><div class="mb-3"><label class="form-label fw-semibold" style="font-size:13px;">¿Quién te pasó estos leads?</label><select id="providerSelect" class="form-select" required><option value="">Seleccionar...</option><option value="Angel Mateo">Angel Mateo</option><option value="Danilo">Danilo</option><option value="Julian">Julian</option><option value="Otro">Otro</option></select></div><div class="mb-3">
   <label class="form-label fw-semibold" style="font-size:13px;">¿Quién te pasó estos leads?</label>
   <select id="providerSelect" class="form-select" required>
     <option value="">Seleccionar...</option>
@@ -298,6 +298,8 @@ function handleFile(file) {
 
 async function submitImport() {
   if (!parsedLeads.length) return;
+  var provider = document.getElementById("providerSelect").value;
+  if (!provider) { alert("Selecciona quién te pasó los leads"); return; }
   var provider = document.getElementById('providerSelect').value;
   if (!provider) { alert('Selecciona quién te pasó los leads'); return; }
   var btn = document.getElementById('importBtn');
