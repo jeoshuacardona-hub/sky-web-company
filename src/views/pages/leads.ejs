@@ -146,7 +146,7 @@ var contacted = leads.filter(function(l){ return l.status==='contacted'; }).leng
     <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
       <div class="modal-header border-0 pb-0 px-4 pt-4"><div><h5 class="modal-title mb-0" style="font-weight:700;">Nuevo Lead</h5><p class="text-muted mb-0" style="font-size:13px;">Agregar lead manualmente</p></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <form action="/leads/add" method="POST">
-        <div class="modal-body px-4 pt-3">
+        <div class="modal-body px-4 pt-3"><div class="mb-3"><label class="form-label fw-semibold" style="font-size:13px;">¿Quién te pasó estos leads?</label><select id="providerSelect" class="form-select" required><option value="">Seleccionar...</option><option value="Angel Mateo">Angel Mateo</option><option value="Danilo">Danilo</option><option value="Julian">Julian</option><option value="Otro">Otro</option></select></div>
           <div class="row g-3">
             <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Nombre *</label><input type="text" name="name" class="form-control" required></div>
             <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Empresa</label><input type="text" name="company" class="form-control"></div>
@@ -277,25 +277,32 @@ function handleFile(file) {
 }
 
 async function submitImport() {
+  if (!parsedLeads.length) return;
+  var provider = document.getElementById('providerSelect').value;
+  if (!provider) { alert('Selecciona quién te pasó los leads'); return; }
   var btn = document.getElementById('importBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Importando...';
   try {
-    var res = await fetch('/api/leads/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leads: parsedLeads }) });
+    var res = await fetch('/leads/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ leads: parsedLeads, provider: provider })
+    });
     var data = await res.json();
     var el = document.getElementById('importResult');
     if (data.success) {
-      el.innerHTML = '<div style="background:#e2f8ef;border-radius:10px;padding:12px;font-size:13px;font-weight:600;color:#1a7a50;"><i class="bx bx-check-circle me-1"></i>' + data.message + '</div>';
+      el.innerHTML = '<div style="background:#e2f8ef;border-radius:10px;padding:12px;font-size:13px;font-weight:600;color:#1a7a50;margin-top:8px;"><i class="bx bx-check-circle me-1"></i>' + data.message + '</div>';
       el.style.display = 'block';
-      setTimeout(function(){ location.reload(); }, 2000);
+      setTimeout(function() { location.reload(); }, 1500);
     } else {
-      el.innerHTML = '<div style="background:#fde8e8;border-radius:10px;padding:12px;font-size:13px;color:#b32020;"><i class="bx bx-error-circle me-1"></i>' + (data.message || 'Error al importar') + '</div>';
+      el.innerHTML = '<div style="background:#fde8e8;border-radius:10px;padding:12px;font-size:13px;color:#b32020;margin-top:8px;">Error: ' + (data.error || 'No se pudo importar') + '</div>';
       el.style.display = 'block';
       btn.disabled = false;
       btn.innerHTML = '<i class="bx bx-upload me-1"></i> Importar';
     }
-  } catch(err) {
-    alert('Error de conexion: ' + err.message);
+  } catch(e) {
+    alert('Error de conexión');
     btn.disabled = false;
     btn.innerHTML = '<i class="bx bx-upload me-1"></i> Importar';
   }
