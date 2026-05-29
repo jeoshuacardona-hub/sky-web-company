@@ -1,83 +1,139 @@
 const Lead = require('../models/Lead');
+const User = require('../models/User');
+const CallLog = require('../models/CallLog');
+const Customer = require('../models/Customer');
+const Task = require('../models/Task');
 
 exports.getLeads = async (req, res, next) => {
     try {
-        const leads = await Lead.find().sort({ createdAt: -1 });
-        res.render('pages/leads', { 
-            title: 'Leads', 
-            leads,
-            isAdmin: req.session.user.role === 'admin',
-            currentUser: req.session.user
-        });
+        const leads = await Lead.find().populate('assignedTo').populate('createdBy').sort({ createdAt: -1 });
+        const users = await User.find();
+        res.render('pages/leads', { title: 'Leads', leads, users });
     } catch (error) { next(error); }
 };
 
-exports.importLeads = async (req, res) => {
+exports.createLead = async (req, res, next) => {
     try {
-        const { leads, provider } = req.body;
-        
-        if (!leads || !leads.length) {
-            return res.status(400).json({ success: false, error: 'No hay leads para importar' });
-        }
-        
-        if (!provider) {
-            return res.status(400).json({ success: false, error: 'Debe especificar el proveedor' });
-        }
-        
-        // Crear leads con el proveedor
-        const newLeads = leads.map(l => ({
-            name: l.name,
-            phone: l.phone,
-            email: l.email || '',
-            company: l.company || '',
-            city: l.city || '',
-            notes: l.notes || '',
-            source: l.source || 'csv',
-            status: 'new',
-            providedBy: provider,
-            createdBy: req.session.userId
-        }));
-        
-        await Lead.insertMany(newLeads);
-        
-        res.json({ 
-            success: true, 
-            message: \`Importados \${newLeads.length} leads de \${provider}\`
-        });
-    } catch (error) {
-        console.error('Error importing leads:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-};
-
-exports.editLead = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, phone, email, company, city, notes, source } = req.body;
-        await Lead.findByIdAndUpdate(id, { 
-            name, phone, email, company, city, notes, source,
-            updatedAt: Date.now()
-        });
+        await Lead.create({ ...req.body, createdBy: req.session.userId });
         res.redirect('/leads');
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-exports.deleteLead = async (req, res) => {
+exports.updateLead = async (req, res, next) => {
+    try {
+        await Lead.findByIdAndUpdate(req.params.id, req.body);
+        res.redirect('/leads');
+    } catch (error) { next(error); }
+};
+
+exports.updateLeadStatus = async (req, res, next) => {
+    try {
+        await Lead.findByIdAndUpdate(req.params.id, { status: req.body.status });
+        res.redirect('/leads');
+    } catch (error) { next(error); }
+};
+
+exports.deleteLead = async (req, res, next) => {
     try {
         await Lead.findByIdAndDelete(req.params.id);
-        res.json({ success: true });
+        res.redirect('/leads');
+    } catch (error) { next(error); }
+};
+
+exports.importLeads = async (req, res, next) => {
+    try {
+        const { leads } = req.body;
+        if (!leads || !Array.isArray(leads) || leads.length === 0) {
+            return res.status(400).json({ success: false, message: 'No se recibieron leads válidos.' });
+        }
+
+        const normalizeKey = (key) => {
+            const k = key.toLowerCase().trim().replace(/[^a-z0-9áéíóúñü]/g, '');
+            const map = {
+                'nombre': 'name', 'name': 'name', 'contacto': 'name', 'restaurante': 'company',
+                'telefono': 'phone', 'teléfono': 'phone', 'phone': 'phone', 'celular': 'phone', 'movil': 'phone', 'whatsapp': 'phone', 'wa': 'phone',
+                'email': 'email', 'correo': 'email', 'mail': 'email',
+                'empresa': 'company', 'company': 'company', 'compania': 'company', 'negocio': 'company',
+                'ciudad': 'city', 'city': 'city', 'ubicacion': 'city', 'municipio': 'city',
+                'problema': 'notes', 'solucion': 'notes', 'solución': 'notes', 'notas': 'notes', 'notes': 'notes', 'observaciones': 'notes', 'descripcion': 'notes', 'analisisestrategico': 'notes', 'sugerenciaautomatizacion': 'notes', 'dolor': 'notes', 'gancho': 'notes', 'estado': 'notes', 'analisisestrategoclaude': 'notes',
+                'fuente': 'source', 'source': 'source', 'origen': 'source', 'url': 'source', 'web': 'source', 'fuentesurl': 'source', 'redes': 'source'
+            };
+            return map[k] || null;
+        };
+
+        let insertedCount = 0;
+        let skippedCount = 0;
+        let duplicateCount = 0;
+
+        for (const row of leads) {
+            const normalized = {};
+            Object.keys(row).forEach(function(key) {
+                const mapped = normalizeKey(key);
+                if (mapped && row[key] && row[key].toString().trim()) {
+                    normalized[mapped] = row[key].toString().trim();
+                }
+            });
+
+            if (!normalized.name || normalized.name.length < 2) {
+                skippedCount++;
+                continue;
+            }
+
+            const existingLead = await Lead.findOne({
+                $or: [
+                    { phone: normalized.phone },
+                    { email: normalized.email }
+                ].filter(Boolean)
+            });
+
+            if (existingLead) {
+                duplicateCount++;
+                await Lead.findByIdAndUpdate(existingLead._id, {
+                    name: normalized.name || existingLead.name,
+                    company: normalized.company || existingLead.company,
+                    city: normalized.city || existingLead.city,
+                    notes: normalized.notes ? (existingLead.notes ? existingLead.notes + '\n' + normalized.notes : normalized.notes) : existingLead.notes,
+                    source: 'csv_import'
+                });
+            } else {
+                await Lead.create({
+                    name: normalized.name,
+                    email: normalized.email || '',
+                    phone: normalized.phone || '',
+                    company: normalized.company || '',
+                    city: normalized.city || '',
+                    source: normalized.source || 'csv_import',
+                    status: 'new',
+                    notes: normalized.notes || '',
+                    createdBy: req.session.userId
+                });
+                insertedCount++;
+            }
+        }
+
+        res.json({ 
+            success: true, 
+            count: insertedCount, 
+            duplicates: duplicateCount,
+            skipped: skippedCount,
+            message: `${insertedCount} leads nuevos importados. ${duplicateCount} actualizados. ${skippedCount} omitidos.` 
+        });
+
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        console.error('Error importando leads:', error);
+        next(error);
     }
 };
 
-exports.deleteAllLeads = async (req, res) => {
+exports.hardReset = async (req, res, next) => {
     try {
-        await Lead.deleteMany({});
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
+        if (req.session.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        await Promise.all([
+            Lead.deleteMany({}),
+            CallLog.deleteMany({}),
+            Customer.deleteMany({}),
+            Task.deleteMany({})
+        ]);
+        res.json({ success: true, message: 'Base de datos reseteada a 0. Todo limpio.' });
+    } catch (error) { next(error); }
 };

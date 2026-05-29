@@ -8,7 +8,6 @@ const leadSchema = new mongoose.Schema({
     status: { type: String, enum: ['new', 'contacted', 'qualified', 'converted', 'lost'], default: 'new' },
     source: { type: String },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    providedBy: { type: String, default: "Otro" }
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 module.exports = mongoose.model('Lead', leadSchema);
