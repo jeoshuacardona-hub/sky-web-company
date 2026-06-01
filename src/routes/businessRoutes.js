@@ -6,7 +6,9 @@ const Customer = require('../models/Customer');
 router.get('/pipeline', authMiddleware, async (req, res) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
-        const filter = isAdmin ? {} : { assignedTo: req.session.userId };
+        const leadFilter = isAdmin ? {} : { assignedTo: req.session.userId };
+        const customerFilter = isAdmin ? {} : { createdBy: req.session.userId };
+        const callFilter = isAdmin ? {} : { calledBy: req.session.userId };
         const customers = await Customer.find(filter).populate('assignedTo', 'username fullName').sort({ createdAt: -1 });
         
         const stats = {
@@ -111,14 +113,14 @@ router.get('/reports', authMiddleware, async (req, res) => {
         
         // Stats básicos
         const totalLeads = await Lead.countDocuments(filter);
-        const contactedLeads = await Lead.countDocuments({ ...filter, status: 'contacted' });
-        const convertedLeads = await Lead.countDocuments({ ...filter, status: 'converted' });
-        const lostLeads = await Lead.countDocuments({ ...filter, status: 'lost' });
+        const contactedLeads = await Lead.countDocuments({ ...leadFilter, status: 'contacted' });
+        const convertedLeads = await Lead.countDocuments({ ...leadFilter, status: 'converted' });
+        const lostLeads = await Lead.countDocuments({ ...leadFilter, status: 'lost' });
         
         const totalCustomers = await Customer.countDocuments(filter);
-        const wonCustomers = await Customer.countDocuments({ ...filter, status: 'won' });
+        const wonCustomers = await Customer.countDocuments({ ...customerFilter, status: 'won' });
         const totalValue = await Customer.aggregate([
-            { $match: { ...filter, status: 'won' } },
+            { $match: { ...customerFilter, status: 'won' } },
             { $group: { _id: null, total: { $sum: '$value' } } }
         ]);
         const revenue = totalValue.length > 0 ? totalValue[0].total : 0;
@@ -127,8 +129,7 @@ router.get('/reports', authMiddleware, async (req, res) => {
         const startMonth = new Date();
         startMonth.setDate(1);
         startMonth.setHours(0,0,0,0);
-        const callsThisMonth = await CallLog.countDocuments({
-            ...filter,
+        const callsThisMonth = await CallLog.countDocuments({ ...callFilter,
             createdAt: { $gte: startMonth }
         });
         
