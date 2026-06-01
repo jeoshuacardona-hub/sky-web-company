@@ -164,12 +164,11 @@ async function editUser(id) {
 
 async function deleteUser(id) {
   if (!confirm('¿Eliminar este usuario?')) return;
-  
   try {
-    const res = await fetch('/api/users/' + id, {
-      method: 'DELETE'
+    // Coincide con: router.post('/api/users/:id/delete'...)
+    const res = await fetch('/api/users/' + id + '/delete', {
+      method: 'POST'
     });
-    
     if (res.ok) {
       location.reload();
     } else {
@@ -178,5 +177,6 @@ async function deleteUser(id) {
   } catch(e) {
     alert('Error de conexión');
   }
+}
 }
 </script>
