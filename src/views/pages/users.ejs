@@ -163,22 +163,10 @@ async function editUser(id) {
 }
 
 async function deleteUser(id) {
-  if (!confirm('¿Eliminar este usuario?')) return;
-  try {
-    const res = await fetch('/api/users/' + id + '/delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    });
-    if (res.ok) {
-      location.reload();
-    } else {
-      const err = await res.json();
-      alert(err.message || 'Error al eliminar');
-    }
-  } catch(e) {
-    console.error('Delete error:', e);
-    alert('Error de conexión: ' + e.message);
-  }
+  if(!confirm('¿Eliminar?')) return;
+  fetch('/api/users/'+id+'/delete',{method:'POST'})
+    .then(r=>{if(r.ok)location.reload();else alert('Error')})
+    .catch(e=>alert('Error: '+e))
 }
 }
 </script>
