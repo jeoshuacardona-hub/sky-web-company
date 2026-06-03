@@ -13,6 +13,7 @@
 .stat-pill { background:#fff; border-radius:12px; padding:14px 18px; border:1px solid #f0f0f0; display:flex; align-items:center; gap:12px; flex:1; min-width:160px; }
 .search-box { border:1px solid #f0f0f0; border-radius:10px; padding:8px 14px 8px 36px; font-size:13px; width:240px; outline:none; transition:border 0.15s; }
 .search-box:focus { border-color:#696cff; }
+.provider-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:12px; background:#f0f0ff; color:#696cff; }
 </style>
 
 <%
@@ -109,7 +110,16 @@ var contacted = leads.filter(function(l){ return l.status==='contacted'; }).leng
   <div class="table-responsive">
     <table class="table leads-table mb-0" id="leadsTable">
       <thead>
-        <tr><th>Nombre</th><th>Empresa</th><th>Telefono</th><th>Ciudad</th><th>Notas</th><th>Estado</th><% if (isAdmin) { %><th style="text-align:right;">Acciones</th><% } %></tr>
+        <tr>
+          <th>Nombre</th>
+          <th>Empresa</th>
+          <th>Telefono</th>
+          <th>Ciudad</th>
+          <th>Notas</th>
+          <th>Estado</th>
+          <% if (isAdmin) { %><th style="min-width:90px;">Proveedor</th><% } %>
+          <% if (isAdmin) { %><th style="text-align:right;">Acciones</th><% } %>
+        </tr>
       </thead>
       <tbody id="leadsBody">
         <% leads.forEach(function(lead) {
@@ -125,6 +135,7 @@ var contacted = leads.filter(function(l){ return l.status==='contacted'; }).leng
           <td style="color:#8a8d9f;"><%= lead.city || '—' %></td>
           <td style="color:#8a8d9f;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= lead.notes || '' %>"><%= lead.notes || '—' %></td>
           <td><span class="status-badge <%= statusCls[lead.status] || 'status-new' %>"><%= statusMap[lead.status] || lead.status %></span></td>
+          <% if (isAdmin) { %><td><span class="provider-badge"><%= lead.providedBy || 'Otro' %></span></td><% } %>
           <% if (isAdmin) { %>
           <td style="text-align:right;">
             <div class="d-flex gap-1 justify-content-end">
@@ -146,27 +157,7 @@ var contacted = leads.filter(function(l){ return l.status==='contacted'; }).leng
     <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
       <div class="modal-header border-0 pb-0 px-4 pt-4"><div><h5 class="modal-title mb-0" style="font-weight:700;">Nuevo Lead</h5><p class="text-muted mb-0" style="font-size:13px;">Agregar lead manualmente</p></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <form action="/leads/add" method="POST">
-        <div class="modal-body px-4 pt-3"><div class="mb-3"><label class="form-label fw-semibold" style="font-size:13px;">¿Quién te pasó estos leads?</label><select id="providerSelect" class="form-select" required><option value="">Seleccionar...</option><option value="Angel Mateo">Angel Mateo</option><option value="Danilo">Danilo</option><option value="Julian">Julian</option><option value="Otro">Otro</option></select></div><div class="mb-3">
-  <label class="form-label fw-semibold" style="font-size:13px;">¿Quién te pasó estos leads?</label>
-  <select id="providerSelect" class="form-select" required>
-    <option value="">Seleccionar...</option>
-    <option value="Angel Mateo">Angel Mateo</option>
-    <option value="Danilo">Danilo</option>
-    <option value="Julian">Julian</option>
-    <option value="Otro">Otro</option>
-  </select>
-</div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold" style="font-size:13px;">¿Quién te pasó estos leads?</label>
-          <select id="providerSelect" class="form-select" required>
-            <option value="">Seleccionar...</option>
-            <option value="Angel Mateo">Angel Mateo</option>
-            <option value="Danilo">Danilo</option>
-            <option value="Julian">Julian</option>
-            <option value="Otro">Otro</option>
-          </select>
-        </div>
-<div class="mb-3"><label class="form-label fw-semibold" style="font-size:13px;">¿Quién te pasó estos leads?</label><select id="providerSelect" class="form-select" required><option value="">Seleccionar...</option><option value="Angel Mateo">Angel Mateo</option><option value="Danilo">Danilo</option><option value="Julian">Julian</option><option value="Otro">Otro</option></select></div>
+        <div class="modal-body px-4 pt-3">
           <div class="row g-3">
             <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Nombre *</label><input type="text" name="name" class="form-control" required></div>
             <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:13px;">Empresa</label><input type="text" name="company" class="form-control"></div>
@@ -210,6 +201,16 @@ var contacted = leads.filter(function(l){ return l.status==='contacted'; }).leng
     <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
       <div class="modal-header border-0 pb-0 px-4 pt-4"><div><h5 class="modal-title mb-0" style="font-weight:700;">Importar CSV</h5><p class="text-muted mb-0" style="font-size:13px;">Soporta comas o punto y coma (;). Mapeo automatico de columnas.</p></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body px-4 pt-3">
+        <div class="mb-3">
+          <label class="form-label fw-semibold" style="font-size:13px;">¿Quién te pasó estos leads?</label>
+          <select id="providerSelect" class="form-select" required>
+            <option value="">Seleccionar...</option>
+            <option value="Angel Mateo">Angel Mateo</option>
+            <option value="Danilo">Danilo</option>
+            <option value="Julian">Julian</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
         <div id="dropZone" style="border:2px dashed #d0d0d8;border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all 0.15s;" onclick="document.getElementById('csvInput').click()" ondragover="event.preventDefault();this.style.borderColor='#696cff'" ondragleave="this.style.borderColor='#d0d0d8'" ondrop="handleDrop(event)">
           <i class="bx bx-cloud-upload" style="font-size:36px;color:#696cff;display:block;margin-bottom:8px;"></i>
           <p style="font-weight:600;margin:0;font-size:14px;">Arrastra tu CSV aqui</p>
@@ -298,10 +299,9 @@ function handleFile(file) {
 
 async function submitImport() {
   if (!parsedLeads.length) return;
-  var provider = document.getElementById("providerSelect").value;
-  if (!provider) { alert("Selecciona quién te pasó los leads"); return; }
   var provider = document.getElementById('providerSelect').value;
   if (!provider) { alert('Selecciona quién te pasó los leads'); return; }
+  
   var btn = document.getElementById('importBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Importando...';
@@ -371,7 +371,7 @@ async function confirmarEliminarTodos() {
 
 <script>
 async function hardResetDB() {
-  if (!confirm('⚠️ ATENCIÓN: ¿Estás seguro de ELIMINAR TODO?\n\nSe borrarán Leads, Llamadas, Pipeline y Tareas.\nQuedará absolutamente todo en 0.')) return;
+  if (!confirm('️ ATENCIÓN: ¿Estás seguro de ELIMINAR TODO?\n\nSe borrarán Leads, Llamadas, Pipeline y Tareas.\nQuedará absolutamente todo en 0.')) return;
   if (!confirm('⚠️ CONFIRMACIÓN FINAL: Esta acción es irreversible.\n¿Continuar?')) return;
   
   try {
@@ -381,7 +381,7 @@ async function hardResetDB() {
       alert('✅ ' + data.message);
       location.reload();
     } else {
-      alert('❌ ' + (data.message || 'Error al resetear'));
+      alert(' ' + (data.message || 'Error al resetear'));
     }
   } catch(err) {
     alert('Error de conexión');
