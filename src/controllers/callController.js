@@ -28,7 +28,7 @@ exports.getLlamadas = async (req, res, next) => {
             isAdmin,
             currentUser: req.session.user
         });
-    } catch (error) { next(error); }
+    } catch (error) { console.error(error); res.status(500).json({ success: false, message: error.message }); }
 };
 
 exports.getStats = async (req, res, next) => {

@@ -109,6 +109,7 @@ async function submitLlamada(){
   var btn=document.getElementById('submitCallBtn'); btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> Guardando...';
   try{
     var res=await fetch('/api/llamadas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({leadId:document.getElementById('callLeadId').value,outcome:selectedOutcome,notes:document.getElementById('callNotes').value,value:document.getElementById('callValue').value,callbackDate:document.getElementById('callCallbackDate').value,rejectionReason:document.getElementById('callRejectionReason').value})});
+    if(!res.ok) throw new Error("Error del servidor (" + res.status + ")");
     var data=await res.json(); var el=document.getElementById('callResult');
     if(data.success){
       var msgs={scheduled:'Reunión agendada.',callback:'Programado seguimiento.',rejected:'Marcado no interesado.',no_answer:'Llamada registrada.'};
@@ -118,7 +119,7 @@ async function submitLlamada(){
       setTimeout(function(){ bootstrap.Modal.getInstance(document.getElementById('callModal')).hide(); removeLead(lid); btn.disabled=false; btn.innerHTML='<i class="bx bx-check me-1"></i> Guardar'; },1200);
       fetchStats();
     } else { el.innerHTML='<div style="background:#fee2e2;border-radius:10px;padding:12px;font-size:13px;color:#dc2626;margin-top:12px;">'+(data.message||'Error')+'</div>'; el.style.display='block'; btn.disabled=false; btn.innerHTML='<i class="bx bx-check me-1"></i> Guardar'; }
-  } catch(e){ alert('Error de conexión.'); btn.disabled=false; btn.innerHTML='<i class="bx bx-check me-1"></i> Guardar'; }
+  } catch(e){ console.error(e); alert('Error: ' + (e.message || 'desconocido')); btn.disabled=false; btn.innerHTML='<i class="bx bx-check me-1"></i> Guardar'; }
 }
 
 function fetchStats(){
