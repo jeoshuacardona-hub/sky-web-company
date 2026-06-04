@@ -7,52 +7,42 @@ const getTodayStart = () => { const d = new Date(); d.setUTCHours(0,0,0,0); retu
 exports.getLlamadas = async (req, res, next) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
-        
-        // ✅ TODOS (admin y comerciales) ven TODOS los leads 'new'
-        // Así Ever, Angel y Camila tienen trabajo para llamar
         const leads = await Lead.find({ status: 'new' }).sort({ createdAt: -1 });
         const todayStart = getTodayStart();
-        
-        // Stats: cada quien ve SUS propias llamadas (para sus métricas personales)
         const callsFilter = isAdmin ? {} : { calledBy: req.session.userId };
         const callsToday = await CallLog.countDocuments({ ...callsFilter, createdAt: { $gte: todayStart } });
         const scheduledToday = await CallLog.countDocuments({ ...callsFilter, outcome: 'scheduled', createdAt: { $gte: todayStart } });
         const totalNew = leads.length;
         
         res.render('pages/llamadas', { 
-            title: 'Llamadas', 
-            leads, 
-            callsToday, 
-            scheduledToday, 
-            totalNew,
-            isAdmin,
-            currentUser: req.session.user
+            title: 'Llamadas', leads, callsToday, scheduledToday, totalNew,
+            isAdmin, currentUser: req.session.user
         });
-    } catch (error) { console.error(error); res.status(500).json({ success: false, message: error.message }); }
+    } catch (error) { 
+        console.error('getLlamadas error:', error);
+        res.status(500).json({ success: false, message: error.message }); 
+    }
 };
 
 exports.getStats = async (req, res, next) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
         const todayStart = getTodayStart();
-        
-        // Todos ven el total global de leads new (para contexto)
         const totalNew = await Lead.countDocuments({ status: 'new' });
-        
-        // Stats de llamadas: admin ve todo, comercial ve solo las suyas
         const callsFilter = isAdmin ? {} : { calledBy: req.session.userId };
         const callsToday = await CallLog.countDocuments({ ...callsFilter, createdAt: { $gte: todayStart } });
         const scheduledToday = await CallLog.countDocuments({ ...callsFilter, outcome: 'scheduled', createdAt: { $gte: todayStart } });
         
         res.json({ success: true, stats: { totalNew, callsToday, scheduledToday } });
-    } catch (error) { next(error); }
+    } catch (error) { 
+        console.error('getStats error:', error);
+        res.status(500).json({ success: false, message: error.message }); 
+    }
 };
 
 exports.getSeguimiento = async (req, res, next) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
-        
-        // Admin ve todo, comercial ve solo los follow-ups que él generó
         const filter = isAdmin ? {} : { calledBy: req.session.userId };
         
         const followups = await CallLog.find({ 
@@ -61,35 +51,43 @@ exports.getSeguimiento = async (req, res, next) => {
             ...filter
         })
         .populate('lead')
-        .populate('calledBy', 'username fullName') // ✅ Traer quién hizo la llamada
+        .populate('calledBy', 'username fullName')
         .sort({ callbackDate: 1, createdAt: -1 });
         
         res.render('pages/seguimiento', { 
-            title: 'Seguimiento', 
-            followups, 
-            today: new Date(),
-            isAdmin
+            title: 'Seguimiento', followups, today: new Date(), isAdmin
         });
-    } catch (error) { next(error); }
+    } catch (error) { 
+        console.error('getSeguimiento error:', error);
+        res.status(500).json({ success: false, message: error.message }); 
+    }
 };
 
-exports.registrarLlamada = async (req, res, next) => {
+exports.registrarLlamada = async (req, res) => {
     try {
+        console.log('📞 registrarLlamada called:', req.body);
+        console.log('👤 User:', req.session.userId);
+        
         const { leadId, outcome, notes, callbackDate, rejectionReason, value } = req.body;
+        
+        if (!leadId || !outcome) {
+            return res.status(400).json({ success: false, message: 'Faltan datos requeridos' });
+        }
+        
         const lead = await Lead.findById(leadId);
-        if (!lead) return res.status(404).json({ success: false, message: 'Lead no encontrado' });
+        if (!lead) {
+            return res.status(404).json({ success: false, message: 'Lead no encontrado' });
+        }
 
-        // ✅ GUARDAR quién hizo la llamada (req.session.userId) - CLAVE PARA COMISIONES
         const callLog = await CallLog.create({
             lead: leadId, 
-            calledBy: req.session.userId, // 👈 ESTO ES LO IMPORTANTE
+            calledBy: req.session.userId,
             outcome,
             notes: notes || '', 
             callbackDate: callbackDate ? new Date(callbackDate) : null, 
             rejectionReason: rejectionReason || ''
         });
 
-        let customerId = null;
         if (outcome === 'scheduled') {
             let customer = await Customer.findOne({ $or: [{ phone: lead.phone }, { email: lead.email }] });
             if (!customer) {
@@ -101,22 +99,19 @@ exports.registrarLlamada = async (req, res, next) => {
             } else {
                 await Customer.findByIdAndUpdate(customer._id, { status: 'prospect', value: value ? parseInt(value) : customer.value });
             }
-            customerId = customer._id;
-            callLog.customerId = customerId;
+            callLog.customerId = customer._id;
             await callLog.save();
             await Lead.findByIdAndUpdate(leadId, { status: 'converted' });
-        } else if (outcome === 'callback') {
-            await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
-        } else if (outcome === 'rejected') {
-            await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
-        } else if (outcome === 'no_answer') {
-            await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
-        } else if (outcome === 'interested') {
+        } else {
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
         }
         
+        console.log('✅ Call saved successfully');
         res.json({ success: true, outcome });
-    } catch (error) { next(error); }
+    } catch (error) {
+        console.error('❌ registrarLlamada error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
 };
 
 exports.resolverSeguimiento = async (req, res, next) => {
@@ -126,7 +121,10 @@ exports.resolverSeguimiento = async (req, res, next) => {
         await CallLog.findByIdAndUpdate(req.params.id, { resolved: true });
         if (followup.lead) await Lead.findByIdAndUpdate(followup.lead._id, { status: 'contacted' });
         res.json({ success: true });
-    } catch (error) { next(error); }
+    } catch (error) { 
+        console.error('resolverSeguimiento error:', error);
+        res.status(500).json({ success: false, message: error.message }); 
+    }
 };
 
 exports.actualizarEstadoPipeline = async (req, res, next) => {
@@ -137,7 +135,10 @@ exports.actualizarEstadoPipeline = async (req, res, next) => {
         await Customer.findByIdAndUpdate(customerId, { status, notes: notes ? (customer.notes ? customer.notes + '\n' + notes : notes) : customer.notes });
         if (status === 'closed_won') await Customer.findByIdAndUpdate(customerId, { closedDate: new Date() });
         res.json({ success: true });
-    } catch (error) { next(error); }
+    } catch (error) { 
+        console.error('actualizarEstadoPipeline error:', error);
+        res.status(500).json({ success: false, message: error.message }); 
+    }
 };
 
 exports.eliminarDelPipeline = async (req, res, next) => {
@@ -152,5 +153,8 @@ exports.eliminarDelPipeline = async (req, res, next) => {
             return res.json({ success: true, message: 'Cliente enviado a Seguimiento.' });
         }
         res.json({ success: true, message: 'Cliente eliminado.' });
-    } catch (error) { next(error); }
+    } catch (error) { 
+        console.error('eliminarDelPipeline error:', error);
+        res.status(500).json({ success: false, message: error.message }); 
+    }
 };
