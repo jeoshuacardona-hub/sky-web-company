@@ -7,8 +7,8 @@ const getTodayStart = () => { const d = new Date(); d.setUTCHours(0,0,0,0); retu
 exports.getLlamadas = async (req, res, next) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
-        // ✅ FILTRO: Admin ve todo, comercial ve solo sus leads asignados
-        const filter = isAdmin ? {} : { status: 'new', assignedTo: req.session.userId };
+        // ✅ SOLO leads 'new' (Sin llamar) - tanto admin como comerciales
+        const filter = isAdmin ? { status: 'new' } : { status: 'new', assignedTo: req.session.userId };
         
         const leads = await Lead.find(filter).sort({ createdAt: -1 });
         const todayStart = getTodayStart();
@@ -31,8 +31,8 @@ exports.getStats = async (req, res, next) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
         const todayStart = getTodayStart();
-        const filter = isAdmin ? {} : { assignedTo: req.session.userId };
-        const totalNew = await Lead.countDocuments({ ...filter, status: 'new' });
+        const filter = isAdmin ? { status: 'new' } : { status: 'new', assignedTo: req.session.userId };
+        const totalNew = await Lead.countDocuments(filter);
         const callsFilter = isAdmin ? {} : { calledBy: req.session.userId };
         const callsToday = await CallLog.countDocuments({ ...callsFilter, createdAt: { $gte: todayStart } });
         const scheduledToday = await CallLog.countDocuments({ ...callsFilter, outcome: 'scheduled', createdAt: { $gte: todayStart } });
