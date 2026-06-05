@@ -9,34 +9,30 @@ exports.getLlamadas = async (req, res, next) => {
         const isAdmin = req.session.user.role === 'admin';
         const userId = req.session.userId;
         
-        // ✅ Admin ve todos los leads 'new'
+        // ✅ Admin ve todos los leads 'new', Comercial ve sus asignados o los sin asignar
+        let filter;
         if (isAdmin) {
-            const leads = await Lead.find({ status: 'new' }).sort({ createdAt: -1 });
-            const todayStart = getTodayStart();
-            const callsToday = await CallLog.countDocuments({ createdAt: { $gte: todayStart } });
-            const scheduledToday = await CallLog.countDocuments({ outcome: 'scheduled', createdAt: { $gte: todayStart } });
-            
-            return res.render('pages/llamadas', { 
-                title: 'Llamadas', leads, callsToday, scheduledToday, totalNew: leads.length,
-                isAdmin: true, currentUser: req.session.user
-            });
+            filter = { status: 'new' };
+        } else {
+            const myLeads = await Lead.countDocuments({ status: 'new', assignedTo: userId });
+            filter = myLeads > 0 
+                ? { status: 'new', assignedTo: userId }
+                : { status: 'new', assignedTo: null };
         }
         
-        // ✅ Comercial: ve sus leads asignados O los sin asignar (fallback)
-        const myLeads = await Lead.find({ status: 'new', assignedTo: userId }).sort({ createdAt: -1 });
-        
-        // Si no tiene leads asignados, mostrar los que están sin asignar (para que tenga trabajo)
-        const leads = myLeads.length > 0 
-            ? myLeads 
-            : await Lead.find({ status: 'new', assignedTo: null }).sort({ createdAt: -1 });
-        
+        // ✅ SELECT explícito para incluir notes, company, phone, etc.
+        const leads = await Lead.find(filter)
+            .select('name phone email company city notes status assignedTo createdAt')
+            .sort({ createdAt: -1 });
+            
         const todayStart = getTodayStart();
-        const callsToday = await CallLog.countDocuments({ calledBy: userId, createdAt: { $gte: todayStart } });
-        const scheduledToday = await CallLog.countDocuments({ calledBy: userId, outcome: 'scheduled', createdAt: { $gte: todayStart } });
+        const callsFilter = isAdmin ? {} : { calledBy: userId };
+        const callsToday = await CallLog.countDocuments({ ...callsFilter, createdAt: { $gte: todayStart } });
+        const scheduledToday = await CallLog.countDocuments({ ...callsFilter, outcome: 'scheduled', createdAt: { $gte: todayStart } });
         
         res.render('pages/llamadas', { 
             title: 'Llamadas', leads, callsToday, scheduledToday, totalNew: leads.length,
-            isAdmin: false, currentUser: req.session.user
+            isAdmin, currentUser: req.session.user
         });
     } catch (error) { 
         console.error('getLlamadas error:', error);
@@ -55,7 +51,6 @@ exports.getStats = async (req, res, next) => {
             totalNew = await Lead.countDocuments({ status: 'new' });
         } else {
             const myLeads = await Lead.countDocuments({ status: 'new', assignedTo: userId });
-            // Fallback: si no tiene asignados, contar los sin asignar
             totalNew = myLeads > 0 ? myLeads : await Lead.countDocuments({ status: 'new', assignedTo: null });
         }
         
