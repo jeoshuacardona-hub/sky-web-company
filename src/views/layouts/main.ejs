@@ -37,7 +37,7 @@
           <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin') { %>
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Administración</span></li>
             <li class="menu-item <%= typeof title !== 'undefined' && title==='Leads' ? 'active' : '' %>">
-              <a href="/leads" class="menu-link"><i class='menu-icon tf-icons bx bx-target-lock'></i><div>Leads</div></a>
+              <a href="/leads" class="menu-link"><i class='menu-icon tf-icons bx bx-target-lock'></i><div>Todos los Leads</div></a>
             </li>
             <li class="menu-item">
               <a href="/users" class="menu-link"><i class='menu-icon tf-icons bx bx-user-circle'></i><div>Usuarios</div></a>
@@ -49,14 +49,6 @@
 
           <!-- ================= COMERCIALES (Todos) ================= -->
           <li class="menu-header small text-uppercase"><span class="menu-header-text">Gestión Comercial</span></li>
-          
-          <!-- Leads: Admin ve todos, Comercial ve "Mis Leads" -->
-          <li class="menu-item <%= typeof title !== 'undefined' && title==='Leads' ? 'active' : '' %>">
-            <a href="/leads" class="menu-link">
-              <i class='menu-icon tf-icons bx bx-target-lock'></i>
-              <div><%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin') ? 'Todos los Leads' : 'Mis Leads' %></div>
-            </a>
-          </li>
           
           <li class="menu-item <%= typeof title !== 'undefined' && title==='Llamadas' ? 'active' : '' %>">
             <a href="/llamadas" class="menu-link"><i class='menu-icon tf-icons bx bx-phone'></i><div>Llamadas</div></a>
@@ -231,9 +223,6 @@
     nav.innerHTML = `
       <a href="/dashboard" class="${window.location.pathname === '/dashboard' ? 'active' : ''}">
         <i class='bx bx-home'></i><span>Inicio</span>
-      </a>
-      <a href="/leads" class="${window.location.pathname === '/leads' ? 'active' : ''}">
-        <i class='bx bx-target-lock'></i><span>Leads</span>
       </a>
       <a href="/llamadas" class="${window.location.pathname === '/llamadas' ? 'active' : ''}">
         <i class='bx bx-phone'></i><span>Llamar</span>
