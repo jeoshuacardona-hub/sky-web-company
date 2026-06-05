@@ -7,7 +7,10 @@ const getTodayStart = () => { const d = new Date(); d.setUTCHours(0,0,0,0); retu
 exports.getLlamadas = async (req, res, next) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
-        const leads = await Lead.find({ status: 'new' }).sort({ createdAt: -1 });
+        // ✅ FILTRO: Admin ve todo, comercial ve solo sus leads asignados
+        const filter = isAdmin ? {} : { status: 'new', assignedTo: req.session.userId };
+        
+        const leads = await Lead.find(filter).sort({ createdAt: -1 });
         const todayStart = getTodayStart();
         const callsFilter = isAdmin ? {} : { calledBy: req.session.userId };
         const callsToday = await CallLog.countDocuments({ ...callsFilter, createdAt: { $gte: todayStart } });
@@ -28,7 +31,8 @@ exports.getStats = async (req, res, next) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
         const todayStart = getTodayStart();
-        const totalNew = await Lead.countDocuments({ status: 'new' });
+        const filter = isAdmin ? {} : { assignedTo: req.session.userId };
+        const totalNew = await Lead.countDocuments({ ...filter, status: 'new' });
         const callsFilter = isAdmin ? {} : { calledBy: req.session.userId };
         const callsToday = await CallLog.countDocuments({ ...callsFilter, createdAt: { $gte: todayStart } });
         const scheduledToday = await CallLog.countDocuments({ ...callsFilter, outcome: 'scheduled', createdAt: { $gte: todayStart } });
@@ -76,12 +80,9 @@ exports.registrarLlamada = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Lead no encontrado' });
         }
 
-        // ✅ FIX: Obtener userId de forma segura
         const userId = req.session.userId || req.session.user._id;
-        
         if (!userId) {
-            console.error('❌ ERROR: No hay userId en sesión');
-            return res.status(401).json({ success: false, message: 'Sesión inválida. Inicia sesión de nuevo.' });
+            return res.status(401).json({ success: false, message: 'Sesión inválida' });
         }
 
         const callLog = await CallLog.create({
@@ -113,7 +114,7 @@ exports.registrarLlamada = async (req, res) => {
         
         res.json({ success: true, outcome });
     } catch (error) {
-        console.error('❌ registrarLlamada error:', error);
+        console.error('registrarLlamada error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

@@ -1,9 +1,27 @@
 const Lead = require('../models/Lead');
+const User = require('../models/User');
+
+// ✅ Helper: Obtener comerciales activos ordenados
+async function getComerciales() {
+    return await User.find({ role: 'comercial' }).sort({ email: 1 }).select('_id');
+}
+
+// ✅ Helper: Asignación Round Robin
+function assignRoundRobin(leads, comerciales) {
+    return leads.map((lead, index) => ({
+        ...lead,
+        assignedTo: comerciales[index % comerciales.length]._id
+    }));
+}
 
 exports.getLeads = async (req, res, next) => {
     try {
-        const leads = await Lead.find().sort({ createdAt: -1 });
-        res.render('pages/leads', { title: 'Leads', leads, isAdmin: req.session.user.role === 'admin', currentUser: req.session.user });
+        const isAdmin = req.session.user.role === 'admin';
+        const filter = isAdmin ? {} : { assignedTo: req.session.userId };
+        const leads = await Lead.find(filter).sort({ createdAt: -1 });
+        res.render('pages/leads', { 
+            title: 'Leads', leads, isAdmin, currentUser: req.session.user 
+        });
     } catch (error) { next(error); }
 };
 
@@ -13,38 +31,59 @@ exports.importLeads = async (req, res) => {
         if (!leads || !leads.length) return res.status(400).json({ success: false, error: 'No hay leads' });
         if (!provider) return res.status(400).json({ success: false, error: 'Falta proveedor' });
 
+        // Mapeo flexible de columnas
         const toInsert = leads.map(l => {
-            // Mapeo flexible de columnas (busca variaciones de nombres)
             const name = l.name || l.Nombre || l.NOMBRE || l['Nombre Completo'] || 'Sin Nombre';
             const phone = l.phone || l.Phone || l.Telefono || l.TELEFONO || l.WhatsApp || l['WhatsApp_Business'] || '';
             const email = l.email || l.Email || l.EMAIL || '';
             const company = l.company || l.Company || l.Empresa || l.EMPRESA || l.Sedes || '';
             const city = l.city || l.City || l.Ciudad || l.CIUDAD || '';
             const notes = l.notes || l.Notes || l.Notas || '';
-
             return {
-                name: name,
-                phone: phone,
-                email: email,
-                company: company,
-                city: city,
-                notes: notes,
-                source: l.source || 'csv',
-                status: 'new',
-                providedBy: provider,
-                createdBy: req.session.userId
+                name, phone, email, company, city, notes,
+                source: l.source || 'csv', status: 'new',
+                providedBy: provider, createdBy: req.session.userId
             };
         });
 
-        // Filtrar para asegurar que al menos tengan nombre antes de guardar
         const validLeads = toInsert.filter(l => l.name && l.name !== 'Sin Nombre');
+        if (validLeads.length === 0) return res.status(400).json({ success: false, error: 'No hay leads válidos' });
 
-        if (validLeads.length === 0) {
-            return res.status(400).json({ success: false, error: 'No se encontraron nombres válidos en el CSV.' });
+        // ✅ ROUND ROBIN: Asignar a comerciales
+        const comerciales = await getComerciales();
+        if (comerciales.length > 0) {
+            const assigned = assignRoundRobin(validLeads, comerciales);
+            await Lead.insertMany(assigned);
+            return res.json({ success: true, message: `Importados ${assigned.length} leads asignados a ${comerciales.length} comerciales` });
         }
 
+        // Si no hay comerciales, guardar sin asignar
         await Lead.insertMany(validLeads);
-        res.json({ success: true, message: 'Importados ' + validLeads.length + ' leads de ' + provider });
+        res.json({ success: true, message: `Importados ${validLeads.length} leads` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+exports.addLead = async (req, res) => {
+    try {
+        const { name, phone, email, company, city, notes, source } = req.body;
+        
+        // ✅ ROUND ROBIN para lead individual
+        const comerciales = await getComerciales();
+        let assignedTo = null;
+        if (comerciales.length > 0) {
+            // Asignar al siguiente en ciclo basado en timestamp
+            const index = Date.now() % comerciales.length;
+            assignedTo = comerciales[index]._id;
+        }
+        
+        await Lead.create({
+            name, phone, email, company, city, notes, source: source || 'manual',
+            status: 'new', assignedTo, createdBy: req.session.userId
+        });
+        res.redirect('/leads');
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, error: error.message });
@@ -52,16 +91,23 @@ exports.importLeads = async (req, res) => {
 };
 
 exports.editLead = async (req, res) => {
-    try { await Lead.findByIdAndUpdate(req.params.id, { ...req.body, updatedAt: Date.now() }); res.redirect('/leads'); }
-    catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    try {
+        const { id } = req.params;
+        await Lead.findByIdAndUpdate(id, { ...req.body, updatedAt: Date.now() });
+        res.redirect('/leads');
+    } catch (error) { res.status(500).json({ success: false, error: error.message }); }
 };
 
 exports.deleteLead = async (req, res) => {
-    try { await Lead.findByIdAndDelete(req.params.id); res.json({ success: true }); }
-    catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    try {
+        await Lead.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ success: false, error: error.message }); }
 };
 
 exports.deleteAllLeads = async (req, res) => {
-    try { await Lead.deleteMany({}); res.json({ success: true }); }
-    catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    try {
+        await Lead.deleteMany({});
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ success: false, error: error.message }); }
 };
