@@ -111,7 +111,7 @@ async function submitLlamada(){
   try{
     var res=await fetch('/api/llamadas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({leadId:document.getElementById('callLeadId').value,outcome:selectedOutcome,notes:document.getElementById('callNotes').value,value:document.getElementById('callValue').value,callbackDate:document.getElementById('callCallbackDate').value,rejectionReason:document.getElementById('callRejectionReason').value})});
     if(!res.ok) throw new Error("Error del servidor (" + res.status + ")");
-    var data=await res.json(); var el=document.getElementById('callResult');
+    if(!res.ok)throw new Error("Error "+res.status);var ct=res.headers.get("content-type");if(!ct||!ct.includes("application/json"))throw new Error("Sesión expirada. Recarga la página.");var data=await res.json(); var el=document.getElementById('callResult');
     if(data.success){
       var msgs={scheduled:'Reunión agendada.',callback:'Programado seguimiento.',rejected:'Marcado no interesado.',no_answer:'Llamada registrada.'};
       el.innerHTML='<div style="background:#dcfce7;border-radius:10px;padding:12px;font-size:13px;font-weight:600;color:#166534;margin-top:12px;"><i class="bx bx-check-circle me-1"></i>'+(msgs[data.outcome]||'Guardado.')+'</div>';
