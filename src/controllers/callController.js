@@ -65,9 +65,6 @@ exports.getSeguimiento = async (req, res, next) => {
 
 exports.registrarLlamada = async (req, res) => {
     try {
-        console.log('📞 registrarLlamada called:', req.body);
-        console.log('👤 User:', req.session.userId);
-        
         const { leadId, outcome, notes, callbackDate, rejectionReason, value } = req.body;
         
         if (!leadId || !outcome) {
@@ -79,9 +76,17 @@ exports.registrarLlamada = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Lead no encontrado' });
         }
 
+        // ✅ FIX: Obtener userId de forma segura
+        const userId = req.session.userId || req.session.user._id;
+        
+        if (!userId) {
+            console.error('❌ ERROR: No hay userId en sesión');
+            return res.status(401).json({ success: false, message: 'Sesión inválida. Inicia sesión de nuevo.' });
+        }
+
         const callLog = await CallLog.create({
             lead: leadId, 
-            calledBy: req.session.userId,
+            calledBy: userId,
             outcome,
             notes: notes || '', 
             callbackDate: callbackDate ? new Date(callbackDate) : null, 
@@ -106,7 +111,6 @@ exports.registrarLlamada = async (req, res) => {
             await Lead.findByIdAndUpdate(leadId, { status: 'contacted' });
         }
         
-        console.log('✅ Call saved successfully');
         res.json({ success: true, outcome });
     } catch (error) {
         console.error('❌ registrarLlamada error:', error);
