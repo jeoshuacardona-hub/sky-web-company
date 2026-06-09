@@ -68,12 +68,18 @@ exports.createUser = async (req, res) => {
         const { fullName, email, username, password, role } = req.body;
         
         if (!fullName || !email || !username || !password) {
-            return res.status(400).json({ message: 'Faltan datos obligatorios' });
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Faltan datos obligatorios (nombre, email, usuario, contraseña)' 
+            });
         }
 
         const existingUser = await User.findOne({ $or: [{ email }, { username }] });
         if (existingUser) {
-            return res.status(400).json({ message: 'El email o usuario ya existe' });
+            return res.status(400).json({ 
+                success: false, 
+                message: 'El email o usuario ya existe' 
+            });
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -90,28 +96,114 @@ exports.createUser = async (req, res) => {
         res.json({ success: true, message: 'Usuario creado exitosamente' });
     } catch (error) {
         console.error('Error creando usuario:', error);
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Error al crear usuario' 
+        });
     }
 };
 
 exports.updateUser = async (req, res) => {
     try {
         const { fullName, email, role } = req.body;
+        
+        // Validar datos requeridos
+        if (!fullName || !email || !role) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Faltan datos obligatorios (nombre, email, rol)' 
+            });
+        }
+        
+        // Verificar que el email no esté en uso por otro usuario
+        const existingUser = await User.findOne({ 
+            email, 
+            _id: { $ne: req.params.id } 
+        });
+        
+        if (existingUser) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'El email ya está en uso por otro usuario' 
+            });
+        }
+        
         await User.findByIdAndUpdate(req.params.id, { 
-            fullName, email, role, 
+            fullName, 
+            email, 
+            role, 
             updatedAt: Date.now() 
         });
-        res.json({ success: true });
+        
+        res.json({ 
+            success: true, 
+            message: 'Usuario actualizado correctamente' 
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error actualizando usuario:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Error al actualizar usuario' 
+        });
+    }
+};
+
+exports.getUserById = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password');
+        
+        if (!user) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Usuario no encontrado' 
+            });
+        }
+        
+        // Obtener estadísticas del usuario
+        user.leadsCount = await Lead.countDocuments({ assignedTo: user._id });
+        user.callsCount = await CallLog.countDocuments({ calledBy: user._id });
+        user.meetingsCount = await Meeting.countDocuments({ createdBy: user._id });
+        
+        res.json({ success: true, user });
+    } catch (error) {
+        console.error('Error obteniendo usuario:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Error al obtener usuario' 
+        });
     }
 };
 
 exports.deleteUser = async (req, res) => {
     try {
+        const user = await User.findById(req.params.id);
+        
+        if (!user) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Usuario no encontrado' 
+            });
+        }
+        
+        // No permitir eliminar admins
+        if (user.role === 'admin') {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'No se puede eliminar un usuario administrador' 
+            });
+        }
+        
         await User.findByIdAndDelete(req.params.id);
-        res.json({ success: true });
+        
+        res.json({ 
+            success: true, 
+            message: 'Usuario eliminado correctamente' 
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error eliminando usuario:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Error al eliminar usuario' 
+        });
     }
 };
