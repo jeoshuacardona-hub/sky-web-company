@@ -9,6 +9,7 @@ router.post('/profile/update', authMiddleware, userController.updateProfile);
 router.post('/profile/change-password', authMiddleware, userController.changePassword);
 
 router.get('/users', authMiddleware, adminOnly, userController.getUsers);
+router.get('/api/users/:id', authMiddleware, adminOnly, userController.getUserById);
 router.post('/api/users/create', authMiddleware, adminOnly, userController.createUser);
 router.post('/api/users/:id/update', authMiddleware, adminOnly, userController.updateUser);
 router.post('/api/users/:id/delete', authMiddleware, adminOnly, userController.deleteUser);

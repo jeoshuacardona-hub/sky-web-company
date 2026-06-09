@@ -2,14 +2,17 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const Customer = require('../models/Customer');
+const Lead = require('../models/Lead');
+const CallLog = require('../models/CallLog');
+const User = require('../models/User');
 
 router.get('/pipeline', authMiddleware, async (req, res) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
         const leadFilter = isAdmin ? {} : { assignedTo: req.session.userId };
-        const customerFilter = isAdmin ? {} : { createdBy: req.session.userId };
+        const customerFilter = isAdmin ? {} : { createdBy: req.session.userId } || { assignedTo: req.session.userId };
         const callFilter = isAdmin ? {} : { calledBy: req.session.userId };
-        const customers = await Customer.find(filter).populate('assignedTo', 'username fullName').sort({ createdAt: -1 });
+        const customers = await Customer.find(customerFilter).populate('assignedTo', 'username fullName').sort({ createdAt: -1 });
         
         const stats = {
             total: customers.length,
@@ -109,15 +112,19 @@ router.post('/api/customers/:id/reminder', authMiddleware, async (req, res) => {
 router.get('/reports', authMiddleware, async (req, res) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
-        const filter = isAdmin ? {} : { assignedTo: req.session.userId };
+        
+        // Definir filtros correctamente
+        const leadFilter = isAdmin ? {} : { assignedTo: req.session.userId };
+        const customerFilter = isAdmin ? {} : { createdBy: req.session.userId };
+        const callFilter = isAdmin ? {} : { calledBy: req.session.userId };
         
         // Stats básicos
-        const totalLeads = await Lead.countDocuments(filter);
+        const totalLeads = await Lead.countDocuments(leadFilter);
         const contactedLeads = await Lead.countDocuments({ ...leadFilter, status: 'contacted' });
         const convertedLeads = await Lead.countDocuments({ ...leadFilter, status: 'converted' });
         const lostLeads = await Lead.countDocuments({ ...leadFilter, status: 'lost' });
         
-        const totalCustomers = await Customer.countDocuments(filter);
+        const totalCustomers = await Customer.countDocuments(customerFilter);
         const wonCustomers = await Customer.countDocuments({ ...customerFilter, status: 'won' });
         const totalValue = await Customer.aggregate([
             { $match: { ...customerFilter, status: 'won' } },
@@ -129,7 +136,8 @@ router.get('/reports', authMiddleware, async (req, res) => {
         const startMonth = new Date();
         startMonth.setDate(1);
         startMonth.setHours(0,0,0,0);
-        const callsThisMonth = await CallLog.countDocuments({ ...callFilter,
+        const callsThisMonth = await CallLog.countDocuments({ 
+            ...callFilter,
             createdAt: { $gte: startMonth }
         });
         
@@ -156,7 +164,17 @@ router.get('/reports', authMiddleware, async (req, res) => {
         console.error('Reports error:', error);
         res.render('pages/reports', {
             title: 'Reportes',
-            stats: {},
+            stats: {
+                totalLeads: 0,
+                contactedLeads: 0,
+                convertedLeads: 0,
+                lostLeads: 0,
+                totalCustomers: 0,
+                wonCustomers: 0,
+                revenue: 0,
+                callsThisMonth: 0,
+                conversionRate: 0
+            },
             isAdmin: false,
             currentUser: req.session.user
         });

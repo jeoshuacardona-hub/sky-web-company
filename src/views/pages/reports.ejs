@@ -178,24 +178,30 @@
 async function loadComisiones() {
   try {
     const res = await fetch('/api/reports/commissions');
-    if (!res.ok) return;
+    if (!res.ok) {
+      document.getElementById('comisionesBody').innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:#dc2626;">Error al cargar datos</td></tr>';
+      return;
+    }
     const data = await res.json();
-    
+
     const tbody = document.getElementById('comisionesBody');
-    if (!data.success || !data.users.length) {
+    if (!data.success || !data.users || !data.users.length) {
       tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:#697a8d;">Sin datos</td></tr>';
       return;
     }
-    
+
     tbody.innerHTML = data.users.map(u => `
       <tr style="border-bottom:1px solid #f0f2f4;">
-        <td style="padding:12px; font-weight:500;"><%= u.fullName || u.username %></td>
-        <td style="padding:12px;"><%= u.calls %></td>
-        <td style="padding:12px;"><%= u.meetings %></td>
-        <td style="padding:12px; color:#16a34a; font-weight:600;">$<%= (u.revenue/1000000).toFixed(1) %>M</td>
+        <td style="padding:12px; font-weight:500;">${u.fullName || u.username}</td>
+        <td style="padding:12px;">${u.calls}</td>
+        <td style="padding:12px;">${u.meetings}</td>
+        <td style="padding:12px; color:#16a34a; font-weight:600;">$${(u.revenue/1000000).toFixed(1)}M</td>
       </tr>
     `).join('');
-  } catch(e) { console.error('Error loading commissions', e); }
+  } catch(e) { 
+    console.error('Error loading commissions', e); 
+    document.getElementById('comisionesBody').innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:#dc2626;">Error de conexión</td></tr>';
+  }
 }
 if (typeof isAdmin !== 'undefined' && isAdmin) loadComisiones();
 </script>
