@@ -322,3 +322,72 @@ async function loadComisiones() {
 document.addEventListener('DOMContentLoaded', loadComisiones);
 <% } %>
 </script>
+
+<!-- FIX: Script mínimo para que el botón PDF funcione -->
+<script>
+// Función ultra-simple para exportar PDF
+function exportarPDFSimple() {
+  // Crear documento básico
+  var doc = new jsPDF();
+  
+  // Título
+  doc.setFontSize(18);
+  doc.text('Sky Web - Reporte', 20, 20);
+  
+  // Fecha
+  doc.setFontSize(11);
+  doc.text('Generado: ' + new Date().toLocaleString('es-CO'), 20, 30);
+  
+  // Línea separadora
+  doc.line(20, 35, 190, 35);
+  
+  // Contenido básico con los datos visibles en pantalla
+  var y = 50;
+  doc.setFontSize(12);
+  
+  // Leer datos de las tarjetas de stats (si existen en el DOM)
+  var stats = document.querySelectorAll('.stat-big-value');
+  var labels = document.querySelectorAll('.stat-big-label');
+  
+  doc.text('Metricas Principales:', 20, y);
+  y += 10;
+  doc.setFontSize(10);
+  
+  for (var i = 0; i < Math.min(stats.length, 4); i++) {
+    if (y > 270) { doc.addPage(); y = 20; }
+    var label = labels[i] ? labels[i].textContent.trim() : 'Dato';
+    var value = stats[i] ? stats[i].textContent.trim() : '0';
+    doc.text(label + ': ' + value, 20, y);
+    y += 7;
+  }
+  
+  // Footer
+  doc.setFontSize(8);
+  doc.setTextColor(100);
+  doc.text('Sky Web - Documento generado automáticamente', 20, 285);
+  
+  // Guardar
+  doc.save('SkyWeb-Reporte-' + new Date().toISOString().slice(0,10) + '.pdf');
+}
+
+// Reemplazar el onclick del botón existente
+var btn = document.getElementById('btnExportPdf');
+if (btn) {
+  btn.onclick = function(e) {
+    e.preventDefault();
+    // Si jsPDF no está cargado, cargarlo primero
+    if (typeof jsPDF === 'undefined') {
+      var script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      script.onload = function() {
+        // Esperar un poco para que jsPDF se inicialice
+        setTimeout(exportarPDFSimple, 500);
+      };
+      document.head.appendChild(script);
+      btn.innerHTML = '<i class="bx bx-loader bx-spin me-1"></i> Cargando...';
+    } else {
+      exportarPDFSimple();
+    }
+  };
+}
+</script>
