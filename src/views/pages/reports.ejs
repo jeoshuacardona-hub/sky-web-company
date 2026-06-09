@@ -12,7 +12,7 @@
     </h2>
     <p style="color:#697a8d; margin:4px 0 0 0; font-size:14px;">Análisis y métricas de rendimiento</p>
   </div>
-  <button class="btn btn-outline-primary" onclick="exportarReporte()">
+  <button class="btn btn-outline-primary" onclick="exportarReportePDF()">
     <i class='bx bx-download me-1'></i> Exportar PDF
   </button>
 </div>
@@ -216,8 +216,133 @@ if (typeof isAdmin !== 'undefined' && isAdmin) {
 }
 
 // Exportar reporte como PDF simple (usando print)
-function exportarReporte() {
-  window.print();
+
+async function exportarReportePDF() {
+  // Cargar jsPDF si no está disponible
+  if (typeof window.jspdf === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    script.onload = exportarReportePDF;
+    document.head.appendChild(script);
+    return;
+  }
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y = 25;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  // Header con branding Sky Web
+  doc.setFillColor(105, 108, 255);
+  doc.rect(0, 0, pageWidth, 30, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Sky Web - Reporte Comercial', pageWidth/2, 18, {align:'center'});
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Generado: ' + new Date().toLocaleString('es-CO'), pageWidth/2, 26, {align:'center'});
+  
+  y = 45;
+  doc.setTextColor(0, 0, 0);
+  
+  // Helper para agregar secciones
+  function addSection(title, lines) {
+    if (y > 260) { doc.addPage(); y = 20; }
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setFillColor(240, 242, 244);
+    doc.rect(15, y-4, pageWidth-30, 10, 'F');
+    doc.text(title, 20, y);
+    y += 12;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    lines.forEach(line => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.text(line, 20, y);
+      y += 5;
+    });
+    y += 4;
+  }
+  
+  // Obtener stats desde EJS (se renderizan en servidor)
+  const stats = {
+    totalLeads: <%= typeof stats !== 'undefined' && stats.totalLeads ? stats.totalLeads : 0 %>,
+    contactedLeads: <%= typeof stats !== 'undefined' && stats.contactedLeads ? stats.contactedLeads : 0 %>,
+    convertedLeads: <%= typeof stats !== 'undefined' && stats.convertedLeads ? stats.convertedLeads : 0 %>,
+    lostLeads: <%= typeof stats !== 'undefined' && stats.lostLeads ? stats.lostLeads : 0 %>,
+    totalCustomers: <%= typeof stats !== 'undefined' && stats.totalCustomers ? stats.totalCustomers : 0 %>,
+    wonCustomers: <%= typeof stats !== 'undefined' && stats.wonCustomers ? stats.wonCustomers : 0 %>,
+    revenue: <%= typeof stats !== 'undefined' && stats.revenue ? stats.revenue : 0 %>,
+    callsThisMonth: <%= typeof stats !== 'undefined' && stats.callsThisMonth ? stats.callsThisMonth : 0 %>,
+    conversionRate: <%= typeof stats !== 'undefined' && stats.conversionRate ? stats.conversionRate : 0 %>
+  };
+  
+  const userName = '<%= typeof currentUser !== "undefined" && currentUser.fullName ? currentUser.fullName : "Administrador" %>';
+  
+  // Sección 1: Resumen Ejecutivo
+  addSection('RESUMEN EJECUTIVO', [
+    'Reporte de rendimiento comercial de Sky Web.',
+    'Periodo: Mes actual | Generado por: ' + userName
+  ]);
+  
+  // Sección 2: Métricas de Leads
+  const contactPct = stats.totalLeads > 0 ? ((stats.contactedLeads/stats.totalLeads*100).toFixed(1)) : 0;
+  addSection('METRICAS DE LEADS', [
+    'Total Leads: ' + stats.totalLeads + ' (clientes potenciales)',
+    'Contactados: ' + stats.contactedLeads + ' (' + contactPct + '% con comunicacion establecida)',
+    'Convertidos: ' + stats.convertedLeads + ' (' + stats.conversionRate + '% tasa de exito)',
+    'Perdidos: ' + stats.lostLeads + ' (no continuaron el proceso)'
+  ]);
+  
+  // Sección 3: Ingresos y Clientes
+  const ticketProm = stats.totalCustomers > 0 ? (stats.revenue/stats.totalCustomers) : 0;
+  addSection('INGRESOS Y CLIENTES', [
+    'Clientes Totales: ' + stats.totalCustomers,
+    'Clientes Ganados: ' + stats.wonCustomers + ' (ventas cerradas exitosamente)',
+    'Ingresos Totales: 
+</script>
+<% } %>
+ + stats.revenue.toLocaleString('es-CO') + ' COP',
+    'Ticket Promedio: 
+</script>
+<% } %>
+ + ticketProm.toLocaleString('es-CO') + ' COP por cliente'
+  ]);
+  
+  // Sección 4: Actividad del Mes
+  addSection('ACTIVIDAD DEL MES', [
+    'Llamadas Realizadas: ' + stats.callsThisMonth,
+    'Tasa de Conversion: ' + stats.conversionRate + '%',
+    'Formula: (Leads Convertidos / Total Leads) x 100'
+  ]);
+  
+  // Sección 5: Recomendaciones
+  addSection('RECOMENDACIONES DE NEGOCIO', [
+    'INTERPRETACION DE CONVERSION:',
+    '  - Mayor a 20%: Rendimiento excelente',
+    '  - Entre 10-20%: Rendimiento aceptable',
+    '  - Menor a 10%: Requiere optimizacion urgente',
+    '',
+    'ACCIONES SUGERIDAS:',
+    '  - Contactar leads nuevos dentro de las primeras 24 horas',
+    '  - Realizar up-selling con clientes ya convertidos',
+    '  - Analizar causas de perdida para mejorar el proceso'
+  ]);
+  
+  // Footer en todas las páginas
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Sky Web - Documento Confidencial - Pagina ' + i + ' de ' + totalPages, pageWidth/2, 290, {align:'center'});
+  }
+  
+  // Guardar archivo PDF
+  const fileName = 'Reporte-SkyWeb-' + new Date().toISOString().slice(0,10) + '.pdf';
+  doc.save(fileName);
 }
+
 </script>
 <% } %>
