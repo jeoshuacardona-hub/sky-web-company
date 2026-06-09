@@ -4,6 +4,8 @@
 .stat-big-value { font-size:42px; font-weight:700; color:#696cff; margin-bottom:8px; }
 .stat-big-label { font-size:13px; color:#697a8d; text-transform:uppercase; letter-spacing:0.5px; }
 </style>
+<div id="report-stats" data-stats='{"totalLeads":"<%= typeof stats !== \"undefined\" && stats.totalLeads ? stats.totalLeads : 0 %>","contactedLeads":"<%= typeof stats !== \"undefined\" && stats.contactedLeads ? stats.contactedLeads : 0 %>","convertedLeads":"<%= typeof stats !== \"undefined\" && stats.convertedLeads ? stats.convertedLeads : 0 %>","lostLeads":"<%= typeof stats !== \"undefined\" && stats.lostLeads ? stats.lostLeads : 0 %>","totalCustomers":"<%= typeof stats !== \"undefined\" && stats.totalCustomers ? stats.totalCustomers : 0 %>","wonCustomers":"<%= typeof stats !== \"undefined\" && stats.wonCustomers ? stats.wonCustomers : 0 %>","revenue":"<%= typeof stats !== \"undefined\" && stats.revenue ? stats.revenue : 0 %>","callsThisMonth":"<%= typeof stats !== \"undefined\" && stats.callsThisMonth ? stats.callsThisMonth : 0 %>","conversionRate":"<%= typeof stats !== \"undefined\" && stats.conversionRate ? stats.conversionRate : 0 %>"}' style="display:none;"></div>
+
 
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
@@ -342,6 +344,116 @@ async function exportarReportePDF() {
   // Guardar archivo PDF
   const fileName = 'Reporte-SkyWeb-' + new Date().toISOString().slice(0,10) + '.pdf';
   doc.save(fileName);
+}
+
+
+
+function exportarReportePDF() {
+  // Si jsPDF no está cargado, cargarlo dinámicamente
+  if (typeof window.jspdf === 'undefined') {
+    var script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    script.onload = exportarReportePDF;
+    document.head.appendChild(script);
+    return;
+  }
+  
+  var doc = new window.jspdf.jsPDF();
+  var y = 25;
+  var pw = doc.internal.pageSize.getWidth();
+  
+  // Header
+  doc.setFillColor(105, 108, 255);
+  doc.rect(0, 0, pw, 30, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Sky Web - Reporte Comercial', pw/2, 18, {align:'center'});
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Generado: ' + new Date().toLocaleString('es-CO'), pw/2, 26, {align:'center'});
+  
+  y = 45;
+  doc.setTextColor(0, 0, 0);
+  
+  // Helper para secciones
+  function sec(titulo, lineas) {
+    if (y > 260) { doc.addPage(); y = 20; }
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setFillColor(240, 242, 244);
+    doc.rect(15, y-4, pw-30, 10, 'F');
+    doc.text(titulo, 20, y);
+    y += 12;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    for (var i = 0; i < lineas.length; i++) {
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.text(lineas[i], 20, y);
+      y += 5;
+    }
+    y += 4;
+  }
+  
+  // Stats: usar variables que EJS ya inyectó en la página
+  // (los valores ya están renderizados en HTML, los leemos de data attributes)
+  var statsEl = document.getElementById('report-stats');
+  var stats = statsEl ? JSON.parse(statsEl.dataset.stats || '{}') : {};
+  
+  var tl = stats.totalLeads || 0;
+  var cl = stats.contactedLeads || 0;
+  var cv = stats.convertedLeads || 0;
+  var ls = stats.lostLeads || 0;
+  var tc = stats.totalCustomers || 0;
+  var wc = stats.wonCustomers || 0;
+  var rv = stats.revenue || 0;
+  var cm = stats.callsThisMonth || 0;
+  var cr = stats.conversionRate || 0;
+  
+  var contactPct = tl > 0 ? (cl/tl*100).toFixed(1) : 0;
+  var ticket = tc > 0 ? (rv/tc).toLocaleString('es-CO') : '0';
+  
+  sec('RESUMEN EJECUTIVO', [
+    'Reporte de rendimiento comercial de Sky Web.',
+    'Periodo: Mes actual'
+  ]);
+  
+  sec('METRICAS DE LEADS', [
+    'Total Leads: ' + tl + ' (clientes potenciales)',
+    'Contactados: ' + cl + ' (' + contactPct + '% con comunicacion)',
+    'Convertidos: ' + cv + ' (' + cr + '% tasa de exito)',
+    'Perdidos: ' + ls + ' (no continuaron)'
+  ]);
+  
+  sec('INGRESOS Y CLIENTES', [
+    'Clientes Totales: ' + tc,
+    'Clientes Ganados: ' + wc + ' (ventas cerradas)',
+    'Ingresos: $' + rv.toLocaleString('es-CO') + ' COP',
+    'Ticket Promedio: $' + ticket + ' COP'
+  ]);
+  
+  sec('ACTIVIDAD DEL MES', [
+    'Llamadas: ' + cm,
+    'Conversion: ' + cr + '% = (Convertidos/Total)*100'
+  ]);
+  
+  sec('RECOMENDACIONES', [
+    '>20% conversion: Excelente | 10-20%: Aceptable | <10%: Optimizar',
+    '- Contactar leads en primeras 24h',
+    '- Up-selling con clientes convertidos',
+    '- Analizar causas de leads perdidos'
+  ]);
+  
+  // Footer
+  var pg = doc.internal.getNumberOfPages();
+  for (var i = 1; i <= pg; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    doc.setTextColor(150);
+    doc.text('Sky Web - Confidencial - Pag ' + i + ' de ' + pg, pw/2, 290, {align:'center'});
+  }
+  
+  doc.save('Reporte-SkyWeb-' + new Date().toISOString().slice(0,10) + '.pdf');
 }
 
 </script>
