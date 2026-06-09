@@ -129,7 +129,8 @@ router.get('/reports', authMiddleware, async (req, res) => {
         const startMonth = new Date();
         startMonth.setDate(1);
         startMonth.setHours(0,0,0,0);
-        const callsThisMonth = await CallLog.countDocuments(filter,
+        const callsThisMonth = await CallLog.countDocuments({ 
+            ...filter,
             createdAt: { $gte: startMonth }
         });
         
