@@ -4,8 +4,6 @@
 .stat-big-value { font-size:42px; font-weight:700; color:#696cff; margin-bottom:8px; }
 .stat-big-label { font-size:13px; color:#697a8d; text-transform:uppercase; letter-spacing:0.5px; }
 </style>
-<div id="report-stats" data-stats='{"totalLeads":"<%= typeof stats !== \"undefined\" && stats.totalLeads ? stats.totalLeads : 0 %>","contactedLeads":"<%= typeof stats !== \"undefined\" && stats.contactedLeads ? stats.contactedLeads : 0 %>","convertedLeads":"<%= typeof stats !== \"undefined\" && stats.convertedLeads ? stats.convertedLeads : 0 %>","lostLeads":"<%= typeof stats !== \"undefined\" && stats.lostLeads ? stats.lostLeads : 0 %>","totalCustomers":"<%= typeof stats !== \"undefined\" && stats.totalCustomers ? stats.totalCustomers : 0 %>","wonCustomers":"<%= typeof stats !== \"undefined\" && stats.wonCustomers ? stats.wonCustomers : 0 %>","revenue":"<%= typeof stats !== \"undefined\" && stats.revenue ? stats.revenue : 0 %>","callsThisMonth":"<%= typeof stats !== \"undefined\" && stats.callsThisMonth ? stats.callsThisMonth : 0 %>","conversionRate":"<%= typeof stats !== \"undefined\" && stats.conversionRate ? stats.conversionRate : 0 %>"}' style="display:none;"></div>
-
 
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
@@ -14,7 +12,7 @@
     </h2>
     <p style="color:#697a8d; margin:4px 0 0 0; font-size:14px;">Análisis y métricas de rendimiento</p>
   </div>
-  <button class="btn btn-outline-primary" onclick="exportarReportePDF()">
+  <button class="btn btn-outline-primary" id="btnExportPdf">
     <i class='bx bx-download me-1'></i> Exportar PDF
   </button>
 </div>
@@ -23,25 +21,25 @@
 <div class="row mb-4">
   <div class="col-md-3 col-sm-6">
     <div class="report-card stat-big">
-      <div class="stat-big-value"><%= typeof stats !== 'undefined' && stats.totalLeads ? stats.totalLeads : 0 %></div>
+      <div class="stat-big-value"><%= stats && stats.totalLeads ? stats.totalLeads : 0 %></div>
       <div class="stat-big-label">Total Leads</div>
     </div>
   </div>
   <div class="col-md-3 col-sm-6">
     <div class="report-card stat-big" style="background:linear-gradient(135deg,#71dd37,#55c92a); color:#fff; border:none;">
-      <div class="stat-big-value" style="color:#fff;"><%= typeof stats !== 'undefined' && stats.convertedLeads ? stats.convertedLeads : 0 %></div>
+      <div class="stat-big-value" style="color:#fff;"><%= stats && stats.convertedLeads ? stats.convertedLeads : 0 %></div>
       <div class="stat-big-label" style="color:rgba(255,255,255,0.9);">Convertidos</div>
     </div>
   </div>
   <div class="col-md-3 col-sm-6">
     <div class="report-card stat-big">
-      <div class="stat-big-value" style="color:#ffab00;"><%= typeof stats !== 'undefined' && stats.conversionRate ? stats.conversionRate : 0 %>%</div>
+      <div class="stat-big-value" style="color:#ffab00;"><%= stats && stats.conversionRate ? stats.conversionRate : 0 %>%</div>
       <div class="stat-big-label">Tasa Conversión</div>
     </div>
   </div>
   <div class="col-md-3 col-sm-6">
     <div class="report-card stat-big">
-      <div class="stat-big-value" style="color:#16a34a;">$<%= typeof stats !== 'undefined' && stats.revenue ? (stats.revenue/1000000).toFixed(1) : '0.0' %>M</div>
+      <div class="stat-big-value" style="color:#16a34a;">$<%= stats && stats.revenue ? (stats.revenue/1000000).toFixed(1) : '0.0' %>M</div>
       <div class="stat-big-label">Ingresos</div>
     </div>
   </div>
@@ -55,11 +53,11 @@
         <i class='bx bx-target-lock me-2'></i>Resumen de Leads
       </h5>
       <% 
-        const s = typeof stats !== 'undefined' ? stats : {};
-        const total = s.totalLeads || 0;
-        const contacted = s.contactedLeads || 0;
-        const converted = s.convertedLeads || 0;
-        const lost = s.lostLeads || 0;
+        var s = stats || {};
+        var total = s.totalLeads || 0;
+        var contacted = s.contactedLeads || 0;
+        var converted = s.convertedLeads || 0;
+        var lost = s.lostLeads || 0;
       %>
       <div class="mb-3">
         <div class="d-flex justify-content-between mb-2">
@@ -158,7 +156,7 @@
   </div>
 </div>
 
-<!-- Desglose por Usuario (Solo Admin) -->
+<!-- Comisiones por Usuario (Solo Admin) -->
 <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
 <div class="report-card mt-4">
   <h5 style="font-weight:700; margin-bottom:16px; color:#566a7f;">
@@ -180,181 +178,29 @@
     </table>
   </div>
 </div>
+<% } %>
 
+<!-- Script seguro para PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-// Cargar comisiones por usuario (solo admin) - FIX: usar JS cliente, no EJS
-async function loadComisiones() {
-  try {
-    const res = await fetch('/api/reports/commissions');
-    if (!res.ok) throw new Error('Error ' + res.status);
-    const data = await res.json();
-    
-    const tbody = document.getElementById('comisionesBody');
-    if (!data.success || !data.users || data.users.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:#697a8d;">Sin datos</td></tr>';
-      return;
-    }
-    
-    // FIX: Usar template literals con datos reales, NO <%= %>
-    tbody.innerHTML = data.users.map(function(u) {
-      var name = u.fullName || u.username || 'Sin nombre';
-      var calls = u.calls || 0;
-      var meetings = u.meetings || 0;
-      var revenue = u.revenue || 0;
-      return '<tr style="border-bottom:1px solid #f0f2f4;">' +
-        '<td style="padding:12px; font-weight:500;">' + name + '</td>' +
-        '<td style="padding:12px;">' + calls + '</td>' +
-        '<td style="padding:12px;">' + meetings + '</td>' +
-        '<td style="padding:12px; color:#16a34a; font-weight:600;">$' + (revenue/1000000).toFixed(1) + 'M</td>' +
-        '</tr>';
-    }).join('');
-  } catch(e) { 
-    console.error('Error loading commissions', e); 
-    document.getElementById('comisionesBody').innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:#ff3e1d;">Error al cargar datos</td></tr>';
-  }
-}
-if (typeof isAdmin !== 'undefined' && isAdmin) {
-  document.addEventListener('DOMContentLoaded', loadComisiones);
-}
+// Datos seguros pasados desde EJS (sin tags dentro de strings JS)
+var reportData = {
+  totalLeads: <%= JSON.stringify(stats && stats.totalLeads || 0) %>,
+  contactedLeads: <%= JSON.stringify(stats && stats.contactedLeads || 0) %>,
+  convertedLeads: <%= JSON.stringify(stats && stats.convertedLeads || 0) %>,
+  lostLeads: <%= JSON.stringify(stats && stats.lostLeads || 0) %>,
+  totalCustomers: <%= JSON.stringify(stats && stats.totalCustomers || 0) %>,
+  wonCustomers: <%= JSON.stringify(stats && stats.wonCustomers || 0) %>,
+  revenue: <%= JSON.stringify(stats && stats.revenue || 0) %>,
+  callsThisMonth: <%= JSON.stringify(stats && stats.callsThisMonth || 0) %>,
+  conversionRate: <%= JSON.stringify(stats && stats.conversionRate || 0) %>,
+  userName: <%= JSON.stringify(currentUser && currentUser.fullName || 'Administrador') %>
+};
 
-// Exportar reporte como PDF simple (usando print)
-
-async function exportarReportePDF() {
-  // Cargar jsPDF si no está disponible
-  if (typeof window.jspdf === 'undefined') {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    script.onload = exportarReportePDF;
-    document.head.appendChild(script);
-    return;
-  }
-  
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  let y = 25;
-  const pageWidth = doc.internal.pageSize.getWidth();
-  
-  // Header con branding Sky Web
-  doc.setFillColor(105, 108, 255);
-  doc.rect(0, 0, pageWidth, 30, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(20);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Sky Web - Reporte Comercial', pageWidth/2, 18, {align:'center'});
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Generado: ' + new Date().toLocaleString('es-CO'), pageWidth/2, 26, {align:'center'});
-  
-  y = 45;
-  doc.setTextColor(0, 0, 0);
-  
-  // Helper para agregar secciones
-  function addSection(title, lines) {
-    if (y > 260) { doc.addPage(); y = 20; }
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.setFillColor(240, 242, 244);
-    doc.rect(15, y-4, pageWidth-30, 10, 'F');
-    doc.text(title, 20, y);
-    y += 12;
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    lines.forEach(line => {
-      if (y > 270) { doc.addPage(); y = 20; }
-      doc.text(line, 20, y);
-      y += 5;
-    });
-    y += 4;
-  }
-  
-  // Obtener stats desde EJS (se renderizan en servidor)
-  const stats = {
-    totalLeads: <%= typeof stats !== 'undefined' && stats.totalLeads ? stats.totalLeads : 0 %>,
-    contactedLeads: <%= typeof stats !== 'undefined' && stats.contactedLeads ? stats.contactedLeads : 0 %>,
-    convertedLeads: <%= typeof stats !== 'undefined' && stats.convertedLeads ? stats.convertedLeads : 0 %>,
-    lostLeads: <%= typeof stats !== 'undefined' && stats.lostLeads ? stats.lostLeads : 0 %>,
-    totalCustomers: <%= typeof stats !== 'undefined' && stats.totalCustomers ? stats.totalCustomers : 0 %>,
-    wonCustomers: <%= typeof stats !== 'undefined' && stats.wonCustomers ? stats.wonCustomers : 0 %>,
-    revenue: <%= typeof stats !== 'undefined' && stats.revenue ? stats.revenue : 0 %>,
-    callsThisMonth: <%= typeof stats !== 'undefined' && stats.callsThisMonth ? stats.callsThisMonth : 0 %>,
-    conversionRate: <%= typeof stats !== 'undefined' && stats.conversionRate ? stats.conversionRate : 0 %>
-  };
-  
-  const userName = '<%= typeof currentUser !== "undefined" && currentUser.fullName ? currentUser.fullName : "Administrador" %>';
-  
-  // Sección 1: Resumen Ejecutivo
-  addSection('RESUMEN EJECUTIVO', [
-    'Reporte de rendimiento comercial de Sky Web.',
-    'Periodo: Mes actual | Generado por: ' + userName
-  ]);
-  
-  // Sección 2: Métricas de Leads
-  const contactPct = stats.totalLeads > 0 ? ((stats.contactedLeads/stats.totalLeads*100).toFixed(1)) : 0;
-  addSection('METRICAS DE LEADS', [
-    'Total Leads: ' + stats.totalLeads + ' (clientes potenciales)',
-    'Contactados: ' + stats.contactedLeads + ' (' + contactPct + '% con comunicacion establecida)',
-    'Convertidos: ' + stats.convertedLeads + ' (' + stats.conversionRate + '% tasa de exito)',
-    'Perdidos: ' + stats.lostLeads + ' (no continuaron el proceso)'
-  ]);
-  
-  // Sección 3: Ingresos y Clientes
-  const ticketProm = stats.totalCustomers > 0 ? (stats.revenue/stats.totalCustomers) : 0;
-  addSection('INGRESOS Y CLIENTES', [
-    'Clientes Totales: ' + stats.totalCustomers,
-    'Clientes Ganados: ' + stats.wonCustomers + ' (ventas cerradas exitosamente)',
-    'Ingresos Totales: 
-</script>
-<% } %>
- + stats.revenue.toLocaleString('es-CO') + ' COP',
-    'Ticket Promedio: 
-</script>
-<% } %>
- + ticketProm.toLocaleString('es-CO') + ' COP por cliente'
-  ]);
-  
-  // Sección 4: Actividad del Mes
-  addSection('ACTIVIDAD DEL MES', [
-    'Llamadas Realizadas: ' + stats.callsThisMonth,
-    'Tasa de Conversion: ' + stats.conversionRate + '%',
-    'Formula: (Leads Convertidos / Total Leads) x 100'
-  ]);
-  
-  // Sección 5: Recomendaciones
-  addSection('RECOMENDACIONES DE NEGOCIO', [
-    'INTERPRETACION DE CONVERSION:',
-    '  - Mayor a 20%: Rendimiento excelente',
-    '  - Entre 10-20%: Rendimiento aceptable',
-    '  - Menor a 10%: Requiere optimizacion urgente',
-    '',
-    'ACCIONES SUGERIDAS:',
-    '  - Contactar leads nuevos dentro de las primeras 24 horas',
-    '  - Realizar up-selling con clientes ya convertidos',
-    '  - Analizar causas de perdida para mejorar el proceso'
-  ]);
-  
-  // Footer en todas las páginas
-  const totalPages = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.text('Sky Web - Documento Confidencial - Pagina ' + i + ' de ' + totalPages, pageWidth/2, 290, {align:'center'});
-  }
-  
-  // Guardar archivo PDF
-  const fileName = 'Reporte-SkyWeb-' + new Date().toISOString().slice(0,10) + '.pdf';
-  doc.save(fileName);
-}
-
-
-
+// Función PDF simple y segura
 function exportarReportePDF() {
-  // Si jsPDF no está cargado, cargarlo dinámicamente
   if (typeof window.jspdf === 'undefined') {
-    var script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    script.onload = exportarReportePDF;
-    document.head.appendChild(script);
+    alert('Cargando librería PDF, inténtalo en 3 segundos...');
     return;
   }
   
@@ -376,7 +222,6 @@ function exportarReportePDF() {
   y = 45;
   doc.setTextColor(0, 0, 0);
   
-  // Helper para secciones
   function sec(titulo, lineas) {
     if (y > 260) { doc.addPage(); y = 20; }
     doc.setFontSize(12);
@@ -395,46 +240,32 @@ function exportarReportePDF() {
     y += 4;
   }
   
-  // Stats: usar variables que EJS ya inyectó en la página
-  // (los valores ya están renderizados en HTML, los leemos de data attributes)
-  var statsEl = document.getElementById('report-stats');
-  var stats = statsEl ? JSON.parse(statsEl.dataset.stats || '{}') : {};
-  
-  var tl = stats.totalLeads || 0;
-  var cl = stats.contactedLeads || 0;
-  var cv = stats.convertedLeads || 0;
-  var ls = stats.lostLeads || 0;
-  var tc = stats.totalCustomers || 0;
-  var wc = stats.wonCustomers || 0;
-  var rv = stats.revenue || 0;
-  var cm = stats.callsThisMonth || 0;
-  var cr = stats.conversionRate || 0;
-  
-  var contactPct = tl > 0 ? (cl/tl*100).toFixed(1) : 0;
-  var ticket = tc > 0 ? (rv/tc).toLocaleString('es-CO') : '0';
+  var d = reportData;
+  var contactPct = d.totalLeads > 0 ? (d.contactedLeads/d.totalLeads*100).toFixed(1) : 0;
+  var ticket = d.totalCustomers > 0 ? (d.revenue/d.totalCustomers).toLocaleString('es-CO') : '0';
   
   sec('RESUMEN EJECUTIVO', [
     'Reporte de rendimiento comercial de Sky Web.',
-    'Periodo: Mes actual'
+    'Periodo: Mes actual | Generado por: ' + d.userName
   ]);
   
   sec('METRICAS DE LEADS', [
-    'Total Leads: ' + tl + ' (clientes potenciales)',
-    'Contactados: ' + cl + ' (' + contactPct + '% con comunicacion)',
-    'Convertidos: ' + cv + ' (' + cr + '% tasa de exito)',
-    'Perdidos: ' + ls + ' (no continuaron)'
+    'Total Leads: ' + d.totalLeads + ' (clientes potenciales)',
+    'Contactados: ' + d.contactedLeads + ' (' + contactPct + '% con comunicacion)',
+    'Convertidos: ' + d.convertedLeads + ' (' + d.conversionRate + '% tasa de exito)',
+    'Perdidos: ' + d.lostLeads + ' (no continuaron)'
   ]);
   
   sec('INGRESOS Y CLIENTES', [
-    'Clientes Totales: ' + tc,
-    'Clientes Ganados: ' + wc + ' (ventas cerradas)',
-    'Ingresos: $' + rv.toLocaleString('es-CO') + ' COP',
+    'Clientes Totales: ' + d.totalCustomers,
+    'Clientes Ganados: ' + d.wonCustomers + ' (ventas cerradas)',
+    'Ingresos: $' + d.revenue.toLocaleString('es-CO') + ' COP',
     'Ticket Promedio: $' + ticket + ' COP'
   ]);
   
   sec('ACTIVIDAD DEL MES', [
-    'Llamadas: ' + cm,
-    'Conversion: ' + cr + '% = (Convertidos/Total)*100'
+    'Llamadas: ' + d.callsThisMonth,
+    'Conversion: ' + d.conversionRate + '% = (Convertidos/Total)*100'
   ]);
   
   sec('RECOMENDACIONES', [
@@ -456,5 +287,38 @@ function exportarReportePDF() {
   doc.save('Reporte-SkyWeb-' + new Date().toISOString().slice(0,10) + '.pdf');
 }
 
-</script>
+// Vincular botón
+document.getElementById('btnExportPdf').addEventListener('click', exportarReportePDF);
+
+// Cargar comisiones (solo admin)
+<% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+async function loadComisiones() {
+  try {
+    var res = await fetch('/api/reports/commissions');
+    if (!res.ok) throw new Error('Error ' + res.status);
+    var data = await res.json();
+    var tbody = document.getElementById('comisionesBody');
+    if (!data.success || !data.users || data.users.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:#697a8d;">Sin datos</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.users.map(function(u) {
+      var name = u.fullName || u.username || 'Sin nombre';
+      var calls = u.calls || 0;
+      var meetings = u.meetings || 0;
+      var revenue = u.revenue || 0;
+      return '<tr style="border-bottom:1px solid #f0f2f4;">' +
+        '<td style="padding:12px; font-weight:500;">' + name + '</td>' +
+        '<td style="padding:12px;">' + calls + '</td>' +
+        '<td style="padding:12px;">' + meetings + '</td>' +
+        '<td style="padding:12px; color:#16a34a; font-weight:600;">$' + (revenue/1000000).toFixed(1) + 'M</td>' +
+        '</tr>';
+    }).join('');
+  } catch(e) {
+    console.error('Error loading commissions', e);
+    document.getElementById('comisionesBody').innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:#ff3e1d;">Error al cargar</td></tr>';
+  }
+}
+document.addEventListener('DOMContentLoaded', loadComisiones);
 <% } %>
+</script>
