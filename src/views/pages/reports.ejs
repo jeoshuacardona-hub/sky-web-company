@@ -3,7 +3,6 @@
 .stat-big { text-align:center; padding:20px; }
 .stat-big-value { font-size:42px; font-weight:700; color:#696cff; margin-bottom:8px; }
 .stat-big-label { font-size:13px; color:#697a8d; text-transform:uppercase; letter-spacing:0.5px; }
-.chart-container { position:relative; height:300px; margin-top:20px; }
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -13,7 +12,7 @@
     </h2>
     <p style="color:#697a8d; margin:4px 0 0 0; font-size:14px;">Análisis y métricas de rendimiento</p>
   </div>
-  <button class="btn btn-outline-primary" onclick="window.print()">
+  <button class="btn btn-outline-primary" onclick="exportarReporte()">
     <i class='bx bx-download me-1'></i> Exportar PDF
   </button>
 </div>
@@ -22,25 +21,25 @@
 <div class="row mb-4">
   <div class="col-md-3 col-sm-6">
     <div class="report-card stat-big">
-      <div class="stat-big-value"><%= stats.totalLeads || 0 %></div>
+      <div class="stat-big-value"><%= typeof stats !== 'undefined' && stats.totalLeads ? stats.totalLeads : 0 %></div>
       <div class="stat-big-label">Total Leads</div>
     </div>
   </div>
   <div class="col-md-3 col-sm-6">
     <div class="report-card stat-big" style="background:linear-gradient(135deg,#71dd37,#55c92a); color:#fff; border:none;">
-      <div class="stat-big-value" style="color:#fff;"><%= stats.convertedLeads || 0 %></div>
+      <div class="stat-big-value" style="color:#fff;"><%= typeof stats !== 'undefined' && stats.convertedLeads ? stats.convertedLeads : 0 %></div>
       <div class="stat-big-label" style="color:rgba(255,255,255,0.9);">Convertidos</div>
     </div>
   </div>
   <div class="col-md-3 col-sm-6">
     <div class="report-card stat-big">
-      <div class="stat-big-value" style="color:#ffab00;"><%= stats.conversionRate || 0 %>%</div>
+      <div class="stat-big-value" style="color:#ffab00;"><%= typeof stats !== 'undefined' && stats.conversionRate ? stats.conversionRate : 0 %>%</div>
       <div class="stat-big-label">Tasa Conversión</div>
     </div>
   </div>
   <div class="col-md-3 col-sm-6">
     <div class="report-card stat-big">
-      <div class="stat-big-value" style="color:#16a34a;">$<%= ((stats.revenue || 0)/1000000).toFixed(1) %>M</div>
+      <div class="stat-big-value" style="color:#16a34a;">$<%= typeof stats !== 'undefined' && stats.revenue ? (stats.revenue/1000000).toFixed(1) : '0.0' %>M</div>
       <div class="stat-big-label">Ingresos</div>
     </div>
   </div>
@@ -53,31 +52,38 @@
       <h5 style="font-weight:700; margin-bottom:20px; color:#566a7f;">
         <i class='bx bx-target-lock me-2'></i>Resumen de Leads
       </h5>
+      <% 
+        const s = typeof stats !== 'undefined' ? stats : {};
+        const total = s.totalLeads || 0;
+        const contacted = s.contactedLeads || 0;
+        const converted = s.convertedLeads || 0;
+        const lost = s.lostLeads || 0;
+      %>
       <div class="mb-3">
         <div class="d-flex justify-content-between mb-2">
           <span style="font-size:13px; color:#697a8d;">Contactados</span>
-          <strong style="color:#566a7f;"><%= stats.contactedLeads || 0 %></strong>
+          <strong style="color:#566a7f;"><%= contacted %></strong>
         </div>
         <div style="background:#f0f2f4; height:8px; border-radius:4px;">
-          <div style="background:#03c3ec; height:100%; border-radius:4px; width:<%= stats.totalLeads > 0 ? (stats.contactedLeads/stats.totalLeads*100) : 0 %>%; transition:width 0.5s;"></div>
+          <div style="background:#03c3ec; height:100%; border-radius:4px; width:<%= total > 0 ? (contacted/total*100) : 0 %>%; transition:width 0.5s;"></div>
         </div>
       </div>
       <div class="mb-3">
         <div class="d-flex justify-content-between mb-2">
           <span style="font-size:13px; color:#697a8d;">Convertidos</span>
-          <strong style="color:#566a7f;"><%= stats.convertedLeads || 0 %></strong>
+          <strong style="color:#566a7f;"><%= converted %></strong>
         </div>
         <div style="background:#f0f2f4; height:8px; border-radius:4px;">
-          <div style="background:#71dd37; height:100%; border-radius:4px; width:<%= stats.totalLeads > 0 ? (stats.convertedLeads/stats.totalLeads*100) : 0 %>%; transition:width 0.5s;"></div>
+          <div style="background:#71dd37; height:100%; border-radius:4px; width:<%= total > 0 ? (converted/total*100) : 0 %>%; transition:width 0.5s;"></div>
         </div>
       </div>
       <div class="mb-3">
         <div class="d-flex justify-content-between mb-2">
           <span style="font-size:13px; color:#697a8d;">Perdidos</span>
-          <strong style="color:#566a7f;"><%= stats.lostLeads || 0 %></strong>
+          <strong style="color:#566a7f;"><%= lost %></strong>
         </div>
         <div style="background:#f0f2f4; height:8px; border-radius:4px;">
-          <div style="background:#ff3e1d; height:100%; border-radius:4px; width:<%= stats.totalLeads > 0 ? (stats.lostLeads/stats.totalLeads*100) : 0 %>%; transition:width 0.5s;"></div>
+          <div style="background:#ff3e1d; height:100%; border-radius:4px; width:<%= total > 0 ? (lost/total*100) : 0 %>%; transition:width 0.5s;"></div>
         </div>
       </div>
     </div>
@@ -91,17 +97,17 @@
       </h5>
       <div class="d-flex justify-content-around text-center">
         <div>
-          <div style="font-size:36px; font-weight:700; color:#696cff; margin-bottom:8px;"><%= stats.callsThisMonth || 0 %></div>
+          <div style="font-size:36px; font-weight:700; color:#696cff; margin-bottom:8px;"><%= s.callsThisMonth || 0 %></div>
           <div style="font-size:12px; color:#697a8d;">Llamadas</div>
         </div>
         <div style="border-left:1px solid #f0f2f4; margin:0 20px;"></div>
         <div>
-          <div style="font-size:36px; font-weight:700; color:#71dd37; margin-bottom:8px;"><%= stats.wonCustomers || 0 %></div>
+          <div style="font-size:36px; font-weight:700; color:#71dd37; margin-bottom:8px;"><%= s.wonCustomers || 0 %></div>
           <div style="font-size:12px; color:#697a8d;">Clientes</div>
         </div>
         <div style="border-left:1px solid #f0f2f4; margin:0 20px;"></div>
         <div>
-          <div style="font-size:36px; font-weight:700; color:#ffab00; margin-bottom:8px;"><%= stats.totalCustomers || 0 %></div>
+          <div style="font-size:36px; font-weight:700; color:#ffab00; margin-bottom:8px;"><%= s.totalCustomers || 0 %></div>
           <div style="font-size:12px; color:#697a8d;">Total</div>
         </div>
       </div>
@@ -118,7 +124,7 @@
     <div class="col-md-3 col-sm-6 mb-3">
       <div style="padding:16px; background:#f8f9fa; border-radius:8px; text-align:center;">
         <div style="font-size:24px; font-weight:700; color:#566a7f; margin-bottom:4px;">
-          <%= stats.totalLeads > 0 ? ((stats.contactedLeads/stats.totalLeads*100).toFixed(0)) : 0 %>%
+          <%= total > 0 ? ((contacted/total*100).toFixed(0)) : 0 %>%
         </div>
         <div style="font-size:11px; color:#697a8d;">Tasa Contacto</div>
       </div>
@@ -126,7 +132,7 @@
     <div class="col-md-3 col-sm-6 mb-3">
       <div style="padding:16px; background:#f8f9fa; border-radius:8px; text-align:center;">
         <div style="font-size:24px; font-weight:700; color:#566a7f; margin-bottom:4px;">
-          $<%= stats.totalCustomers > 0 ? (stats.revenue/stats.totalCustomers).toFixed(0) : 0 %>
+          $<%= (s.totalCustomers || 0) > 0 ? (s.revenue / s.totalCustomers).toFixed(0) : 0 %>
         </div>
         <div style="font-size:11px; color:#697a8d;">Ticket Promedio</div>
       </div>
@@ -134,7 +140,7 @@
     <div class="col-md-3 col-sm-6 mb-3">
       <div style="padding:16px; background:#f8f9fa; border-radius:8px; text-align:center;">
         <div style="font-size:24px; font-weight:700; color:#566a7f; margin-bottom:4px;">
-          <%= stats.wonCustomers || 0 %>
+          <%= s.wonCustomers || 0 %>
         </div>
         <div style="font-size:11px; color:#697a8d;">Clientes Ganados</div>
       </div>
@@ -142,7 +148,7 @@
     <div class="col-md-3 col-sm-6 mb-3">
       <div style="padding:16px; background:#f8f9fa; border-radius:8px; text-align:center;">
         <div style="font-size:24px; font-weight:700; color:#566a7f; margin-bottom:4px;">
-          <%= stats.lostLeads || 0 %>
+          <%= lost %>
         </div>
         <div style="font-size:11px; color:#697a8d;">Leads Perdidos</div>
       </div>
@@ -174,29 +180,44 @@
 </div>
 
 <script>
-// Cargar comisiones por usuario (solo admin)
+// Cargar comisiones por usuario (solo admin) - FIX: usar JS cliente, no EJS
 async function loadComisiones() {
   try {
     const res = await fetch('/api/reports/commissions');
-    if (!res.ok) return;
+    if (!res.ok) throw new Error('Error ' + res.status);
     const data = await res.json();
     
     const tbody = document.getElementById('comisionesBody');
-    if (!data.success || !data.users.length) {
+    if (!data.success || !data.users || data.users.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:#697a8d;">Sin datos</td></tr>';
       return;
     }
     
-    tbody.innerHTML = data.users.map(u => `
-      <tr style="border-bottom:1px solid #f0f2f4;">
-        <td style="padding:12px; font-weight:500;"><%= u.fullName || u.username %></td>
-        <td style="padding:12px;"><%= u.calls %></td>
-        <td style="padding:12px;"><%= u.meetings %></td>
-        <td style="padding:12px; color:#16a34a; font-weight:600;">$<%= (u.revenue/1000000).toFixed(1) %>M</td>
-      </tr>
-    `).join('');
-  } catch(e) { console.error('Error loading commissions', e); }
+    // FIX: Usar template literals con datos reales, NO <%= %>
+    tbody.innerHTML = data.users.map(function(u) {
+      var name = u.fullName || u.username || 'Sin nombre';
+      var calls = u.calls || 0;
+      var meetings = u.meetings || 0;
+      var revenue = u.revenue || 0;
+      return '<tr style="border-bottom:1px solid #f0f2f4;">' +
+        '<td style="padding:12px; font-weight:500;">' + name + '</td>' +
+        '<td style="padding:12px;">' + calls + '</td>' +
+        '<td style="padding:12px;">' + meetings + '</td>' +
+        '<td style="padding:12px; color:#16a34a; font-weight:600;">$' + (revenue/1000000).toFixed(1) + 'M</td>' +
+        '</tr>';
+    }).join('');
+  } catch(e) { 
+    console.error('Error loading commissions', e); 
+    document.getElementById('comisionesBody').innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:#ff3e1d;">Error al cargar datos</td></tr>';
+  }
 }
-if (typeof isAdmin !== 'undefined' && isAdmin) loadComisiones();
+if (typeof isAdmin !== 'undefined' && isAdmin) {
+  document.addEventListener('DOMContentLoaded', loadComisiones);
+}
+
+// Exportar reporte como PDF simple (usando print)
+function exportarReporte() {
+  window.print();
+}
 </script>
 <% } %>
