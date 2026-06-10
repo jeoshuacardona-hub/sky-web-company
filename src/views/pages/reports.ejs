@@ -323,55 +323,117 @@ document.addEventListener('DOMContentLoaded', loadComisiones);
 <% } %>
 </script>
 
-<!-- FIX: Script mínimo para que el botón PDF funcione -->
-<script>
-// Función ultra-simple para exportar PDF
 
 
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-  var btn = document.getElementById("btnExportPdf");
-  if (!btn) return;
-  
-  btn.addEventListener("click", function() {
-    btn.innerHTML = "Generando PDF...";
-    
-    function generar() {
-      var jsPDFLib = window.jspdf ? window.jspdf.jsPDF : window.jsPDF;
-      if (!jsPDFLib) {
-        btn.innerHTML = "Error";
-        alert("Error cargando librería PDF");
-        return;
-      }
-      
-      var doc = new jsPDFLib();
-      doc.text("Sky Web - Reporte", 20, 20);
-      doc.line(20, 25, 190, 25);
-      
-      var items = document.querySelectorAll(".stat-big");
-      var y = 40;
-      items.forEach(function(item) {
-        var lbl = item.querySelector(".stat-big-label");
-        var val = item.querySelector(".stat-big-value");
-        if (lbl && val) {
-           doc.text(lbl.textContent + ": " + val.textContent, 20, y);
-           y += 10;
+(function() {
+    // Función principal de generación
+    function generatePDF() {
+        var btn = document.getElementById('btnExportPdf');
+        if(btn) btn.innerHTML = '<i class="bx bx-loader bx-spin me-1"></i> Generando...';
+
+        // Verificar si la librería está disponible
+        var jsPDF = window.jspdf ? window.jspdf.jsPDF : window.jsPDF;
+        
+        if (!jsPDF) {
+            alert('Error: Librería PDF no cargada. Recarga la página.');
+            if(btn) btn.innerHTML = '<i class="bx bx-download me-1"></i> Exportar PDF';
+            return;
         }
-      });
-      
-      doc.save("Reporte-SkyWeb.pdf");
-      btn.innerHTML = '<i class="bx bx-download me-1"></i> Exportar PDF';
+
+        try {
+            var doc = new jsPDF();
+            
+            // Encabezado
+            doc.setFontSize(18);
+            doc.setTextColor(40, 40, 40);
+            doc.text("Sky Web - Reporte de Rendimiento", 14, 22);
+            
+            doc.setFontSize(11);
+            doc.setTextColor(100, 100, 100);
+            doc.text("Fecha: " + new Date().toLocaleDateString('es-CO'), 14, 30);
+            
+            doc.setDrawColor(200, 200, 200);
+            doc.line(14, 35, 196, 35);
+
+            // Cuerpo: Extraer datos visibles de las tarjetas .stat-big
+            var y = 45;
+            var cards = document.querySelectorAll('.stat-big');
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text("Métricas Principales:", 14, y);
+            y += 10;
+
+            cards.forEach(function(card, index) {
+                if (y > 270) { doc.addPage(); y = 20; } // Nueva página si se acaba espacio
+                
+                var label = card.querySelector('.stat-big-label');
+                var value = card.querySelector('.stat-big-value');
+                
+                if (label && value) {
+                    var labelText = label.textContent.trim();
+                    var valueText = value.textContent.trim();
+                    
+                    doc.setFont("helvetica", "normal");
+                    doc.text("- " + labelText + ": ", 14, y);
+                    
+                    doc.setFont("helvetica", "bold");
+                    doc.text(valueText, 60, y);
+                    
+                    y += 8;
+                }
+            });
+
+            // Pie de página
+            var pageCount = doc.internal.getNumberOfPages();
+            for(var i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(150);
+                doc.text('Sky Web - Documento Confidencial - Página ' + i + ' de ' + pageCount, 105, 290, null, null, "center");
+            }
+
+            // Guardar
+            doc.save('Reporte-SkyWeb-' + Date.now() + '.pdf');
+            
+            // Restaurar botón
+            if(btn) btn.innerHTML = '<i class="bx bx-download me-1"></i> Exportar PDF';
+
+        } catch (e) {
+            console.error(e);
+            alert('Hubo un error generando el PDF: ' + e.message);
+            if(btn) btn.innerHTML = '<i class="bx bx-download me-1"></i> Exportar PDF';
+        }
     }
-    
-    if (window.jspdf) {
-      generar();
-    } else {
-      var s = document.createElement("script");
-      s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-      s.onload = function() { generar(); };
-      document.head.appendChild(s);
-    }
-  });
-});
+
+    // Inicialización segura al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.getElementById('btnExportPdf');
+        if (!btn) return;
+
+        btn.onclick = function(e) {
+            e.preventDefault();
+            
+            // Si ya está cargado, generar
+            if (window.jspdf && window.jspdf.jsPDF) {
+                generatePDF();
+            } else {
+                // Si no, cargar dinámicamente y luego generar
+                btn.innerHTML = '<i class="bx bx-loader bx-spin me-1"></i> Cargando...';
+                var script = document.createElement('script');
+                script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+                script.onload = function() {
+                    setTimeout(generatePDF, 500); // Pequeña pausa para asegurar inicialización
+                };
+                script.onerror = function() {
+                    btn.innerHTML = '<i class="bx bx-x me-1"></i> Error';
+                    alert('No se pudo conectar con el servidor de librerías PDF.');
+                };
+                document.head.appendChild(script);
+            }
+        };
+    });
+})();
 </script>
