@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const Customer = require('../models/Customer');
+const CallLog = require('../models/CallLog');
+const Lead = require('../models/Lead');
 
 router.get('/pipeline', authMiddleware, async (req, res) => {
     try {
