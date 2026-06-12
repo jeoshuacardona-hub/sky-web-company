@@ -36,7 +36,7 @@ exports.getLlamadas = async (req, res, next) => {
         });
     } catch (error) { 
         console.error('getLlamadas error:', error);
-        res.status(500).json({ success: false, message: error.message }); 
+        next(error); // Dejar que Express maneje el error con vista de error 
     }
 };
 
@@ -61,7 +61,7 @@ exports.getStats = async (req, res, next) => {
         res.json({ success: true, stats: { totalNew, callsToday, scheduledToday } });
     } catch (error) { 
         console.error('getStats error:', error);
-        res.status(500).json({ success: false, message: error.message }); 
+        next(error); // Dejar que Express maneje el error con vista de error 
     }
 };
 
@@ -84,7 +84,7 @@ exports.getSeguimiento = async (req, res, next) => {
         });
     } catch (error) { 
         console.error('getSeguimiento error:', error);
-        res.status(500).json({ success: false, message: error.message }); 
+        next(error); // Dejar que Express maneje el error con vista de error 
     }
 };
 
@@ -93,6 +93,16 @@ exports.registrarLlamada = async (req, res) => {
         const { leadId, outcome, notes, callbackDate, rejectionReason, value } = req.body;
         
         if (!leadId || !outcome) {
+        return res.status(400).json({ success: false, message: 'Faltan datos requeridos' });
+    }
+    // Validar fecha futura para callback
+    if (outcome === 'callback' && callbackDate) {
+        const cbDate = new Date(callbackDate);
+        const today = new Date(); today.setHours(0,0,0,0);
+        if (cbDate < today) {
+            return res.status(400).json({ success: false, message: 'La fecha de rellamada debe ser hoy o futura' });
+        }
+    }
             return res.status(400).json({ success: false, message: 'Faltan datos requeridos' });
         }
         
@@ -121,7 +131,7 @@ exports.registrarLlamada = async (req, res) => {
                 customer = await Customer.create({
                     name: lead.name, email: lead.email || '', phone: lead.phone || '',
                     company: lead.company || '', city: lead.city || '', status: 'prospect',
-                    value: value ? parseInt(value) : 0, notes: notes || lead.notes || '', source: 'llamada_agendada'
+                    value: value && !isNaN(parseFloat(value)) ? parseFloat(value) : 0, notes: notes || lead.notes || '', source: 'llamada_agendada'
                 });
             } else {
                 await Customer.findByIdAndUpdate(customer._id, { status: 'prospect', value: value ? parseInt(value) : customer.value });
@@ -136,7 +146,7 @@ exports.registrarLlamada = async (req, res) => {
         res.json({ success: true, outcome });
     } catch (error) {
         console.error('registrarLlamada error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        next(error); // Dejar que Express maneje el error con vista de error
     }
 };
 
@@ -149,7 +159,7 @@ exports.resolverSeguimiento = async (req, res, next) => {
         res.json({ success: true });
     } catch (error) { 
         console.error('resolverSeguimiento error:', error);
-        res.status(500).json({ success: false, message: error.message }); 
+        next(error); // Dejar que Express maneje el error con vista de error 
     }
 };
 
@@ -163,7 +173,7 @@ exports.actualizarEstadoPipeline = async (req, res, next) => {
         res.json({ success: true });
     } catch (error) { 
         console.error('actualizarEstadoPipeline error:', error);
-        res.status(500).json({ success: false, message: error.message }); 
+        next(error); // Dejar que Express maneje el error con vista de error 
     }
 };
 
@@ -181,6 +191,6 @@ exports.eliminarDelPipeline = async (req, res, next) => {
         res.json({ success: true, message: 'Cliente eliminado.' });
     } catch (error) { 
         console.error('eliminarDelPipeline error:', error);
-        res.status(500).json({ success: false, message: error.message }); 
+        next(error); // Dejar que Express maneje el error con vista de error 
     }
 };
