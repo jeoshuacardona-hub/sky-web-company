@@ -187,7 +187,7 @@ exports.actualizarEstadoPipeline = async (req, res, next) => {
         // Validar estado
         const validStatuses = ['prospect', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost'];
         if (!validStatuses.includes(status)) {
-            return res.status(400).json({ success: false, message: 'Estado inválido: ' + status });
+            return res.status(400).json({ success: false, message: 'Estado invalido: ' + status });
         }
         
         const customer = await Customer.findById(customerId);
@@ -196,12 +196,15 @@ exports.actualizarEstadoPipeline = async (req, res, next) => {
         }
         
         // Actualizar estado
-        const updateData = { status };
+        const updateData = { status: status };
         
         // Agregar notas si existen
         if (notes) {
-            updateData.notes = customer.notes ? customer.notes + '
-' + notes : notes;
+            if (customer.notes) {
+                updateData.notes = customer.notes + String.fromCharCode(10) + notes;
+            } else {
+                updateData.notes = notes;
+            }
         }
         
         // Si se marca como ganado, registrar fecha
