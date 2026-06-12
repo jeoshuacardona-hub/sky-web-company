@@ -7,41 +7,68 @@ const bcrypt = require('bcrypt');
 exports.getProfile = async (req, res, next) => {
     try {
         const user = await User.findById(req.session.userId).select('-password');
-        res.render('pages/profile', { title: 'Mi Perfil', user, currentUser: req.session.user });
+        res.render('pages/profile', { 
+            title: 'Mi Perfil', 
+            user, 
+            currentUser: req.session.user,
+            success: req.query.success || null,
+            error: req.query.error || null
+        });
     } catch (error) {
+        console.error('getProfile error:', error);
         next(error);
     }
 };
 
 exports.updateProfile = async (req, res) => {
     try {
-        const { fullName, email, phone, bio, avatar } = req.body;
+        const { fullName, email, phone, bio, avatar, department } = req.body;
         await User.findByIdAndUpdate(req.session.userId, { 
-            fullName, email, phone, bio, avatar, 
+            fullName, 
+            email, 
+            phone, 
+            bio, 
+            avatar, 
+            department,
             updatedAt: Date.now() 
         });
-        res.redirect('/profile');
+        res.redirect('/profile?success=profile_updated');
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('updateProfile error:', error);
+        res.redirect('/profile?error=update_failed');
     }
 };
 
 exports.changePassword = async (req, res) => {
     try {
-        const { currentPassword, newPassword } = req.body;
-        const user = await User.findById(req.session.userId);
+        const { currentPassword, newPassword, confirmPassword } = req.body;
         
-        if (!await bcrypt.compare(currentPassword, user.password)) {
-            return res.status(400).json({ message: 'Contraseña actual incorrecta' });
+        // Validar que las contraseñas coincidan
+        if (newPassword !== confirmPassword) {
+            return res.redirect('/profile?error=password_mismatch');
         }
         
+        // Validar longitud mínima
+        if (newPassword.length < 6) {
+            return res.redirect('/profile?error=password_weak');
+        }
+        
+        const user = await User.findById(req.session.userId);
+        
+        // Verificar contraseña actual
+        if (!await bcrypt.compare(currentPassword, user.password)) {
+            return res.redirect('/profile?error=password_incorrect');
+        }
+        
+        // Hashear nueva contraseña
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(newPassword, salt);
         await user.save();
         
-        res.json({ success: true, message: 'Contraseña actualizada' });
+        res.redirect('/profile?success=password_changed');
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('changePassword error:', error);
+        res.redirect('/profile?error=password_change_failed');
     }
 };
 
