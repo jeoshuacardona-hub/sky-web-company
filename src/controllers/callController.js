@@ -181,16 +181,37 @@ exports.resolverSeguimiento = async (req, res, next) => {
 
 exports.actualizarEstadoPipeline = async (req, res, next) => {
     try {
-        const { customerId, status, notes } = req.body;
+        const { status, notes } = req.body;
+        const customerId = req.params.customerId;
+        
+        // Validar estado
+        const validStatuses = ['prospect', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ success: false, message: 'Estado inválido: ' + status });
+        }
+        
         const customer = await Customer.findById(customerId);
-        if (!customer) return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
-        await Customer.findByIdAndUpdate(customerId, { 
-            status, 
-            notes: notes ? (customer.notes ? customer.notes + '\n' + notes : notes) : customer.notes 
-        });
-        if (status === 'closed_won') await Customer.findByIdAndUpdate(customerId, { closedDate: new Date() });
+        if (!customer) {
+            return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+        }
+        
+        // Actualizar estado
+        const updateData = { status };
+        
+        // Agregar notas si existen
+        if (notes) {
+            updateData.notes = customer.notes ? customer.notes + '
+' + notes : notes;
+        }
+        
+        // Si se marca como ganado, registrar fecha
+        if (status === 'closed_won') {
+            updateData.closedDate = new Date();
+        }
+        
+        await Customer.findByIdAndUpdate(customerId, updateData);
         res.json({ success: true });
-    } catch (error) { 
+    } catch (error) {
         console.error('actualizarEstadoPipeline error:', error);
         next(error);
     }
