@@ -13,6 +13,7 @@
 .outcome-option.selected-callback { border-color:#f59e0b!important; background:#fef3c7!important; }
 .outcome-option.selected-rejected { border-color:#dc2626!important; background:#fee2e2!important; }
 .outcome-option.selected-no_answer { border-color:#6b7280!important; background:#f3f4f6!important; }
+.outcome-option.selected-interested { border-color:#6366f1!important; background:#eef2ff!important; }
 .progress-bar-wrap { background:#f3f4f6; border-radius:20px; height:8px; width:100%; overflow:hidden; }
 .progress-bar-fill { height:8px; border-radius:20px; background:linear-gradient(90deg,#6366f1,#8b5cf6); transition:width 0.4s ease; }
 </style>
@@ -44,7 +45,7 @@ function getColor(s){ var h=0; for(var i=0;i<(s||'').length;i++) h=s.charCodeAt(
 <div id="currentBatch"></div>
 
 <script>
-var allLeads = <%- JSON.stringify(leads.map(function(l){ return { id: l._id, name: l.name, phone: l.phone || '', email: l.email || '', company: l.company || '', status: l.status }; })) %>;
+var allLeads = <%- JSON.stringify(leads.map(function(l){ return { id: l._id, name: l.name, phone: l.phone || '', email: l.email || '', company: l.company || '', notes: l.notes || '', status: l.status }; })) %>;
 var BATCH_SIZE = 10, batchStart = 0, currentBatch = [], completedInBatch = 0, selectedOutcome = null, activeLeadId = null;
 
 function getColor(s){ var m=['#6366f1','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#ef4444'],h=0; for(var i=0;i<(s||'').length;i++) h=s.charCodeAt(i)+((h<<5)-h); return m[Math.abs(h)%m.length]; }
@@ -110,10 +111,11 @@ async function submitLlamada(){
   var btn=document.getElementById('submitCallBtn'); btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> Guardando...';
   try{
     var res=await fetch('/api/llamadas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({leadId:document.getElementById('callLeadId').value,outcome:selectedOutcome,notes:document.getElementById('callNotes').value,value:document.getElementById('callValue').value,callbackDate:document.getElementById('callCallbackDate').value,rejectionReason:document.getElementById('callRejectionReason').value})});
-    if(!res.ok) throw new Error("Error del servidor (" + res.status + ")");
-    if(!res.ok)throw new Error("Error "+res.status);var ct=res.headers.get("content-type");if(!ct||!ct.includes("application/json"))throw new Error("Sesión expirada. Recarga la página.");var data=await res.json(); var el=document.getElementById('callResult');
+    var ct=res.headers.get("content-type");if(!ct||!ct.includes("application/json"))throw new Error("Sesión expirada. Recarga la página.");
+    var data=await res.json(); var el=document.getElementById('callResult');
+    if(!res.ok) throw new Error(data.message || ("Error del servidor (" + res.status + ")"));
     if(data.success){
-      var msgs={scheduled:'Reunión agendada.',callback:'Programado seguimiento.',rejected:'Marcado no interesado.',no_answer:'Llamada registrada.'};
+      var msgs={scheduled:'Reunión agendada.',callback:'Programado seguimiento.',rejected:'Marcado no interesado.',interested:'Interés registrado para seguimiento.',no_answer:'Llamada registrada.'};
       el.innerHTML='<div style="background:#dcfce7;border-radius:10px;padding:12px;font-size:13px;font-weight:600;color:#166534;margin-top:12px;"><i class="bx bx-check-circle me-1"></i>'+(msgs[data.outcome]||'Guardado.')+'</div>';
       el.style.display='block';
       var lid=activeLeadId;
@@ -158,4 +160,3 @@ loadNextBatch();
     <div class="modal-footer border-0 px-4 pb-4 pt-2"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button id="submitCallBtn" class="btn btn-primary px-4" onclick="submitLlamada()" disabled><i class="bx bx-check me-1"></i> Guardar</button></div>
   </div></div>
 </div>
-

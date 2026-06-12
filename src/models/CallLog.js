@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const callLogSchema = new mongoose.Schema({
     lead: { type: mongoose.Schema.Types.ObjectId, ref: 'Lead', required: true },
     calledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    outcome: { type: String, enum: ['scheduled', 'callback', 'rejected', 'no_answer'], required: true },
+    outcome: { type: String, enum: ['scheduled', 'callback', 'rejected', 'no_answer', 'interested'], required: true },
     notes: { type: String, default: '' },
     callbackDate: { type: Date, default: null },
     rejectionReason: { type: String, default: '' },
