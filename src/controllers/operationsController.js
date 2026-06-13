@@ -160,7 +160,6 @@ exports.messages = async (req, res, next) => {
         messages.forEach(msg => {
             const otherUserId = msg.sender.toString() === userId ? msg.receiver.toString() : msg.sender.toString();
             
-            // Evitar procesar el mismo usuario múltiples veces
             if (!processedUsers.has(otherUserId)) {
                 processedUsers.add(otherUserId);
                 conversations[otherUserId] = {
@@ -169,18 +168,17 @@ exports.messages = async (req, res, next) => {
                 };
             }
             
-            // Agregar mensaje a la conversación
             conversations[otherUserId].messages.push(msg);
             
-            // Contar no leídos
             if (msg.receiver.toString() === userId && !msg.read) {
                 conversations[otherUserId].unread++;
             }
         });
         
-        // Obtener usuarios únicos (excluyendo al usuario actual)
+        // SOLO mostrar administradores en la lista de usuarios
         const users = await User.find({ 
-            _id: { $ne: userId }
+            _id: { $ne: userId },
+            role: 'admin'
         }).select('fullName username email').lean();
         
         // Eliminar duplicados por username/fullName
