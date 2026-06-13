@@ -69,7 +69,7 @@ exports.tickets = async (req, res, next) => {
     }
 };
 
-exports.createTicket = async (req, res) => {
+exports.createTicket = async (req, res, next) => {
     try {
         const { title, description, category, priority, clientName, clientContact, assignedTo } = req.body;
         
@@ -95,7 +95,7 @@ exports.createTicket = async (req, res) => {
     }
 };
 
-exports.respondTicket = async (req, res) => {
+exports.respondTicket = async (req, res, next) => {
     try {
         const { message, isInternal } = req.body;
         const ticket = await Ticket.findById(req.params.id);
@@ -122,7 +122,7 @@ exports.respondTicket = async (req, res) => {
     }
 };
 
-exports.updateTicketStatus = async (req, res) => {
+exports.updateTicketStatus = async (req, res, next) => {
     try {
         const { status } = req.body;
         const ticket = await Ticket.findById(req.params.id);
@@ -212,7 +212,7 @@ exports.messages = async (req, res, next) => {
     }
 };
 
-exports.sendMessage = async (req, res) => {
+exports.sendMessage = async (req, res, next) => {
     try {
         const { receiver, message } = req.body;
         
@@ -297,7 +297,7 @@ exports.tasks = async (req, res, next) => {
     }
 };
 
-exports.createTask = async (req, res) => {
+exports.createTask = async (req, res, next) => {
     try {
         const { title, description, assignedTo, priority, dueDate, relatedLead } = req.body;
         
@@ -322,7 +322,7 @@ exports.createTask = async (req, res) => {
     }
 };
 
-exports.updateTaskStatus = async (req, res) => {
+exports.updateTaskStatus = async (req, res, next) => {
     try {
         const { status } = req.body;
         const task = await Task.findById(req.params.id);
@@ -342,7 +342,7 @@ exports.updateTaskStatus = async (req, res) => {
     }
 };
 
-exports.deleteTask = async (req, res) => {
+exports.deleteTask = async (req, res, next) => {
     try {
         const task = await Task.findById(req.params.id);
         if (!task) {
