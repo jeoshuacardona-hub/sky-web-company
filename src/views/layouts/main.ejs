@@ -48,11 +48,11 @@
             
             <!-- Back Office Submenu -->
             <li class="menu-item <%= typeof title !== 'undefined' && (title==='Back Office' || title==='Tickets' || title==='Mensajes' || title==='Tareas') ? 'active open' : '' %>">
-              <a href="javascript:void(0);" class="menu-link menu-toggle">
+              <a href="javascript:void(0);" class="menu-link menu-toggle" onclick="var li=this.closest('.menu-item');var sub=li.querySelector('.menu-sub');if(sub.style.display==='none'||!sub.style.display){sub.style.display='block';li.classList.add('open');}else{sub.style.display='none';li.classList.remove('open');}return false;">
                 <i class='menu-icon tf-icons bx bx-briefcase-alt'></i>
                 <div>Back Office</div>
               </a>
-              <ul class="menu-sub">
+              <ul class="menu-sub" style="display: <%= typeof title !== 'undefined' && (title==='Back Office' || title==='Tickets' || title==='Mensajes' || title==='Tareas') ? 'block' : 'none' %>;">
                 <li class="menu-item <%= typeof title !== 'undefined' && title==='Back Office' ? 'active' : '' %>">
                   <a href="/operaciones" class="menu-link">
                     <div>Dashboard</div>
