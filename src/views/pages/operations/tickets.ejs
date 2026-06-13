@@ -1,0 +1,224 @@
+<style>
+.ticket-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 24px 32px; color: #fff; margin-bottom: 24px; }
+.ticket-header h1 { margin: 0 0 8px 0; font-size: 28px; font-weight: 700; }
+.ticket-filters { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.ticket-filter-btn { padding: 8px 16px; border-radius: 8px; border: 2px solid #e2e8f0; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+.ticket-filter-btn.active { background: #667eea; color: #fff; border-color: #667eea; }
+.ticket-list { display: flex; flex-direction: column; gap: 16px; }
+.ticket-card { background: #fff; border-radius: 12px; padding: 20px; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.2s; }
+.ticket-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.ticket-card.priority-urgente { border-left-color: #ef4444; }
+.ticket-card.priority-alta { border-left-color: #f59e0b; }
+.ticket-card.priority-media { border-left-color: #3b82f6; }
+.ticket-card.priority-baja { border-left-color: #22c55e; }
+.ticket-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.ticket-number { font-size: 12px; font-weight: 700; color: #667eea; background: #f0f0ff; padding: 4px 10px; border-radius: 6px; }
+.ticket-title { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+.ticket-meta { display: flex; gap: 16px; font-size: 12px; color: #64748b; margin-bottom: 12px; flex-wrap: wrap; }
+.ticket-meta-item { display: flex; align-items: center; gap: 4px; }
+.ticket-actions { display: flex; gap: 8px; margin-top: 12px; }
+.btn-ticket { padding: 6px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.btn-ticket:hover { transform: scale(1.05); }
+.btn-respond { background: #dbeafe; color: #3b82f6; }
+.btn-close { background: #dcfce7; color: #22c55e; }
+.status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+.status-abierto { background: #dbeafe; color: #3b82f6; }
+.status-en_proceso { background: #fef3c7; color: #f59e0b; }
+.status-resuelto { background: #dcfce7; color: #22c55e; }
+.status-cerrado { background: #f1f5f9; color: #64748b; }
+</style>
+
+<div class="ticket-header">
+  <h1>🎫 Gestión de Tickets</h1>
+  <p>Incidencias y consultas de clientes</p>
+</div>
+
+<button class="btn btn-primary mb-4" onclick="openNewTicketModal()">
+  <i class='bx bx-plus'></i> Nuevo Ticket
+</button>
+
+<div class="ticket-filters">
+  <button class="ticket-filter-btn active" onclick="filterTickets('todos')">Todos</button>
+  <button class="ticket-filter-btn" onclick="filterTickets('abierto')">Abiertos</button>
+  <button class="ticket-filter-btn" onclick="filterTickets('en_proceso')">En Proceso</button>
+  <button class="ticket-filter-btn" onclick="filterTickets('urgente')">Urgentes</button>
+</div>
+
+<div class="ticket-list" id="ticketList">
+  <% if (tickets && tickets.length > 0) { %>
+    <% tickets.forEach(ticket => { %>
+      <div class="ticket-card priority-<%= ticket.priority %>" data-status="<%= ticket.status %>">
+        <div class="ticket-top">
+          <span class="ticket-number"><%= ticket.ticketNumber %></span>
+          <span class="status-badge status-<%= ticket.status %>">
+            <%= ticket.status === 'en_proceso' ? 'En Proceso' : ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1) %>
+          </span>
+        </div>
+        <div class="ticket-title"><%= ticket.title %></div>
+        <div class="ticket-meta">
+          <div class="ticket-meta-item"><i class='bx bx-user'></i> <%= ticket.clientName %></div>
+          <div class="ticket-meta-item"><i class='bx bx-category'></i> <%= ticket.category %></div>
+          <div class="ticket-meta-item"><i class='bx bx-time'></i> <%= new Date(ticket.createdAt).toLocaleDateString('es-CO') %></div>
+          <% if (ticket.assignedTo) { %>
+            <div class="ticket-meta-item"><i class='bx bx-user-check'></i> <%= ticket.assignedTo.fullName || ticket.assignedTo.username %></div>
+          <% } %>
+        </div>
+        <div class="ticket-actions">
+          <button class="btn-ticket btn-respond" onclick="respondTicket('<%= ticket._id %>')">Responder</button>
+          <% if (ticket.status !== 'cerrado') { %>
+            <button class="btn-ticket btn-close" onclick="closeTicket('<%= ticket._id %>')">Cerrar</button>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <div style="text-align: center; padding: 60px 20px; color: #64748b;">
+      <i class='bx bx-ticket' style="font-size: 48px; opacity: 0.3;"></i>
+      <p style="margin-top: 16px;">No hay tickets registrados</p>
+    </div>
+  <% } %>
+</div>
+
+<!-- Modal Nuevo Ticket -->
+<div id="newTicketModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:99999; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:16px; width:90%; max-width:600px; padding:24px; position:relative;">
+    <button onclick="document.getElementById('newTicketModal').style.display='none'" style="position:absolute; top:16px; right:16px; background:#f0f2f4; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:18px;">×</button>
+    <h3 style="margin:0 0 20px 0; font-size:20px; font-weight:700;">Nuevo Ticket</h3>
+    <form id="ticketForm" onsubmit="createTicket(event)">
+      <div style="margin-bottom:16px;">
+        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Título *</label>
+        <input type="text" id="ticketTitle" required style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Cliente *</label>
+        <input type="text" id="ticketClient" required style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Descripción *</label>
+        <textarea id="ticketDescription" required rows="4" style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;"></textarea>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+        <div>
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Categoría</label>
+          <select id="ticketCategory" style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
+            <option value="consulta">Consulta</option>
+            <option value="tecnico">Técnico</option>
+            <option value="facturacion">Facturación</option>
+            <option value="acceso">Acceso</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Prioridad</label>
+          <select id="ticketPriority" style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
+            <option value="baja">Baja</option>
+            <option value="media" selected>Media</option>
+            <option value="alta">Alta</option>
+            <option value="urgente">Urgente</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Asignar a</label>
+        <select id="ticketAssigned" style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
+          <option value="">Sin asignar</option>
+          <% users.forEach(u => { %>
+            <option value="<%= u._id %>"><%= u.fullName || u.username %></option>
+          <% }) %>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Crear Ticket</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function openNewTicketModal() {
+  document.getElementById('newTicketModal').style.display = 'flex';
+}
+
+async function createTicket(e) {
+  e.preventDefault();
+  const data = {
+    title: document.getElementById('ticketTitle').value,
+    clientName: document.getElementById('ticketClient').value,
+    description: document.getElementById('ticketDescription').value,
+    category: document.getElementById('ticketCategory').value,
+    priority: document.getElementById('ticketPriority').value,
+    assignedTo: document.getElementById('ticketAssigned').value || null
+  };
+  
+  try {
+    const res = await fetch('/api/tickets', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      location.reload();
+    } else {
+      alert('Error: ' + result.message);
+    }
+  } catch(err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+async function respondTicket(id) {
+  const message = prompt('Respuesta:');
+  if (!message) return;
+  
+  try {
+    const res = await fetch('/api/tickets/' + id + '/respond', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ message })
+    });
+    const result = await res.json();
+    if (result.success) {
+      location.reload();
+    } else {
+      alert('Error: ' + result.message);
+    }
+  } catch(err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+async function closeTicket(id) {
+  if (!confirm('¿Cerrar este ticket?')) return;
+  
+  try {
+    const res = await fetch('/api/tickets/' + id + '/status', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ status: 'cerrado' })
+    });
+    const result = await res.json();
+    if (result.success) {
+      location.reload();
+    } else {
+      alert('Error: ' + result.message);
+    }
+  } catch(err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+function filterTickets(filter) {
+  document.querySelectorAll('.ticket-filter-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  const cards = document.querySelectorAll('.ticket-card');
+  cards.forEach(card => {
+    if (filter === 'todos') {
+      card.style.display = 'block';
+    } else if (filter === 'urgente') {
+      card.style.display = card.classList.contains('priority-urgente') ? 'block' : 'none';
+    } else {
+      card.style.display = card.dataset.status === filter ? 'block' : 'none';
+    }
+  });
+}
+</script>

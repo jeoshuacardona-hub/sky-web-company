@@ -40,6 +40,7 @@ const businessRoutes = require('./routes/businessRoutes');
 const userRoutes = require('./routes/userRoutes');
 const debugRoutes = require('./routes/debugRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
+const operationsRoutes = require('./routes/operationsRoutes');
 
 // RUTA RAÍZ - Redirige a dashboard
 app.get('/', (req, res) => {
