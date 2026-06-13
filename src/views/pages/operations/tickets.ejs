@@ -5,8 +5,8 @@
 .ticket-filter-btn { padding: 8px 16px; border-radius: 8px; border: 2px solid #e2e8f0; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
 .ticket-filter-btn.active { background: #667eea; color: #fff; border-color: #667eea; }
 .ticket-list { display: flex; flex-direction: column; gap: 16px; }
-.ticket-card { background: #fff; border-radius: 12px; padding: 20px; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.2s; }
-.ticket-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.ticket-card { background: #fff; border-radius: 12px; padding: 20px; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.2s; cursor: pointer; }
+.ticket-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-2px); }
 .ticket-card.priority-urgente { border-left-color: #ef4444; }
 .ticket-card.priority-alta { border-left-color: #f59e0b; }
 .ticket-card.priority-media { border-left-color: #3b82f6; }
@@ -14,18 +14,32 @@
 .ticket-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
 .ticket-number { font-size: 12px; font-weight: 700; color: #667eea; background: #f0f0ff; padding: 4px 10px; border-radius: 6px; }
 .ticket-title { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+.ticket-description { font-size: 13px; color: #64748b; margin-bottom: 12px; line-height: 1.5; }
 .ticket-meta { display: flex; gap: 16px; font-size: 12px; color: #64748b; margin-bottom: 12px; flex-wrap: wrap; }
 .ticket-meta-item { display: flex; align-items: center; gap: 4px; }
-.ticket-actions { display: flex; gap: 8px; margin-top: 12px; }
-.btn-ticket { padding: 6px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.ticket-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.btn-ticket { padding: 8px 14px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
 .btn-ticket:hover { transform: scale(1.05); }
 .btn-respond { background: #dbeafe; color: #3b82f6; }
 .btn-close { background: #dcfce7; color: #22c55e; }
+.btn-reopen { background: #fef3c7; color: #f59e0b; }
 .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
 .status-abierto { background: #dbeafe; color: #3b82f6; }
 .status-en_proceso { background: #fef3c7; color: #f59e0b; }
 .status-resuelto { background: #dcfce7; color: #22c55e; }
 .status-cerrado { background: #f1f5f9; color: #64748b; }
+.responses-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
+.response-item { background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #667eea; }
+.response-meta { font-size: 11px; color: #64748b; margin-bottom: 4px; }
+.response-message { font-size: 13px; color: #1e293b; }
+/* Modal */
+.modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:99999; align-items:center; justify-content:center; padding: 20px; }
+.modal-content { background:#fff; border-radius:16px; width:100%; max-width:700px; max-height:90vh; overflow-y:auto; padding:24px; position:relative; }
+.modal-close { position:absolute; top:16px; right:16px; background:#f0f2f4; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; color:#697a8d; }
+.modal-close:hover { background:#e2e8f0; }
+.form-label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#1e293b; }
+.form-input { width:100%; padding:10px 12px; border:1px solid #d9dee3; border-radius:8px; font-size:14px; }
+.form-input:focus { outline:none; border-color:#667eea; }
 </style>
 
 <div class="ticket-header">
@@ -38,16 +52,18 @@
 </button>
 
 <div class="ticket-filters">
-  <button class="ticket-filter-btn active" onclick="filterTickets('todos')">Todos</button>
-  <button class="ticket-filter-btn" onclick="filterTickets('abierto')">Abiertos</button>
-  <button class="ticket-filter-btn" onclick="filterTickets('en_proceso')">En Proceso</button>
-  <button class="ticket-filter-btn" onclick="filterTickets('urgente')">Urgentes</button>
+  <button class="ticket-filter-btn active" onclick="filterTickets('todos', this)">Todos</button>
+  <button class="ticket-filter-btn" onclick="filterTickets('abierto', this)">Abiertos</button>
+  <button class="ticket-filter-btn" onclick="filterTickets('en_proceso', this)">En Proceso</button>
+  <button class="ticket-filter-btn" onclick="filterTickets('resuelto', this)">Resueltos</button>
+  <button class="ticket-filter-btn" onclick="filterTickets('cerrado', this)">Cerrados</button>
+  <button class="ticket-filter-btn" onclick="filterTickets('urgente', this)">🔴 Urgentes</button>
 </div>
 
 <div class="ticket-list" id="ticketList">
   <% if (tickets && tickets.length > 0) { %>
     <% tickets.forEach(ticket => { %>
-      <div class="ticket-card priority-<%= ticket.priority %>" data-status="<%= ticket.status %>">
+      <div class="ticket-card priority-<%= ticket.priority %>" data-status="<%= ticket.status %>" data-priority="<%= ticket.priority %>" onclick="openTicketDetail('<%= ticket._id %>')">
         <div class="ticket-top">
           <span class="ticket-number"><%= ticket.ticketNumber %></span>
           <span class="status-badge status-<%= ticket.status %>">
@@ -55,6 +71,7 @@
           </span>
         </div>
         <div class="ticket-title"><%= ticket.title %></div>
+        <div class="ticket-description"><%= ticket.description.length > 150 ? ticket.description.substring(0,150) + '...' : ticket.description %></div>
         <div class="ticket-meta">
           <div class="ticket-meta-item"><i class='bx bx-user'></i> <%= ticket.clientName %></div>
           <div class="ticket-meta-item"><i class='bx bx-category'></i> <%= ticket.category %></div>
@@ -62,73 +79,103 @@
           <% if (ticket.assignedTo) { %>
             <div class="ticket-meta-item"><i class='bx bx-user-check'></i> <%= ticket.assignedTo.fullName || ticket.assignedTo.username %></div>
           <% } %>
+          <div class="ticket-meta-item"><i class='bx bx-message-square-detail'></i> <%= ticket.responses.length %> respuestas</div>
         </div>
-        <div class="ticket-actions">
-          <button class="btn-ticket btn-respond" onclick="respondTicket('<%= ticket._id %>')">Responder</button>
+        <div class="ticket-actions" onclick="event.stopPropagation()">
+          <button class="btn-ticket btn-respond" onclick="openRespondModal('<%= ticket._id %>')">💬 Responder</button>
           <% if (ticket.status !== 'cerrado') { %>
-            <button class="btn-ticket btn-close" onclick="closeTicket('<%= ticket._id %>')">Cerrar</button>
+            <button class="btn-ticket btn-close" onclick="changeTicketStatus('<%= ticket._id %>', 'cerrado')">✓ Cerrar</button>
+          <% } else { %>
+            <button class="btn-ticket btn-reopen" onclick="changeTicketStatus('<%= ticket._id %>', 'abierto')">↻ Reabrir</button>
           <% } %>
         </div>
       </div>
     <% }) %>
   <% } else { %>
     <div style="text-align: center; padding: 60px 20px; color: #64748b;">
-      <i class='bx bx-ticket' style="font-size: 48px; opacity: 0.3;"></i>
-      <p style="margin-top: 16px;">No hay tickets registrados</p>
+      <i class='bx bx-ticket' style="font-size: 64px; opacity: 0.3; display:block; margin-bottom:16px;"></i>
+      <p style="font-size:16px; font-weight:600;">No hay tickets registrados</p>
+      <p style="font-size:13px;">Crea el primer ticket con el botón de arriba</p>
     </div>
   <% } %>
 </div>
 
 <!-- Modal Nuevo Ticket -->
-<div id="newTicketModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:99999; align-items:center; justify-content:center;">
-  <div style="background:#fff; border-radius:16px; width:90%; max-width:600px; padding:24px; position:relative;">
-    <button onclick="document.getElementById('newTicketModal').style.display='none'" style="position:absolute; top:16px; right:16px; background:#f0f2f4; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:18px;">×</button>
-    <h3 style="margin:0 0 20px 0; font-size:20px; font-weight:700;">Nuevo Ticket</h3>
+<div id="newTicketModal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('newTicketModal')">×</button>
+    <h3 style="margin:0 0 20px 0; font-size:20px; font-weight:700;">🎫 Nuevo Ticket</h3>
     <form id="ticketForm" onsubmit="createTicket(event)">
       <div style="margin-bottom:16px;">
-        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Título *</label>
-        <input type="text" id="ticketTitle" required style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
+        <label class="form-label">Título *</label>
+        <input type="text" id="ticketTitle" required class="form-input" placeholder="Ej: Cliente no puede acceder al sistema">
       </div>
       <div style="margin-bottom:16px;">
-        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Cliente *</label>
-        <input type="text" id="ticketClient" required style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
+        <label class="form-label">Cliente *</label>
+        <input type="text" id="ticketClient" required class="form-input" placeholder="Nombre del cliente o empresa">
       </div>
       <div style="margin-bottom:16px;">
-        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Descripción *</label>
-        <textarea id="ticketDescription" required rows="4" style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;"></textarea>
+        <label class="form-label">Contacto del Cliente</label>
+        <input type="text" id="ticketContact" class="form-input" placeholder="Email o teléfono">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label class="form-label">Descripción *</label>
+        <textarea id="ticketDescription" required rows="4" class="form-input" placeholder="Describe el problema o consulta en detalle..."></textarea>
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
         <div>
-          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Categoría</label>
-          <select id="ticketCategory" style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
-            <option value="consulta">Consulta</option>
-            <option value="tecnico">Técnico</option>
-            <option value="facturacion">Facturación</option>
-            <option value="acceso">Acceso</option>
-            <option value="otro">Otro</option>
+          <label class="form-label">Categoría</label>
+          <select id="ticketCategory" class="form-input">
+            <option value="consulta">📋 Consulta</option>
+            <option value="tecnico">🔧 Técnico</option>
+            <option value="facturacion">💰 Facturación</option>
+            <option value="acceso">🔑 Acceso</option>
+            <option value="otro">📌 Otro</option>
           </select>
         </div>
         <div>
-          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Prioridad</label>
-          <select id="ticketPriority" style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
-            <option value="baja">Baja</option>
-            <option value="media" selected>Media</option>
-            <option value="alta">Alta</option>
-            <option value="urgente">Urgente</option>
+          <label class="form-label">Prioridad</label>
+          <select id="ticketPriority" class="form-input">
+            <option value="baja">🟢 Baja</option>
+            <option value="media" selected>🔵 Media</option>
+            <option value="alta">🟠 Alta</option>
+            <option value="urgente">🔴 Urgente</option>
           </select>
         </div>
       </div>
       <div style="margin-bottom:16px;">
-        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Asignar a</label>
-        <select id="ticketAssigned" style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
+        <label class="form-label">Asignar a</label>
+        <select id="ticketAssigned" class="form-input">
           <option value="">Sin asignar</option>
           <% users.forEach(u => { %>
             <option value="<%= u._id %>"><%= u.fullName || u.username %></option>
           <% }) %>
         </select>
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">Crear Ticket</button>
+      <button type="submit" class="btn btn-primary" style="width:100%; padding:12px;">🎫 Crear Ticket</button>
     </form>
+  </div>
+</div>
+
+<!-- Modal Responder Ticket -->
+<div id="respondModal" class="modal-overlay">
+  <div class="modal-content" style="max-width:500px;">
+    <button class="modal-close" onclick="closeModal('respondModal')">×</button>
+    <h3 style="margin:0 0 20px 0; font-size:20px; font-weight:700;">💬 Responder Ticket</h3>
+    <input type="hidden" id="respondTicketId">
+    <div style="margin-bottom:16px;">
+      <label class="form-label">Tu respuesta</label>
+      <textarea id="respondMessage" rows="5" class="form-input" placeholder="Escribe tu respuesta..."></textarea>
+    </div>
+    <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="submitResponse()">📤 Enviar Respuesta</button>
+  </div>
+</div>
+
+<!-- Modal Detalle Ticket -->
+<div id="detailModal" class="modal-overlay">
+  <div class="modal-content" id="detailContent">
+    <button class="modal-close" onclick="closeModal('detailModal')">×</button>
+    <div style="text-align:center; padding:40px; color:#64748b;">Cargando...</div>
   </div>
 </div>
 
@@ -137,11 +184,40 @@ function openNewTicketModal() {
   document.getElementById('newTicketModal').style.display = 'flex';
 }
 
+function openRespondModal(ticketId) {
+  document.getElementById('respondTicketId').value = ticketId;
+  document.getElementById('respondMessage').value = '';
+  document.getElementById('respondModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('respondMessage').focus(), 100);
+}
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+// Cerrar modales con ESC o click fuera
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+  }
+});
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+  });
+});
+
 async function createTicket(e) {
   e.preventDefault();
-  const data = {
+  var btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = 'Creando...';
+  
+  var data = {
     title: document.getElementById('ticketTitle').value,
     clientName: document.getElementById('ticketClient').value,
+    clientContact: document.getElementById('ticketContact').value,
     description: document.getElementById('ticketDescription').value,
     category: document.getElementById('ticketCategory').value,
     priority: document.getElementById('ticketPriority').value,
@@ -149,33 +225,42 @@ async function createTicket(e) {
   };
   
   try {
-    const res = await fetch('/api/tickets', {
+    var res = await fetch('/api/tickets', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
     });
-    const result = await res.json();
+    var result = await res.json();
     if (result.success) {
       location.reload();
     } else {
       alert('Error: ' + result.message);
+      btn.disabled = false;
+      btn.textContent = '🎫 Crear Ticket';
     }
   } catch(err) {
     alert('Error: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = '🎫 Crear Ticket';
   }
 }
 
-async function respondTicket(id) {
-  const message = prompt('Respuesta:');
-  if (!message) return;
+async function submitResponse() {
+  var ticketId = document.getElementById('respondTicketId').value;
+  var message = document.getElementById('respondMessage').value.trim();
+  
+  if (!message) {
+    alert('Escribe una respuesta');
+    return;
+  }
   
   try {
-    const res = await fetch('/api/tickets/' + id + '/respond', {
+    var res = await fetch('/api/tickets/' + ticketId + '/respond', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ message })
+      body: JSON.stringify({ message: message })
     });
-    const result = await res.json();
+    var result = await res.json();
     if (result.success) {
       location.reload();
     } else {
@@ -186,16 +271,17 @@ async function respondTicket(id) {
   }
 }
 
-async function closeTicket(id) {
-  if (!confirm('¿Cerrar este ticket?')) return;
+async function changeTicketStatus(id, status) {
+  var labels = {abierto:'Abrir', en_proceso:'En Proceso', resuelto:'Resolver', cerrado:'Cerrar'};
+  if (!confirm('¿' + (labels[status] || status) + ' este ticket?')) return;
   
   try {
-    const res = await fetch('/api/tickets/' + id + '/status', {
+    var res = await fetch('/api/tickets/' + id + '/status', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ status: 'cerrado' })
+      body: JSON.stringify({ status: status })
     });
-    const result = await res.json();
+    var result = await res.json();
     if (result.success) {
       location.reload();
     } else {
@@ -206,19 +292,65 @@ async function closeTicket(id) {
   }
 }
 
-function filterTickets(filter) {
-  document.querySelectorAll('.ticket-filter-btn').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
+async function openTicketDetail(id) {
+  document.getElementById('detailModal').style.display = 'flex';
+  var content = document.getElementById('detailContent');
+  content.innerHTML = '<button class="modal-close" onclick="closeModal(\'detailModal\')">×</button><div style="text-align:center; padding:40px; color:#64748b;">Cargando...</div>';
   
-  const cards = document.querySelectorAll('.ticket-card');
+  // Buscar el ticket en la página actual
+  var card = document.querySelector('[onclick*="' + id + '"]');
+  if (!card) return;
+  
+  // Mostrar info básica (podría mejorarse con API)
+  var number = card.querySelector('.ticket-number').textContent;
+  var title = card.querySelector('.ticket-title').textContent;
+  var desc = card.querySelector('.ticket-description').textContent;
+  
+  content.innerHTML = `
+    <button class="modal-close" onclick="closeModal('detailModal')">×</button>
+    <div style="margin-bottom:16px;">
+      <span class="ticket-number">${number}</span>
+    </div>
+    <h2 style="margin:0 0 16px 0; font-size:22px; font-weight:700;">${escapeHtml(title)}</h2>
+    <div style="background:#f8fafc; padding:16px; border-radius:8px; margin-bottom:16px;">
+      <strong style="font-size:13px; color:#64748b; display:block; margin-bottom:8px;">DESCRIPCIÓN:</strong>
+      <p style="margin:0; font-size:14px; line-height:1.6;">${escapeHtml(desc)}</p>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn-ticket btn-respond" onclick="closeModal('detailModal'); openRespondModal('${id}')">💬 Responder</button>
+      <button class="btn-ticket btn-close" onclick="closeModal('detailModal'); changeTicketStatus('${id}', 'cerrado')">✓ Cerrar</button>
+    </div>
+  `;
+}
+
+function filterTickets(filter, btn) {
+  document.querySelectorAll('.ticket-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  
+  var cards = document.querySelectorAll('.ticket-card');
   cards.forEach(card => {
     if (filter === 'todos') {
       card.style.display = 'block';
     } else if (filter === 'urgente') {
-      card.style.display = card.classList.contains('priority-urgente') ? 'block' : 'none';
+      card.style.display = card.dataset.priority === 'urgente' ? 'block' : 'none';
     } else {
       card.style.display = card.dataset.status === filter ? 'block' : 'none';
     }
   });
 }
+
+function escapeHtml(str) {
+  if (!str) return '';
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// Auto-abrir modal si viene con ?new=1
+window.addEventListener('load', function() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('new') === '1') {
+    openNewTicketModal();
+  }
+});
 </script>

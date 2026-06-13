@@ -1,17 +1,40 @@
 <style>
 .task-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 24px 32px; color: #fff; margin-bottom: 24px; }
 .task-header h1 { margin: 0 0 8px 0; font-size: 28px; font-weight: 700; }
+.task-filters { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.task-filter-btn { padding: 8px 16px; border-radius: 8px; border: 2px solid #e2e8f0; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+.task-filter-btn.active { background: #667eea; color: #fff; border-color: #667eea; }
 .task-list { display: flex; flex-direction: column; gap: 16px; }
-.task-card { background: #fff; border-radius: 12px; padding: 20px; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.task-card { background: #fff; border-radius: 12px; padding: 20px; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.2s; }
+.task-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
 .task-card.priority-alta { border-left-color: #ef4444; }
 .task-card.priority-media { border-left-color: #f59e0b; }
 .task-card.priority-baja { border-left-color: #22c55e; }
+.task-card.status-completada { opacity: 0.6; }
 .task-title { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+.task-card.status-completada .task-title { text-decoration: line-through; }
 .task-meta { display: flex; gap: 16px; font-size: 12px; color: #64748b; margin-bottom: 12px; flex-wrap: wrap; }
-.task-actions { display: flex; gap: 8px; margin-top: 12px; }
-.btn-task { padding: 6px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; }
+.task-meta-item { display: flex; align-items: center; gap: 4px; }
+.task-meta-item.overdue { color: #ef4444; font-weight: 600; }
+.task-description { font-size: 13px; color: #64748b; margin: 8px 0; line-height: 1.5; }
+.task-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.btn-task { padding: 8px 14px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.btn-task:hover { transform: scale(1.05); }
 .btn-complete { background: #dcfce7; color: #22c55e; }
 .btn-progress { background: #dbeafe; color: #3b82f6; }
+.btn-delete { background: #fee2e2; color: #ef4444; }
+.status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+.status-pendiente { background: #dbeafe; color: #3b82f6; }
+.status-en_proceso { background: #fef3c7; color: #f59e0b; }
+.status-completada { background: #dcfce7; color: #22c55e; }
+/* Modal */
+.modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:99999; align-items:center; justify-content:center; padding: 20px; }
+.modal-content { background:#fff; border-radius:16px; width:100%; max-width:600px; max-height:90vh; overflow-y:auto; padding:24px; position:relative; }
+.modal-close { position:absolute; top:16px; right:16px; background:#f0f2f4; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; color:#697a8d; }
+.modal-close:hover { background:#e2e8f0; }
+.form-label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#1e293b; }
+.form-input { width:100%; padding:10px 12px; border:1px solid #d9dee3; border-radius:8px; font-size:14px; }
+.form-input:focus { outline:none; border-color:#667eea; }
 </style>
 
 <div class="task-header">
@@ -23,75 +46,100 @@
   <i class='bx bx-plus'></i> Nueva Tarea
 </button>
 
-<div class="task-list">
+<div class="task-filters">
+  <button class="task-filter-btn active" onclick="filterTasks('todos', this)">Todas</button>
+  <button class="task-filter-btn" onclick="filterTasks('pendiente', this)">Pendientes</button>
+  <button class="task-filter-btn" onclick="filterTasks('en_proceso', this)">En Proceso</button>
+  <button class="task-filter-btn" onclick="filterTasks('completada', this)">Completadas</button>
+</div>
+
+<div class="task-list" id="taskList">
   <% if (tasks && tasks.length > 0) { %>
-    <% tasks.forEach(task => { %>
-      <div class="task-card priority-<%= task.priority %>">
-        <div class="task-title"><%= task.title %></div>
+    <% tasks.forEach(task => { 
+      var isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completada';
+    %>
+      <div class="task-card priority-<%= task.priority %> status-<%= task.status %>" data-status="<%= task.status %>">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div class="task-title"><%= task.title %></div>
+          <span class="status-badge status-<%= task.status %>">
+            <%= task.status === 'en_proceso' ? 'En Proceso' : task.status.charAt(0).toUpperCase() + task.status.slice(1) %>
+          </span>
+        </div>
         <div class="task-meta">
-          <div><i class='bx bx-user'></i> <%= task.assignedTo.fullName || task.assignedTo.username %></div>
-          <div><i class='bx bx-time'></i> <%= task.dueDate ? new Date(task.dueDate).toLocaleDateString('es-CO') : 'Sin fecha' %></div>
-          <div><i class='bx bx-flag'></i> <%= task.priority %></div>
-          <div><i class='bx bx-check-circle'></i> <%= task.status %></div>
+          <div class="task-meta-item"><i class='bx bx-user'></i> <%= task.assignedTo.fullName || task.assignedTo.username %></div>
+          <div class="task-meta-item <%= isOverdue ? 'overdue' : '' %>">
+            <i class='bx bx-time'></i> 
+            <%= task.dueDate ? new Date(task.dueDate).toLocaleDateString('es-CO') : 'Sin fecha' %>
+            <% if (isOverdue) { %> <i class='bx bx-error' style="color:#ef4444;"></i><% } %>
+          </div>
+          <div class="task-meta-item"><i class='bx bx-flag'></i> <%= task.priority %></div>
+          <div class="task-meta-item"><i class='bx bx-user-plus'></i> Creada por: <%= task.createdBy.fullName || task.createdBy.username %></div>
+          <% if (task.relatedLead) { %>
+            <div class="task-meta-item"><i class='bx bx-link'></i> Lead: <%= task.relatedLead.name %></div>
+          <% } %>
         </div>
         <% if (task.description) { %>
-          <p style="font-size:13px; color:#64748b; margin:8px 0;"><%= task.description %></p>
+          <div class="task-description"><%= task.description %></div>
         <% } %>
         <div class="task-actions">
-          <% if (task.status !== 'completada') { %>
-            <button class="btn-task btn-complete" onclick="completeTask('<%= task._id %>')">Completar</button>
-          <% } %>
           <% if (task.status === 'pendiente') { %>
-            <button class="btn-task btn-progress" onclick="startTask('<%= task._id %>')">Iniciar</button>
+            <button class="btn-task btn-progress" onclick="updateTaskStatus('<%= task._id %>', 'en_proceso')">▶ Iniciar</button>
+            <button class="btn-task btn-complete" onclick="updateTaskStatus('<%= task._id %>', 'completada')">✓ Completar</button>
+          <% } else if (task.status === 'en_proceso') { %>
+            <button class="btn-task btn-complete" onclick="updateTaskStatus('<%= task._id %>', 'completada')">✓ Completar</button>
+          <% } else { %>
+            <button class="btn-task btn-progress" onclick="updateTaskStatus('<%= task._id %>', 'pendiente')">↻ Reabrir</button>
           <% } %>
+          <button class="btn-task btn-delete" onclick="deleteTask('<%= task._id %>')">🗑 Eliminar</button>
         </div>
       </div>
     <% }) %>
   <% } else { %>
     <div style="text-align:center; padding:60px 20px; color:#64748b;">
-      <i class='bx bx-task' style="font-size:48px; opacity:0.3;"></i>
-      <p style="margin-top:16px;">No hay tareas registradas</p>
+      <i class='bx bx-task' style="font-size:64px; opacity:0.3; display:block; margin-bottom:16px;"></i>
+      <p style="font-size:16px; font-weight:600;">No hay tareas registradas</p>
+      <p style="font-size:13px;">Crea la primera tarea con el botón de arriba</p>
     </div>
   <% } %>
 </div>
 
 <!-- Modal Nueva Tarea -->
-<div id="newTaskModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:99999; align-items:center; justify-content:center;">
-  <div style="background:#fff; border-radius:16px; width:90%; max-width:600px; padding:24px; position:relative;">
-    <button onclick="document.getElementById('newTaskModal').style.display='none'" style="position:absolute; top:16px; right:16px; background:#f0f2f4; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:18px;">×</button>
-    <h3 style="margin:0 0 20px 0; font-size:20px; font-weight:700;">Nueva Tarea</h3>
+<div id="newTaskModal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('newTaskModal')">×</button>
+    <h3 style="margin:0 0 20px 0; font-size:20px; font-weight:700;">✅ Nueva Tarea</h3>
     <form id="taskForm" onsubmit="createTask(event)">
       <div style="margin-bottom:16px;">
-        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Título *</label>
-        <input type="text" id="taskTitle" required style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
+        <label class="form-label">Título *</label>
+        <input type="text" id="taskTitle" required class="form-input" placeholder="Ej: Llamar a cliente XYZ">
       </div>
       <div style="margin-bottom:16px;">
-        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Descripción</label>
-        <textarea id="taskDescription" rows="3" style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;"></textarea>
+        <label class="form-label">Descripción</label>
+        <textarea id="taskDescription" rows="3" class="form-input" placeholder="Detalles de la tarea..."></textarea>
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
         <div>
-          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Asignar a *</label>
-          <select id="taskAssigned" required style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
+          <label class="form-label">Asignar a *</label>
+          <select id="taskAssigned" required class="form-input">
             <% users.forEach(u => { %>
               <option value="<%= u._id %>"><%= u.fullName || u.username %></option>
             <% }) %>
           </select>
         </div>
         <div>
-          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Fecha límite</label>
-          <input type="date" id="taskDueDate" style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
+          <label class="form-label">Fecha límite</label>
+          <input type="date" id="taskDueDate" class="form-input">
         </div>
       </div>
       <div style="margin-bottom:16px;">
-        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Prioridad</label>
-        <select id="taskPriority" style="width:100%; padding:10px; border:1px solid #d9dee3; border-radius:8px;">
-          <option value="baja">Baja</option>
-          <option value="media" selected>Media</option>
-          <option value="alta">Alta</option>
+        <label class="form-label">Prioridad</label>
+        <select id="taskPriority" class="form-input">
+          <option value="baja">🟢 Baja</option>
+          <option value="media" selected>🔵 Media</option>
+          <option value="alta">🔴 Alta</option>
         </select>
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">Crear Tarea</button>
+      <button type="submit" class="btn btn-primary" style="width:100%; padding:12px;">✅ Crear Tarea</button>
     </form>
   </div>
 </div>
@@ -101,9 +149,29 @@ function openNewTaskModal() {
   document.getElementById('newTaskModal').style.display = 'flex';
 }
 
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+  }
+});
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+  });
+});
+
 async function createTask(e) {
   e.preventDefault();
-  const data = {
+  var btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = 'Creando...';
+  
+  var data = {
     title: document.getElementById('taskTitle').value,
     description: document.getElementById('taskDescription').value,
     assignedTo: document.getElementById('taskAssigned').value,
@@ -112,39 +180,34 @@ async function createTask(e) {
   };
   
   try {
-    const res = await fetch('/api/tasks', {
+    var res = await fetch('/api/tasks', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
     });
-    const result = await res.json();
+    var result = await res.json();
     if (result.success) {
       location.reload();
     } else {
       alert('Error: ' + result.message);
+      btn.disabled = false;
+      btn.textContent = '✅ Crear Tarea';
     }
   } catch(err) {
     alert('Error: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = '✅ Crear Tarea';
   }
-}
-
-async function completeTask(id) {
-  if (!confirm('¿Marcar como completada?')) return;
-  await updateTaskStatus(id, 'completada');
-}
-
-async function startTask(id) {
-  await updateTaskStatus(id, 'en_proceso');
 }
 
 async function updateTaskStatus(id, status) {
   try {
-    const res = await fetch('/api/tasks/' + id + '/status', {
+    var res = await fetch('/api/tasks/' + id + '/status', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ status })
+      body: JSON.stringify({ status: status })
     });
-    const result = await res.json();
+    var result = await res.json();
     if (result.success) {
       location.reload();
     } else {
@@ -154,4 +217,44 @@ async function updateTaskStatus(id, status) {
     alert('Error: ' + err.message);
   }
 }
+
+async function deleteTask(id) {
+  if (!confirm('¿Eliminar esta tarea permanentemente?')) return;
+  
+  try {
+    var res = await fetch('/api/tasks/' + id, {
+      method: 'DELETE'
+    });
+    var result = await res.json();
+    if (result.success) {
+      location.reload();
+    } else {
+      alert('Error: ' + result.message);
+    }
+  } catch(err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+function filterTasks(filter, btn) {
+  document.querySelectorAll('.task-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  
+  var cards = document.querySelectorAll('.task-card');
+  cards.forEach(card => {
+    if (filter === 'todos') {
+      card.style.display = 'block';
+    } else {
+      card.style.display = card.dataset.status === filter ? 'block' : 'none';
+    }
+  });
+}
+
+// Auto-abrir modal si viene con ?new=1
+window.addEventListener('load', function() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('new') === '1') {
+    openNewTaskModal();
+  }
+});
 </script>

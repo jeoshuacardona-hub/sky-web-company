@@ -26,7 +26,7 @@ exports.dashboard = async (req, res, next) => {
             dueDate: { $lt: new Date() }
         });
         
-        res.render('pages/operations', {
+        res.render('pages/operations/index', {
             title: 'Back Office',
             stats: {
                 openTickets,
@@ -298,6 +298,20 @@ exports.updateTaskStatus = async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('updateTaskStatus error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.deleteTask = async (req, res) => {
+    try {
+        const task = await Task.findById(req.params.id);
+        if (!task) {
+            return res.status(404).json({ success: false, message: 'Tarea no encontrada' });
+        }
+        await Task.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('deleteTask error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

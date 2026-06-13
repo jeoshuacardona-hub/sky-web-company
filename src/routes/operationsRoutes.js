@@ -20,6 +20,7 @@ router.get('/api/messages/:userId', authMiddleware, operationsController.getConv
 // Tareas
 router.get('/operaciones/tareas', authMiddleware, operationsController.tasks);
 router.post('/api/tasks', authMiddleware, operationsController.createTask);
+router.delete('/api/tasks/:id', authMiddleware, operationsController.deleteTask);
 router.post('/api/tasks/:id/status', authMiddleware, operationsController.updateTaskStatus);
 
 module.exports = router;

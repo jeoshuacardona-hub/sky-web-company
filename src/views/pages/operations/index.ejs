@@ -1,30 +1,39 @@
 <style>
-.ops-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 32px; color: #fff; margin-bottom: 32px; }
-.ops-header h1 { margin: 0 0 8px 0; font-size: 32px; font-weight: 700; }
-.ops-header p { margin: 0; opacity: 0.9; font-size: 16px; }
-.ops-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 32px; }
-.ops-stat-card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #667eea; transition: all 0.3s; cursor: pointer; text-decoration: none; color: inherit; }
+.ops-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 32px; color: #fff; margin-bottom: 32px; position: relative; overflow: hidden; }
+.ops-header::before { content: ''; position: absolute; top: -50%; right: -10%; width: 400px; height: 400px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+.ops-header h1 { margin: 0 0 8px 0; font-size: 32px; font-weight: 700; position: relative; }
+.ops-header p { margin: 0; opacity: 0.9; font-size: 16px; position: relative; }
+.ops-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 32px; }
+.ops-stat-card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-left: 4px solid #667eea; transition: all 0.3s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
 .ops-stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
 .ops-stat-card.urgent { border-left-color: #ef4444; }
 .ops-stat-card.success { border-left-color: #22c55e; }
 .ops-stat-card.warning { border-left-color: #f59e0b; }
+.ops-stat-card.info { border-left-color: #3b82f6; }
 .ops-stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 24px; }
-.ops-stat-value { font-size: 36px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
-.ops-stat-label { font-size: 14px; color: #64748b; font-weight: 500; }
+.ops-stat-value { font-size: 36px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.ops-stat-label { font-size: 13px; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.ops-section-title { font-size: 18px; font-weight: 700; color: #1e293b; margin: 32px 0 16px 0; display: flex; align-items: center; gap: 8px; }
 .ops-quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-.ops-action-btn { background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; text-decoration: none; color: inherit; }
+.ops-action-btn { background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s; text-decoration: none; color: inherit; display: block; }
 .ops-action-btn:hover { border-color: #667eea; background: #f8fafc; transform: translateY(-2px); }
-.ops-action-btn i { font-size: 32px; color: #667eea; margin-bottom: 12px; display: block; }
-.ops-action-btn span { font-size: 14px; font-weight: 600; color: #1e293b; }
+.ops-action-btn i { font-size: 36px; color: #667eea; margin-bottom: 12px; display: block; }
+.ops-action-btn span { font-size: 14px; font-weight: 600; color: #1e293b; display: block; }
+.ops-action-btn small { font-size: 11px; color: #64748b; display: block; margin-top: 4px; }
+.ops-recent-list { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.ops-recent-item { padding: 12px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+.ops-recent-item:last-child { border-bottom: none; }
+.ops-recent-item-title { font-weight: 600; color: #1e293b; font-size: 14px; }
+.ops-recent-item-meta { font-size: 12px; color: #64748b; }
 </style>
 
 <div class="ops-header">
   <h1>🏢 Back Office</h1>
-  <p>Panel de operaciones internas</p>
+  <p>Panel de operaciones internas - Gestión de tickets, mensajes y tareas</p>
 </div>
 
 <div class="ops-stats-grid">
-  <a href="/operaciones/tickets" class="ops-stat-card">
+  <a href="/operaciones/tickets" class="ops-stat-card info">
     <div class="ops-stat-icon" style="background: #dbeafe; color: #3b82f6;">
       <i class='bx bx-ticket'></i>
     </div>
@@ -38,6 +47,14 @@
     </div>
     <div class="ops-stat-value"><%= stats.urgentTickets || 0 %></div>
     <div class="ops-stat-label">Tickets Urgentes</div>
+  </a>
+  
+  <a href="/operaciones/tickets" class="ops-stat-card warning">
+    <div class="ops-stat-icon" style="background: #fef3c7; color: #f59e0b;">
+      <i class='bx bx-user-check'></i>
+    </div>
+    <div class="ops-stat-value"><%= stats.myTickets || 0 %></div>
+    <div class="ops-stat-label">Mis Tickets</div>
   </a>
   
   <a href="/operaciones/mensajes" class="ops-stat-card warning">
@@ -55,19 +72,48 @@
     <div class="ops-stat-value"><%= stats.pendingTasks || 0 %></div>
     <div class="ops-stat-label">Tareas Pendientes</div>
   </a>
+  
+  <a href="/operaciones/tareas" class="ops-stat-card urgent">
+    <div class="ops-stat-icon" style="background: #fee2e2; color: #ef4444;">
+      <i class='bx bx-time-five'></i>
+    </div>
+    <div class="ops-stat-value"><%= stats.overdueTasks || 0 %></div>
+    <div class="ops-stat-label">Tareas Vencidas</div>
+  </a>
+</div>
+
+<div class="ops-section-title">
+  <i class='bx bx-grid-alt' style="color:#667eea;"></i> Acciones Rápidas
 </div>
 
 <div class="ops-quick-actions">
-  <a href="/operaciones/tickets" class="ops-action-btn">
+  <a href="/operaciones/tickets" class="ops-action-btn" onclick="setTimeout(()=>openNewTicketModal(),100)">
     <i class='bx bx-plus-circle'></i>
     <span>Nuevo Ticket</span>
+    <small>Registrar incidencia</small>
   </a>
   <a href="/operaciones/mensajes" class="ops-action-btn">
     <i class='bx bx-message-detail'></i>
     <span>Enviar Mensaje</span>
+    <small>Chat con el equipo</small>
   </a>
-  <a href="/operaciones/tareas" class="ops-action-btn">
+  <a href="/operaciones/tareas" class="ops-action-btn" onclick="setTimeout(()=>openNewTaskModal(),100)">
     <i class='bx bx-task'></i>
     <span>Crear Tarea</span>
+    <small>Asignar al equipo</small>
+  </a>
+  <a href="/operaciones/tickets" class="ops-action-btn">
+    <i class='bx bx-list-ul'></i>
+    <span>Ver Todos los Tickets</span>
+    <small>Gestionar incidencias</small>
   </a>
 </div>
+
+<script>
+function openNewTicketModal() {
+  window.location.href = '/operaciones/tickets?new=1';
+}
+function openNewTaskModal() {
+  window.location.href = '/operaciones/tareas?new=1';
+}
+</script>
