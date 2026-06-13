@@ -191,6 +191,17 @@ exports.sendMessage = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Faltan datos' });
         }
         
+        // Validar que no se envíe a sí mismo
+        if (receiver === req.session.userId.toString()) {
+            return res.status(400).json({ success: false, message: 'No puedes enviarte mensajes a ti mismo' });
+        }
+        
+        // Validar que el receptor exista
+        const receiverUser = await User.findById(receiver);
+        if (!receiverUser) {
+            return res.status(404).json({ success: false, message: 'Usuario receptor no encontrado' });
+        }
+        
         await InternalMessage.create({
             sender: req.session.userId,
             receiver,

@@ -1,27 +1,47 @@
 <style>
 .messages-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 24px 32px; color: #fff; margin-bottom: 24px; }
 .messages-header h1 { margin: 0 0 8px 0; font-size: 28px; font-weight: 700; }
-.messages-container { display: grid; grid-template-columns: 300px 1fr; gap: 24px; height: calc(100vh - 280px); min-height: 500px; }
-.messages-sidebar { background: #fff; border-radius: 12px; padding: 16px; overflow-y: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.messages-container { display: grid; grid-template-columns: 320px 1fr; gap: 24px; height: calc(100vh - 280px); min-height: 500px; }
+.messages-sidebar { background: #fff; border-radius: 12px; padding: 16px; overflow-y: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column; }
 .messages-main { background: #fff; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-.user-list-item { padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-.user-list-item:hover { background: #f8fafc; }
-.user-list-item.active { background: #f0f0ff; border-left: 3px solid #667eea; }
-.user-list-item .unread-badge { background: #ef4444; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
-.message-bubble { max-width: 70%; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; word-wrap: break-word; }
+.search-box { margin-bottom: 16px; position: relative; }
+.search-input { width: 100%; padding: 10px 12px 10px 36px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; transition: 0.2s; }
+.search-input:focus { outline: none; border-color: #667eea; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 16px; }
+.user-list { flex: 1; overflow-y: auto; }
+.user-list-item { padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 2px solid transparent; }
+.user-list-item:hover { background: #f8fafc; border-color: #e2e8f0; }
+.user-list-item.active { background: #f0f0ff; border-color: #667eea; }
+.user-list-item .user-info { flex: 1; min-width: 0; }
+.user-list-item .user-name { font-weight: 600; font-size: 14px; color: #1e293b; margin-bottom: 2px; }
+.user-list-item .user-preview { font-size: 12px; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-list-item .unread-badge { background: #ef4444; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; margin-left: 8px; flex-shrink: 0; }
+.message-bubble { max-width: 70%; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; word-wrap: break-word; position: relative; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .message-bubble.sent { background: #667eea; color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
 .message-bubble.received { background: #f1f5f9; color: #1e293b; border-bottom-left-radius: 4px; }
 .message-time { font-size: 10px; opacity: 0.7; margin-top: 4px; }
 .message-input-area { display: flex; gap: 12px; margin-top: auto; padding-top: 16px; border-top: 1px solid #e2e8f0; }
 .message-input { flex: 1; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 24px; font-size: 14px; transition: 0.2s; }
 .message-input:focus { outline: none; border-color: #667eea; }
-.btn-send { background: #667eea; color: #fff; border: none; padding: 12px 24px; border-radius: 24px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-.btn-send:hover { background: #5a67d8; }
+.message-input:disabled { background: #f8fafc; cursor: not-allowed; }
+.btn-send { background: #667eea; color: #fff; border: none; padding: 12px 24px; border-radius: 24px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+.btn-send:hover:not(:disabled) { background: #5a67d8; transform: translateY(-2px); }
+.btn-send:disabled { opacity: 0.6; cursor: not-allowed; }
 .messages-empty { text-align: center; padding: 60px 20px; color: #64748b; }
 .messages-empty i { font-size: 64px; opacity: 0.3; display: block; margin-bottom: 16px; }
-.conversation-header { padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; margin-bottom: 16px; }
+.conversation-header { padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
 .conversation-header h3 { margin: 0; font-size: 18px; font-weight: 700; color: #1e293b; }
-.messages-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+.conversation-status { font-size: 12px; color: #64748b; }
+.messages-list { flex: 1; overflow-y: auto; padding: 8px 0; scroll-behavior: smooth; }
+.typing-indicator { display: none; padding: 8px 16px; background: #f1f5f9; border-radius: 12px; margin-bottom: 12px; max-width: 100px; }
+.typing-indicator.show { display: block; }
+.typing-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; margin-right: 4px; animation: typing 1.4s infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-10px); } }
+.new-message-notification { position: fixed; top: 20px; right: 20px; background: #667eea; color: #fff; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; display: none; animation: slideIn 0.3s; }
+@keyframes slideIn { from { transform: translateX(400px); } to { transform: translateX(0); } }
 @media (max-width: 768px) {
   .messages-container { grid-template-columns: 1fr; }
   .messages-sidebar { max-height: 300px; }
@@ -33,32 +53,43 @@
   <p>Comunicación directa con el equipo</p>
 </div>
 
+<div class="new-message-notification" id="newMessageNotification">
+  <i class='bx bx-message-detail'></i> Nuevo mensaje recibido
+</div>
+
 <div class="messages-container">
   <div class="messages-sidebar">
     <h3 style="margin:0 0 16px 0; font-size:16px; font-weight:700; color:#1e293b;">Conversaciones</h3>
-    <% if (users && users.length > 0) { %>
-      <% users.forEach(u => { 
-        var userId = u._id.toString();
-        var conv = conversations[userId];
-        var unread = conv ? conv.unread : 0;
-      %>
-        <div class="user-list-item" data-user-id="<%= userId %>" data-user-name="<%= u.fullName || u.username %>" onclick="selectUser(this)">
-          <div>
-            <strong style="font-size:14px;"><%= u.fullName || u.username %></strong>
-            <% if (conv && conv.messages.length > 0) { %>
-              <div style="font-size:11px; color:#64748b; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">
-                <%= conv.messages[0].message.substring(0, 40) %>
-              </div>
+    
+    <div class="search-box">
+      <i class='bx bx-search search-icon'></i>
+      <input type="text" class="search-input" placeholder="Buscar usuario..." oninput="filterUsers(this.value)">
+    </div>
+    
+    <div class="user-list" id="userList">
+      <% if (users && users.length > 0) { %>
+        <% users.forEach(u => { 
+          var userId = u._id.toString();
+          var conv = conversations[userId];
+          var unread = conv ? conv.unread : 0;
+          var lastMessage = conv && conv.messages.length > 0 ? conv.messages[0].message : '';
+        %>
+          <div class="user-list-item" data-user-id="<%= userId %>" data-user-name="<%= u.fullName || u.username %>" onclick="selectUser(this)">
+            <div class="user-info">
+              <div class="user-name"><%= u.fullName || u.username %></div>
+              <% if (lastMessage) { %>
+                <div class="user-preview"><%= lastMessage.substring(0, 40) %></div>
+              <% } %>
+            </div>
+            <% if (unread > 0) { %>
+              <span class="unread-badge"><%= unread %></span>
             <% } %>
           </div>
-          <% if (unread > 0) { %>
-            <span class="unread-badge"><%= unread %></span>
-          <% } %>
-        </div>
-      <% }) %>
-    <% } else { %>
-      <p style="color:#64748b; text-align:center; padding:20px;">No hay otros usuarios</p>
-    <% } %>
+        <% }) %>
+      <% } else { %>
+        <p style="color:#64748b; text-align:center; padding:20px;">No hay otros usuarios</p>
+      <% } %>
+    </div>
   </div>
   
   <div class="messages-main" id="messagesMain">
@@ -74,7 +105,8 @@
 var currentUserId = null;
 var currentUserName = null;
 var refreshInterval = null;
-var CURRENT_USER_ID = '<%= currentUser._id.toString() %>';
+var lastMessageCount = 0;
+var CURRENT_USER_ID = '<%= currentUser._id ? currentUser._id.toString() : currentUser.id ? currentUser.id.toString() : "" %>';
 
 function selectUser(element) {
   currentUserId = element.getAttribute('data-user-id');
@@ -87,11 +119,12 @@ function selectUser(element) {
   var badge = element.querySelector('.unread-badge');
   if (badge) badge.remove();
   
+  lastMessageCount = 0;
   loadConversation();
   
-  // Auto-refresh cada 5 segundos
+  // Auto-refresh cada 3 segundos (más rápido para mejor UX)
   if (refreshInterval) clearInterval(refreshInterval);
-  refreshInterval = setInterval(loadConversation, 5000);
+  refreshInterval = setInterval(checkNewMessages, 3000);
 }
 
 async function loadConversation() {
@@ -111,11 +144,16 @@ async function loadConversation() {
     var data = await res.json();
     
     if (data.success) {
-      var html = '<div class="conversation-header"><h3>' + escapeHtml(currentUserName) + '</h3></div>';
+      lastMessageCount = data.messages.length;
+      
+      var html = '<div class="conversation-header">';
+      html += '<h3>' + escapeHtml(currentUserName) + '</h3>';
+      html += '<div class="conversation-status">En línea</div>';
+      html += '</div>';
       html += '<div class="messages-list" id="messagesList">';
       
       if (data.messages.length === 0) {
-        html += '<div class="messages-empty"><p style="font-size:14px;">Aún no hay mensajes en esta conversación</p></div>';
+        html += '<div class="messages-empty"><p style="font-size:14px;">Aún no hay mensajes en esta conversación</p><p style="font-size:12px;">Envía el primer mensaje abajo</p></div>';
       } else {
         data.messages.forEach(function(msg) {
           var isSent = msg.sender.toString() === CURRENT_USER_ID;
@@ -129,8 +167,8 @@ async function loadConversation() {
       
       html += '</div>';
       html += '<div class="message-input-area">';
-      html += '<input type="text" id="messageInput" class="message-input" placeholder="Escribe un mensaje..." onkeypress="if(event.key===\'Enter\')sendMessage()">';
-      html += '<button class="btn-send" onclick="sendMessage()"><i class="bx bx-send"></i> Enviar</button>';
+      html += '<input type="text" id="messageInput" class="message-input" placeholder="Escribe un mensaje..." onkeypress="if(event.key===\'Enter\')sendMessage()" maxlength="500">';
+      html += '<button class="btn-send" id="btnSend" onclick="sendMessage()"><i class="bx bx-send"></i> <span>Enviar</span></button>';
       html += '</div>';
       
       main.innerHTML = html;
@@ -150,13 +188,59 @@ async function loadConversation() {
   }
 }
 
+async function checkNewMessages() {
+  if (!currentUserId) return;
+  
+  try {
+    var res = await fetch('/api/messages/' + currentUserId);
+    var data = await res.json();
+    
+    if (data.success && data.messages.length > lastMessageCount) {
+      // Hay mensajes nuevos
+      lastMessageCount = data.messages.length;
+      
+      // Verificar si el usuario está al final del scroll
+      var messagesList = document.getElementById('messagesList');
+      var wasAtBottom = messagesList && (messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight < 50);
+      
+      // Recargar conversación
+      await loadConversation();
+      
+      // Si no estaba al final, mostrar notificación
+      if (!wasAtBottom) {
+        showNotification();
+      }
+    }
+  } catch(err) {
+    console.error('Error verificando mensajes:', err);
+  }
+}
+
+function showNotification() {
+  var notification = document.getElementById('newMessageNotification');
+  notification.style.display = 'block';
+  setTimeout(function() {
+    notification.style.display = 'none';
+  }, 3000);
+}
+
 async function sendMessage() {
   var input = document.getElementById('messageInput');
+  var btn = document.getElementById('btnSend');
   var message = input.value.trim();
+  
   if (!message || !currentUserId) return;
+  
+  // Validar que no se envíe a sí mismo
+  if (currentUserId === CURRENT_USER_ID) {
+    alert('No puedes enviarte mensajes a ti mismo');
+    return;
+  }
   
   input.value = '';
   input.disabled = true;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> <span>Enviando...</span>';
   
   try {
     var res = await fetch('/api/messages', {
@@ -175,8 +259,24 @@ async function sendMessage() {
     alert('Error de conexión: ' + err.message);
   } finally {
     input.disabled = false;
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bx bx-send"></i> <span>Enviar</span>';
     input.focus();
   }
+}
+
+function filterUsers(query) {
+  var items = document.querySelectorAll('.user-list-item');
+  query = query.toLowerCase();
+  
+  items.forEach(function(item) {
+    var name = item.querySelector('.user-name').textContent.toLowerCase();
+    if (name.includes(query)) {
+      item.style.display = 'flex';
+    } else {
+      item.style.display = 'none';
+    }
+  });
 }
 
 function escapeHtml(str) {
@@ -186,6 +286,11 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// Limpiar interval al salir de la página
+window.addEventListener('beforeunload', function() {
+  if (refreshInterval) clearInterval(refreshInterval);
+});
+
 // Auto-abrir conversación si viene de la URL
 window.addEventListener('load', function() {
   var params = new URLSearchParams(window.location.search);
@@ -193,6 +298,11 @@ window.addEventListener('load', function() {
   if (userId) {
     var item = document.querySelector('[data-user-id="' + userId + '"]');
     if (item) selectUser(item);
+  }
+  
+  // Verificar que CURRENT_USER_ID esté definido
+  if (!CURRENT_USER_ID) {
+    console.error('CURRENT_USER_ID no está definido. Los mensajes no se distinguirán correctamente.');
   }
 });
 </script>
