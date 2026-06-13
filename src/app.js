@@ -55,6 +55,7 @@ app.use(authRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use(leadRoutes);
 app.use(callRoutes);
+app.use(operationsRoutes);
 app.use(businessRoutes);
 app.use(userRoutes);
 app.use(debugRoutes);
