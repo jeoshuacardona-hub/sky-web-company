@@ -148,37 +148,68 @@ exports.messages = async (req, res, next) => {
     try {
         const userId = req.session.userId;
         
-        // Obtener conversaciones únicas
+        // Obtener todos los mensajes del usuario
         const messages = await InternalMessage.find({
             $or: [{ sender: userId }, { receiver: userId }]
         }).sort({ createdAt: -1 });
         
-        // Agrupar por usuario
+        // Agrupar por usuario (evitar duplicados usando Set)
         const conversations = {};
+        const processedUsers = new Set();
+        
         messages.forEach(msg => {
             const otherUserId = msg.sender.toString() === userId ? msg.receiver.toString() : msg.sender.toString();
-            if (!conversations[otherUserId]) {
+            
+            // Evitar procesar el mismo usuario múltiples veces
+            if (!processedUsers.has(otherUserId)) {
+                processedUsers.add(otherUserId);
                 conversations[otherUserId] = {
                     messages: [],
                     unread: 0
                 };
             }
+            
+            // Agregar mensaje a la conversación
             conversations[otherUserId].messages.push(msg);
+            
+            // Contar no leídos
             if (msg.receiver.toString() === userId && !msg.read) {
                 conversations[otherUserId].unread++;
             }
         });
         
-        // Obtener info de usuarios
-        const users = await User.find({ _id: { $ne: userId } }).select('fullName username');
+        // Obtener usuarios únicos (excluyendo al usuario actual)
+        const users = await User.find({ 
+            _id: { $ne: userId }
+        }).select('fullName username email').lean();
+        
+        // Eliminar duplicados por username/fullName
+        const uniqueUsers = [];
+        const seenNames = new Set();
+        
+        users.forEach(user => {
+            const identifier = (user.fullName || user.username).toLowerCase().trim();
+            if (!seenNames.has(identifier)) {
+                seenNames.add(identifier);
+                uniqueUsers.push(user);
+            }
+        });
+        
+        // Ordenar usuarios alfabéticamente
+        uniqueUsers.sort((a, b) => {
+            const nameA = (a.fullName || a.username).toLowerCase();
+            const nameB = (b.fullName || b.username).toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
         
         res.render('pages/operations/messages', {
             title: 'Mensajes',
             conversations,
-            users,
+            users: uniqueUsers,
             currentUser: req.session.user
         });
     } catch (error) {
+        console.error('messages error:', error);
         next(error);
     }
 };
