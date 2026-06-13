@@ -39,8 +39,14 @@
             <li class="menu-item <%= typeof title !== 'undefined' && title==='Leads' ? 'active' : '' %>">
               <a href="/leads" class="menu-link"><i class='menu-icon tf-icons bx bx-target-lock'></i><div>Todos los Leads</div></a>
             </li>
+            <li class="menu-item <%= typeof title !== 'undefined' && title==='Usuarios' ? 'active' : '' %>">
+              <a href="/users" class="menu-link"><i class='menu-icon tf-icons bx bx-user'></i><div>Usuarios</div></a>
+            </li>
+            <li class="menu-item <%= typeof title !== 'undefined' && title==='Reportes' ? 'active' : '' %>">
+              <a href="/reports" class="menu-link"><i class='menu-icon tf-icons bx bx-bar-chart-alt-2'></i><div>Reportes</div></a>
+            </li>
             
-            <!-- Back Office (ADMIN ONLY) -->
+            <!-- Back Office Submenu -->
             <li class="menu-item <%= typeof title !== 'undefined' && (title==='Back Office' || title==='Tickets' || title==='Mensajes' || title==='Tareas') ? 'active open' : '' %>">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class='menu-icon tf-icons bx bx-briefcase-alt'></i>
@@ -70,6 +76,30 @@
               </ul>
             </li>
           <% } %>
+          
+          <!-- ================= GESTIÓN COMERCIAL ================= -->
+          <li class="menu-header small text-uppercase"><span class="menu-header-text">Gestión Comercial</span></li>
+          <li class="menu-item <%= typeof title !== 'undefined' && title==='Llamadas' ? 'active' : '' %>">
+            <a href="/llamadas" class="menu-link"><i class='menu-icon tf-icons bx bx-phone'></i><div>Llamadas</div></a>
+          </li>
+          <li class="menu-item <%= typeof title !== 'undefined' && title==='Seguimiento' ? 'active' : '' %>">
+            <a href="/seguimiento" class="menu-link"><i class='menu-icon tf-icons bx bx-refresh'></i><div>Seguimiento</div></a>
+          </li>
+          <li class="menu-item <%= typeof title !== 'undefined' && title==='Pipeline' ? 'active' : '' %>">
+            <a href="/pipeline" class="menu-link"><i class='menu-icon tf-icons bx bx-briefcase'></i><div>Pipeline</div></a>
+          </li>
+          <li class="menu-item <%= typeof title !== 'undefined' && title==='Calendario' ? 'active' : '' %>">
+            <a href="/calendar" class="menu-link"><i class='menu-icon tf-icons bx bx-calendar'></i><div>Calendario</div></a>
+          </li>
+          
+          <!-- ================= CUENTA ================= -->
+          <li class="menu-header small text-uppercase"><span class="menu-header-text">Cuenta</span></li>
+          <li class="menu-item <%= typeof title !== 'undefined' && title==='Mi Perfil' ? 'active' : '' %>">
+            <a href="/profile" class="menu-link"><i class='menu-icon tf-icons bx bx-user'></i><div>Mi Perfil</div></a>
+          </li>
+          <li class="menu-item">
+            <a href="/logout" class="menu-link"><i class='menu-icon tf-icons bx bx-log-out'></i><div>Cerrar Sesión</div></a>
+          </li>
           
         </ul>
       </aside>
