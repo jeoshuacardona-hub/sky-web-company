@@ -77,7 +77,7 @@ exports.createTicket = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Faltan datos requeridos' });
         }
         
-        const ticket = await Ticket.create({
+        const ticket = new Ticket({
             title,
             description,
             category: category || 'consulta',
@@ -87,6 +87,7 @@ exports.createTicket = async (req, res, next) => {
             reportedBy: req.session.userId,
             assignedTo: assignedTo || null
         });
+        await ticket.save();
         
         res.json({ success: true, ticket });
     } catch (error) {
