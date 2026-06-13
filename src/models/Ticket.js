@@ -35,7 +35,7 @@ const ticketSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Auto-generar número de ticket
-ticketSchema.pre('save', async function(next) {
+ticketSchema.pre('save', async function() {
     if (!this.ticketNumber) {
         const year = new Date().getFullYear();
         const count = await mongoose.model('Ticket').countDocuments({ 
@@ -43,7 +43,6 @@ ticketSchema.pre('save', async function(next) {
         });
         this.ticketNumber = `TK-${year}-${String(count + 1).padStart(3, '0')}`;
     }
-    next();
 });
 
 module.exports = mongoose.model('Ticket', ticketSchema);
