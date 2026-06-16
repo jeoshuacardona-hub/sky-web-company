@@ -25,7 +25,10 @@ exports.getLlamadas = async (req, res, next) => {
         
         const leads = await Lead.find(filter)
             .select('name phone email company city notes status assignedTo createdAt')
-            .sort({ createdAt: -1 });
+            ;
+        
+        // Shuffle aleatorio para mezclar nichos
+        leads.sort(() => Math.random() - 0.5);
             
         const todayStart = getTodayStart();
         const callsFilter = isAdmin ? {} : { calledBy: userId };
