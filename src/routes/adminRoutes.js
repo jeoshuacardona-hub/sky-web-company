@@ -1,4 +1,6 @@
 const express = require('express');
+const InternalMessage = require('../models/InternalMessage');
+const Ticket = require('../models/Ticket');
 const router = express.Router();
 const Lead = require('../models/Lead');
 const CallLog = require('../models/CallLog');
@@ -37,6 +39,35 @@ router.post('/reset-all', authMiddleware, adminOnly, async (req, res) => {
             }
         });
     } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+
+// Hard Reset - Eliminar todo
+router.post('/api/admin/hard-reset', authMiddleware, adminOnly, async (req, res) => {
+    try {
+        const leads = await Lead.deleteMany({});
+        const callLogs = await CallLog.deleteMany({});
+        const customers = await Customer.deleteMany({});
+        const tasks = await Task.deleteMany({});
+        const tickets = await Ticket.deleteMany({});
+        const messages = await InternalMessage.deleteMany({});
+        
+        res.json({ 
+            success: true, 
+            message: `Base de datos reseteada: ${leads.deletedCount} leads, ${callLogs.deletedCount} llamadas, ${customers.deletedCount} clientes, ${tasks.deletedCount} tareas, ${tickets.deletedCount} tickets, ${messages.deletedCount} mensajes eliminados`,
+            deleted: {
+                leads: leads.deletedCount,
+                callLogs: callLogs.deletedCount,
+                customers: customers.deletedCount,
+                tasks: tasks.deletedCount,
+                tickets: tickets.deletedCount,
+                messages: messages.deletedCount
+            }
+        });
+    } catch (error) {
+        console.error('hard-reset error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
