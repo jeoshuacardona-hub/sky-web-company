@@ -41,6 +41,7 @@ const userRoutes = require('./routes/userRoutes');
 const debugRoutes = require('./routes/debugRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const operationsRoutes = require('./routes/operationsRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 // RUTA RAÍZ - Redirige a dashboard
 app.get('/', (req, res) => {
@@ -56,6 +57,7 @@ app.use('/dashboard', dashboardRoutes);
 app.use(leadRoutes);
 app.use(callRoutes);
 app.use(operationsRoutes);
+app.use(adminRoutes);
 app.use(businessRoutes);
 app.use(userRoutes);
 app.use(debugRoutes);
