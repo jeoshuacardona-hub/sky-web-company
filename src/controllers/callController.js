@@ -24,33 +24,13 @@ exports.getLlamadas = async (req, res, next) => {
         }
         
         const leads = await Lead.find(filter)
-            .select('name phone email company city notes status assignedTo createdAt')
-            .sort({ createdAt: -1 });
+            .select('name phone email company city notes status assignedTo createdAt');
         
-        // Distribución equitativa por nicho (notes)
-        const leadsByNiche = {};
-        leads.forEach(lead => {
-            const niche = lead.notes || 'Sin nicho';
-            if (!leadsByNiche[niche]) leadsByNiche[niche] = [];
-            leadsByNiche[niche].push(lead);
-        });
-        
-        // Round-robin: tomar uno de cada nicho en rotación
-        const shuffledLeads = [];
-        const niches = Object.keys(leadsByNiche);
-        let hasMore = true;
-        while (hasMore) {
-            hasMore = false;
-            for (const niche of niches) {
-                if (leadsByNiche[niche].length > 0) {
-                    shuffledLeads.push(leadsByNiche[niche].shift());
-                    hasMore = true;
-                }
-            }
+        // Shuffle aleatorio real (Fisher-Yates)
+        for (let i = leads.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [leads[i], leads[j]] = [leads[j], leads[i]];
         }
-        
-        leads.length = 0;
-        leads.push(...shuffledLeads);
             
         const todayStart = getTodayStart();
         const callsFilter = isAdmin ? {} : { calledBy: userId };
