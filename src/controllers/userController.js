@@ -145,31 +145,83 @@ exports.deleteUser = async (req, res) => {
 
 exports.assignLeadsToJoseDaniel = async (req, res, next) => {
     try {
-        const jose = await User.findOne({ email: 'jdaniel@skyweb.com' });
+        // 1. Buscar a Jose Daniel (insensible a mayúsculas/minúsculas y por username como fallback)
+        const jose = await User.findOne({
+            $or: [
+                { email: { $regex: /^jdaniel@skyweb\.com$/i } },
+                { username: { $regex: /^jdaniel$/i } }
+            ]
+        });
+        
         if (!jose) {
-            return res.status(404).json({ success: false, message: 'Usuario jdaniel@skyweb.com no encontrado' });
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Usuario Jose Daniel (jdaniel@skyweb.com) no encontrado en la base de datos' 
+            });
         }
         
-        // Asignar leads sin asignar a jose daniel
-        const result = await Lead.updateMany(
-            {
-                $or: [
-                    { assignedTo: null },
-                    { assignedTo: { $exists: false } }
-                ]
-            },
-            {
-                $set: { 
-                    assignedTo: jose._id,
-                    status: 'new'
-                }
-            }
-        );
+        // 2. Intentar asignar los leads completamente sin asignar (assignedTo null o inexistente)
+        let unassignedLeads = await Lead.find({
+            $or: [
+                { assignedTo: null },
+                { assignedTo: { $exists: false } }
+            ]
+        });
         
-        res.json({ 
-            success: true, 
-            message: jose.fullName + ' ahora tiene los leads asignados',
-            assigned: result.modifiedCount
+        let assignedCount = 0;
+        
+        if (unassignedLeads.length > 0) {
+            const ids = unassignedLeads.map(l => l._id);
+            const updateResult = await Lead.updateMany(
+                { _id: { $in: ids } },
+                { 
+                    $set: { 
+                        assignedTo: jose._id,
+                        status: 'new'
+                    } 
+                }
+            );
+            assignedCount = updateResult.modifiedCount;
+        }
+        
+        // 3. Si Jose Daniel sigue teniendo pocos leads (por ejemplo, queremos que tenga al menos 26)
+        // y no quedan leads sin asignar en la BD, tomamos leads con estado 'new' (sin llamar)
+        // de los otros asesores para equilibrar, SIN TOCAR los que ya tienen llamadas o seguimiento.
+        const currentJoseLeads = await Lead.countDocuments({ assignedTo: jose._id });
+        const targetLeads = 26; // cantidad promedio que tienen los demás
+        
+        let transferredCount = 0;
+        
+        if (currentJoseLeads < targetLeads) {
+            const needed = targetLeads - currentJoseLeads;
+            
+            // Buscar leads en estado 'new' que pertenecen a otros asesores
+            const candidates = await Lead.find({
+                assignedTo: { $ne: jose._id, $exists: true, $ne: null },
+                status: 'new'
+            }).limit(needed);
+            
+            if (candidates.length > 0) {
+                const candidateIds = candidates.map(l => l._id);
+                const transferResult = await Lead.updateMany(
+                    { _id: { $in: candidateIds } },
+                    { $set: { assignedTo: jose._id } }
+                );
+                transferredCount = transferResult.modifiedCount;
+            }
+        }
+        
+        // 4. Responder con el resumen exacto
+        const totalJoseLeads = await Lead.countDocuments({ assignedTo: jose._id });
+        
+        res.json({
+            success: true,
+            message: `${jose.fullName || jose.username} ahora tiene los leads asignados.`,
+            details: {
+                leadsAsignadosDesdeSinAsignar: assignedCount,
+                leadsTransferidosParaEquilibrar: transferredCount,
+                totalLeadsJoseDaniel: totalJoseLeads
+            }
         });
     } catch (error) {
         console.error('assignLeadsToJoseDaniel error:', error);
