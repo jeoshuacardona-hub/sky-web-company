@@ -142,3 +142,38 @@ exports.deleteUser = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.assignLeadsToJoseDaniel = async (req, res, next) => {
+    try {
+        const jose = await User.findOne({ email: 'jdaniel@skyweb.com' });
+        if (!jose) {
+            return res.status(404).json({ success: false, message: 'Usuario jdaniel@skyweb.com no encontrado' });
+        }
+        
+        // Asignar leads sin asignar a jose daniel
+        const result = await Lead.updateMany(
+            {
+                $or: [
+                    { assignedTo: null },
+                    { assignedTo: { $exists: false } }
+                ]
+            },
+            {
+                $set: { 
+                    assignedTo: jose._id,
+                    status: 'new'
+                }
+            }
+        );
+        
+        res.json({ 
+            success: true, 
+            message: jose.fullName + ' ahora tiene los leads asignados',
+            assigned: result.modifiedCount
+        });
+    } catch (error) {
+        console.error('assignLeadsToJoseDaniel error:', error);
+        next(error);
+    }
+};
+

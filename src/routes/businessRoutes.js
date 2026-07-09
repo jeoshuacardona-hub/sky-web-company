@@ -11,7 +11,7 @@ router.get('/pipeline', authMiddleware, async (req, res) => {
         const leadFilter = isAdmin ? {} : { assignedTo: req.session.userId };
         const customerFilter = isAdmin ? {} : { createdBy: req.session.userId };
         const callFilter = isAdmin ? {} : { calledBy: req.session.userId };
-        const customers = await Customer.find(filter).populate('assignedTo', 'username fullName').sort({ createdAt: -1 });
+        const customers = await Customer.find(customerFilter).populate('assignedTo', 'username fullName').sort({ createdAt: -1 });
         
         const stats = {
             total: customers.length,
