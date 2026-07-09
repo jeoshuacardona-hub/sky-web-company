@@ -83,7 +83,7 @@ exports.getSeguimiento = async (req, res, next) => {
         const filter = isAdmin ? {} : { calledBy: req.session.userId };
         
         const followups = await CallLog.find({ 
-            outcome: { $in: ['callback', 'rejected', 'no_answer', 'interested'] }, 
+            outcome: { $in: ['callback', 'rejected', 'no_answer', 'interested', 'scheduled'] }, 
             resolved: false,
             ...filter
         })

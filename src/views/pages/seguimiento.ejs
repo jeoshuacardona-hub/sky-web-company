@@ -35,6 +35,7 @@ var callbackFollowups = followups.filter(function(f){ return f.outcome === 'call
 var interestedFollowups = followups.filter(function(f){ return f.outcome === 'interested'; });
 var rejectedFollowups = followups.filter(function(f){ return f.outcome === 'rejected'; });
 var noAnswerFollowups = followups.filter(function(f){ return f.outcome === 'no_answer'; });
+var convertedFollowups = followups.filter(function(f){ return f.outcome === 'scheduled'; });
 %>
 
 <div class="d-flex flex-wrap gap-3 mb-4">
@@ -63,6 +64,15 @@ var noAnswerFollowups = followups.filter(function(f){ return f.outcome === 'no_a
     <div>
       <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">No Interesados</p>
       <p class="mb-0" style="font-size:22px;font-weight:700;color:#ff3e1d;"><%= rejectedFollowups.length %></p>
+    </div>
+  </div>
+  <div class="stat-sm">
+    <div style="width:38px;height:38px;border-radius:10px;background:#28a74522;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bx bx-star" style="font-size:20px;color:#28a745;"></i>
+    </div>
+    <div>
+      <p class="mb-0" style="font-size:11px;font-weight:600;text-transform:uppercase;color:#8a8d9f;">Convertidos</p>
+      <p class="mb-0" style="font-size:22px;font-weight:700;color:#28a745;"><%= convertedFollowups.length %></p>
     </div>
   </div>
 </div>
@@ -108,6 +118,11 @@ var noAnswerFollowups = followups.filter(function(f){ return f.outcome === 'no_a
         </a>
       </li>
       <% } %>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="pill" href="#tab-converted" role="tab">
+          🎉 Convertidos <span class="tab-badge" style="background:rgba(40,167,69,0.2);color:#28a745;"><%= convertedFollowups.length %></span>
+        </a>
+      </li>
     </ul>
   </div>
 
@@ -174,6 +189,18 @@ var noAnswerFollowups = followups.filter(function(f){ return f.outcome === 'no_a
       <% } %>
     </div>
 
+    <!-- Tab: Convertidos -->
+    <div class="tab-pane fade" id="tab-converted" role="tabpanel">
+      <% if (convertedFollowups.length === 0) { %>
+        <div style="text-align:center;padding:40px 0;color:#8a8d9f;">
+          <i class="bx bx-star" style="font-size:40px;color:#28a745;"></i>
+          <p style="margin-top:12px;">No hay leads convertidos</p>
+        </div>
+      <% } else { %>
+        <% convertedFollowups.forEach(function(f) { renderFollowupCard(f); }); %>
+      <% } %>
+    </div>
+
   </div>
 </div>
 
@@ -192,10 +219,12 @@ function renderFollowupCard(f) {
   var outcomeLabel = f.outcome === 'callback' ? 'Rellamar' : 
                      f.outcome === 'rejected' ? 'No interesado' : 
                      f.outcome === 'interested' ? 'Interesado' : 
-                     f.outcome === 'no_answer' ? 'No contestó' : 'Seguimiento';
+                     f.outcome === 'no_answer' ? 'No contestó' : 
+                     f.outcome === 'scheduled' ? 'Convertido' : 'Seguimiento';
   var outcomeBadge = f.outcome === 'callback' ? 'badge-callback' : 
                      f.outcome === 'rejected' ? 'badge-rejected' : 
-                     f.outcome === 'interested' ? 'badge-interested' : 'badge-noanswer';
+                     f.outcome === 'interested' ? 'badge-interested' : 
+                     f.outcome === 'scheduled' ? 'badge-interested' : 'badge-noanswer';
 %>
   <div class="followup-card" id="followup-<%= f._id %>">
     <div class="d-flex align-items-start gap-3">
@@ -203,11 +232,12 @@ function renderFollowupCard(f) {
       <div style="flex:1;min-width:0;">
         <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
           <p class="mb-0" style="font-size:14px;font-weight:700;"><%= f.lead.name %></p>
-          <span class="<%= outcomeBadge %>"><%= outcomeLabel %></span><% if (typeof isAdmin !== 'undefined' && isAdmin && f.calledBy) { %>
-<span style="font-size:11px; color:#696cff; background:rgba(105,108,255,0.1); padding:2px 8px; border-radius:10px; margin-left:8px;">
-👤 <%= f.calledBy.fullName || f.calledBy.username %>
-</span>
-<% } %>
+          <span class="<%= outcomeBadge %>"><%= outcomeLabel %></span>
+          <% if (f.calledBy) { %>
+            <span style="font-size:11px; color:#696cff; background:rgba(105,108,255,0.1); padding:2px 8px; border-radius:10px; margin-left:8px;">
+              👤 <%= f.calledBy.fullName || f.calledBy.username %>
+            </span>
+          <% } %>
           <% if (dueLabel) { %>
             <span class="<%= dueCls %>"><i class="bx bx-calendar me-1"></i><%= dueLabel %></span>
           <% } %>
@@ -220,6 +250,7 @@ function renderFollowupCard(f) {
         <% if (f.notes) { %><p style="font-size:12px;color:#8a8d9f;margin:0;"><strong>Notas:</strong> <%= f.notes %></p><% } %>
       </div>
       <div class="d-flex flex-column gap-2 flex-shrink-0">
+        <% if (f.outcome !== 'scheduled') { %>
         <button class="btn btn-sm btn-outline-secondary"
           data-id="<%= f._id %>"
           data-leadid="<%= f.lead._id %>"
@@ -229,6 +260,7 @@ function renderFollowupCard(f) {
           onclick="abrirRellamar(this)">
           <i class="bx bx-phone me-1"></i> Llamar de nuevo
         </button>
+        <% } %>
         <button class="btn btn-sm btn-outline-danger"
           data-id="<%= f._id %>"
           onclick="resolverSeguimiento(this)">
