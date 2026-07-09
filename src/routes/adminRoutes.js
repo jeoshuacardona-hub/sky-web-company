@@ -178,4 +178,48 @@ router.get('/api/admin/check-jose1', authMiddleware, adminOnly, async (req, res)
     }
 });
 
+
+// Dar leads a jose daniel SIN afectar otros usuarios
+router.post('/api/admin/fix-jose-daniel-leads', authMiddleware, adminOnly, async (req, res) => {
+    try {
+        // Buscar a jose daniel
+        const jose = await User.findOne({ email: 'jdaniel@skyweb.com' });
+        if (!jose) {
+            return res.json({ success: false, message: 'Usuario jdaniel@skyweb.com no encontrado' });
+        }
+        
+        // Obtener SOLO leads sin asignar (sin tocar los de otros usuarios)
+        const unassignedLeads = await Lead.find({
+            $or: [
+                { assignedTo: null },
+                { assignedTo: { $exists: false } }
+            ]
+        }).limit(26);
+        
+        if (unassignedLeads.length === 0) {
+            return res.json({ success: false, message: 'No hay leads sin asignar disponibles' });
+        }
+        
+        // Asignar a jose daniel
+        const ids = unassignedLeads.map(l => l._id);
+        await Lead.updateMany(
+            { _id: { $in: ids } },
+            { $set: { assignedTo: jose._id, status: 'new' } }
+        );
+        
+        // Verificar
+        const count = await Lead.countDocuments({ assignedTo: jose._id });
+        
+        res.json({ 
+            success: true, 
+            message: jose.fullName + ' ahora tiene ' + count + ' leads',
+            assigned: unassignedLeads.length,
+            total: count
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 module.exports = router;
