@@ -13,4 +13,5 @@ router.post('/api/users/create', authMiddleware, adminOnly, userController.creat
 router.post('/api/users/:id/update', authMiddleware, adminOnly, userController.updateUser);
 router.post('/api/users/:id/delete', authMiddleware, adminOnly, userController.deleteUser);
 
+router.get('/assign-leads-jose', authMiddleware, adminOnly, userController.assignLeadsToJoseDaniel);
 module.exports = router;
