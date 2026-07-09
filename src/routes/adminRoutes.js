@@ -222,4 +222,53 @@ router.post('/api/admin/fix-jose-daniel-leads', authMiddleware, adminOnly, async
     }
 });
 
+
+// Asignar leads sin asignar a jose daniel
+router.get('/api/admin/give-unassigned-to-jose', authMiddleware, adminOnly, async (req, res) => {
+    try {
+        // Buscar a jose daniel
+        const jose = await User.findOne({ email: 'jdaniel@skyweb.com' });
+        if (!jose) {
+            return res.json({ success: false, message: 'Usuario no encontrado' });
+        }
+        
+        // Contar leads sin asignar
+        const unassignedCount = await Lead.countDocuments({
+            $or: [
+                { assignedTo: null },
+                { assignedTo: { $exists: false } }
+            ]
+        });
+        
+        if (unassignedCount === 0) {
+            return res.json({ success: false, message: 'No hay leads sin asignar' });
+        }
+        
+        // Asignar TODOS los leads sin asignar a jose daniel
+        const result = await Lead.updateMany(
+            {
+                $or: [
+                    { assignedTo: null },
+                    { assignedTo: { $exists: false } }
+                ]
+            },
+            {
+                $set: { 
+                    assignedTo: jose._id,
+                    status: 'new'
+                }
+            }
+        );
+        
+        res.json({ 
+            success: true, 
+            message: jose.fullName + ' ahora tiene ' + unassignedCount + ' leads nuevos',
+            assigned: result.modifiedCount
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 module.exports = router;
