@@ -64,17 +64,6 @@ router.delete('/api/customers/:id', authMiddleware, async (req, res) => {
     }
 });
 
-// Eliminar cliente
-router.delete('/api/customers/:id', authMiddleware, async (req, res) => {
-    try {
-        await Customer.findByIdAndDelete(req.params.id);
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Delete error:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
 // Quick Actions API (Solo agrega, no modifica)
 router.post('/api/customers/:id/note', authMiddleware, async (req, res) => {
     try {
@@ -168,13 +157,15 @@ router.get('/reports', authMiddleware, async (req, res) => {
 
 // RUTAS DE USUARIOS (Agregar al final del archivo)
 const userController = require('../controllers/userController');
+const adminOnly = require('../middleware/authMiddleware').adminOnly;
 
 // API para crear usuarios
-router.post('/api/users', authMiddleware, userController.createUser);
+router.post('/api/users', authMiddleware, adminOnly, userController.createUser);
 
 // API para eliminar usuarios (por si acaso también lo necesitas)
-router.delete('/api/users/:id', authMiddleware, async (req, res) => {
+router.delete('/api/users/:id', authMiddleware, adminOnly, async (req, res) => {
     try {
+        const User = require('../models/User');
         await User.findByIdAndDelete(req.params.id);
         res.json({ success: true });
     } catch (error) {

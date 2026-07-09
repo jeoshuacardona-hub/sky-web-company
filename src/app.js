@@ -42,6 +42,8 @@ const debugRoutes = require('./routes/debugRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const operationsRoutes = require('./routes/operationsRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const taskRoutes = require('./routes/taskRoutes');
+
 
 // RUTA RAÍZ - Redirige a dashboard
 app.get('/', (req, res) => {
@@ -62,6 +64,8 @@ app.use(businessRoutes);
 app.use(userRoutes);
 app.use(debugRoutes);
 app.use(calendarRoutes);
+app.use(taskRoutes);
+
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => {

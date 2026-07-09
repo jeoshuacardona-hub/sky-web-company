@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
+const authMiddleware = require('../middleware/authMiddleware');
+const adminOnly = require('../middleware/authMiddleware').adminOnly;
 
 // Endpoint TEMPORAL para crear admin - ELIMINAR después de usar
-router.get('/api/debug/create-admin', async (req, res) => {
+router.get('/api/debug/create-admin', authMiddleware, adminOnly, async (req, res) => {
     try {
         // Verificar si ya existe
         let admin = await User.findOne({ email: 'admin@skywebcompany.com' });
@@ -47,7 +49,7 @@ router.get('/api/debug/create-admin', async (req, res) => {
 });
 
 // Endpoint para listar todos los usuarios (debug)
-router.get('/api/debug/users', async (req, res) => {
+router.get('/api/debug/users', authMiddleware, adminOnly, async (req, res) => {
     try {
         const users = await User.find({}).select('-password');
         res.json({ success: true, count: users.length, users });
