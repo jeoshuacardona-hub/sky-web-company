@@ -9,8 +9,8 @@ router.get('/calendar', authMiddleware, async (req, res) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
         
-        // Admin ve todo, Usuario ve solo lo suyo
-        const meetingFilter = isAdmin ? {} : { $or: [{ createdBy: req.session.userId }, { assignedTo: req.session.userId }] };
+        // Calendario compartido para reuniones; tareas personales
+        const meetingFilter = {};
         const taskFilter = isAdmin ? {} : { assignedTo: req.session.userId };
         
         const meetings = await Meeting.find(meetingFilter).populate('createdBy', 'username fullName').populate('assignedTo', 'username fullName').sort({ date: 1, time: 1 });
@@ -64,11 +64,18 @@ router.post('/calendar/update/:id', authMiddleware, async (req, res) => {
     try {
         const { title, date, time, type, description } = req.body;
         const meeting = await Meeting.findById(req.params.id);
+        const isAdmin = req.session.user.role === 'admin';
         if (meeting) {
+            if (!isAdmin && meeting.createdBy.toString() !== req.session.userId) {
+                return res.status(403).json({ success: false, error: 'No tienes permiso para editar esta reunión' });
+            }
             await Meeting.findByIdAndUpdate(req.params.id, { title, date: new Date(date), time: time || meeting.time, description });
         } else {
             const task = await Task.findById(req.params.id);
             if (task) {
+                if (!isAdmin && task.assignedTo.toString() !== req.session.userId) {
+                    return res.status(403).json({ success: false, error: 'No tienes permiso para editar esta tarea' });
+                }
                 await Task.findByIdAndUpdate(req.params.id, { title, dueDate: new Date(date), description });
             }
         }
@@ -97,10 +104,23 @@ router.get('/calendar/event/:id', authMiddleware, async (req, res) => {
 router.get('/calendar/delete/:id', authMiddleware, async (req, res) => {
     try {
         const { type } = req.query;
+        const isAdmin = req.session.user.role === 'admin';
         if (type === 'task') {
-            await Task.findByIdAndDelete(req.params.id);
+            const task = await Task.findById(req.params.id);
+            if (task) {
+                if (!isAdmin && task.assignedTo.toString() !== req.session.userId) {
+                    return res.redirect('/calendar');
+                }
+                await Task.findByIdAndDelete(req.params.id);
+            }
         } else {
-            await Meeting.findByIdAndDelete(req.params.id);
+            const meeting = await Meeting.findById(req.params.id);
+            if (meeting) {
+                if (!isAdmin && meeting.createdBy.toString() !== req.session.userId) {
+                    return res.redirect('/calendar');
+                }
+                await Meeting.findByIdAndDelete(req.params.id);
+            }
         }
         res.redirect('/calendar');
     } catch (error) {

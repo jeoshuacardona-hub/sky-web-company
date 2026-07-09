@@ -105,8 +105,8 @@ body { background: #0f172a; color: #fff; }
 
 <script>
 let currentDate = new Date();
-const meetingsData = <%- JSON.stringify((meetings||[]).map(m => ({ _id: m._id, title: m.title, date: new Date(m.date).toISOString().split('T')[0], time: m.time, type: 'meeting' }))) %>;
-const tasksData = <%- JSON.stringify((tasks||[]).map(t => ({ _id: t._id, title: t.title, date: t.dueDate ? new Date(t.dueDate).toISOString().split('T')[0] : new Date(t.createdAt).toISOString().split('T')[0], type: 'task' }))) %>;
+const meetingsData = <%- JSON.stringify((meetings||[]).map(m => ({ _id: m._id, title: m.title + ' (' + (m.createdBy ? (m.createdBy.fullName || m.createdBy.username) : 'Asesor') + ')', date: new Date(m.date).toISOString().split('T')[0], time: m.time, type: 'meeting', description: m.description || '' }))) %>;
+const tasksData = <%- JSON.stringify((tasks||[]).map(t => ({ _id: t._id, title: t.title, date: t.dueDate ? new Date(t.dueDate).toISOString().split('T')[0] : new Date(t.createdAt).toISOString().split('T')[0], type: 'task', description: t.description || '' }))) %>;
 
 function renderCalendar() {
   const year = currentDate.getFullYear();
