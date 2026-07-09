@@ -138,4 +138,44 @@ router.get('/api/admin/redistribute-leads', authMiddleware, adminOnly, async (re
     }
 });
 
+
+// Diagnóstico: verificar jose1 y sus leads
+router.get('/api/admin/check-jose1', authMiddleware, adminOnly, async (req, res) => {
+    try {
+        // Buscar usuario
+        const user = await User.findOne({ email: 'jose1@skyweb.com' });
+        
+        if (!user) {
+            return res.json({ success: false, message: 'Usuario jose1@skyweb.com NO EXISTE' });
+        }
+        
+        // Contar leads de jose1
+        const joseLeads = await Lead.find({ assignedTo: user._id });
+        const joseLeadsNew = await Lead.find({ assignedTo: user._id, status: 'new' });
+        
+        res.json({ 
+            success: true,
+            user: {
+                id: user._id,
+                email: user.email,
+                fullName: user.fullName,
+                role: user.role
+            },
+            leads: {
+                total: joseLeads.length,
+                statusNew: joseLeadsNew.length,
+                leads: joseLeads.slice(0, 5).map(l => ({
+                    id: l._id,
+                    name: l.name,
+                    status: l.status,
+                    phone: l.phone
+                }))
+            }
+        });
+    } catch (error) {
+        console.error('check-jose1 error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 module.exports = router;
