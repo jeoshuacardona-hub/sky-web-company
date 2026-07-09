@@ -6,6 +6,7 @@ const Lead = require('../models/Lead');
 const CallLog = require('../models/CallLog');
 const Customer = require('../models/Customer');
 const Task = require('../models/Task');
+const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
 
 // Solo admin puede acceder
@@ -68,6 +69,67 @@ router.post('/api/admin/hard-reset', authMiddleware, adminOnly, async (req, res)
         });
     } catch (error) {
         console.error('hard-reset error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+
+// Redistribuir leads equitativamente entre comerciales
+router.get('/api/admin/redistribute-leads', authMiddleware, adminOnly, async (req, res) => {
+    try {
+        // Obtener todos los leads
+        const allLeads = await Lead.find({}).select('_id');
+        
+        // Obtener todos los comerciales
+        const comerciales = await User.find({ role: 'comercial' }).select('_id username fullName');
+        
+        if (comerciales.length === 0) {
+            return res.json({ success: false, message: 'No hay comerciales registrados' });
+        }
+        
+        // Shuffle aleatorio de leads
+        const shuffled = [...allLeads];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        
+        // Distribuir equitativamente
+        const distribution = {};
+        comerciales.forEach(c => {
+            distribution[c._id.toString()] = { user: c.fullName || c.username, count: 0 };
+        });
+        
+        // Asignar leads en round-robin
+        const updates = [];
+        shuffled.forEach((lead, index) => {
+            const comercial = comerciales[index % comerciales.length];
+            updates.push({
+                updateOne: {
+                    filter: { _id: lead._id },
+                    update: { $set: { assignedTo: comercial._id } }
+                }
+            });
+            distribution[comercial._id.toString()].count++;
+        });
+        
+        // Ejecutar todas las actualizaciones en batch
+        if (updates.length > 0) {
+            await Lead.bulkWrite(updates);
+        }
+        
+        // Resumen
+        const summary = Object.values(distribution).map(d => d.user + ': ' + d.count + ' leads');
+        
+        res.json({ 
+            success: true, 
+            message: 'Leads redistribuidos equitativamente',
+            total: allLeads.length,
+            comerciales: comerciales.length,
+            distribution: summary
+        });
+    } catch (error) {
+        console.error('redistribute-leads error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
