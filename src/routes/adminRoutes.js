@@ -87,33 +87,37 @@ router.get('/api/admin/redistribute-leads', authMiddleware, adminOnly, async (re
             return res.json({ success: false, message: 'No hay comerciales registrados' });
         }
         
-        // Shuffle aleatorio de leads
+        // Shuffle aleatorio
         const shuffled = [...allLeads];
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
         
-        // Distribuir equitativamente
+        // Distribuir equitativamente Y forzar status 'new'
         const distribution = {};
         comerciales.forEach(c => {
             distribution[c._id.toString()] = { user: c.fullName || c.username, count: 0 };
         });
         
-        // Asignar leads en round-robin
         const updates = [];
         shuffled.forEach((lead, index) => {
             const comercial = comerciales[index % comerciales.length];
             updates.push({
                 updateOne: {
                     filter: { _id: lead._id },
-                    update: { $set: { assignedTo: comercial._id } }
+                    update: { 
+                        $set: { 
+                            assignedTo: comercial._id,
+                            status: 'new'  // Forzar status new para que aparezcan en llamadas
+                        } 
+                    }
                 }
             });
             distribution[comercial._id.toString()].count++;
         });
         
-        // Ejecutar todas las actualizaciones en batch
+        // Ejecutar todas las actualizaciones
         if (updates.length > 0) {
             await Lead.bulkWrite(updates);
         }
@@ -123,7 +127,7 @@ router.get('/api/admin/redistribute-leads', authMiddleware, adminOnly, async (re
         
         res.json({ 
             success: true, 
-            message: 'Leads redistribuidos equitativamente',
+            message: 'Leads redistribuidos equitativamente con status new',
             total: allLeads.length,
             comerciales: comerciales.length,
             distribution: summary
