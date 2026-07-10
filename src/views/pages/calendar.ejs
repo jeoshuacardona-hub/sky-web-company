@@ -11,9 +11,9 @@ body { background: #0f172a; color: #fff; }
 .nav-buttons { display: flex; gap: 12px; }
 .btn-nav { background: #334155; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
 .btn-nav:hover { background: #475569; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
-.day-header { background: #334155; color: #94a3b8; padding: 12px; text-align: center; font-weight: 600; font-size: 13px; text-transform: uppercase; border-right: 1px solid #1e293b; }
-.calendar-day { min-height: 120px; background: #1e293b; border-right: 1px solid #334155; border-bottom: 1px solid #334155; padding: 8px; cursor: pointer; transition: 0.2s; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.day-header { background: #334155; color: #94a3b8; padding: 12px; text-align: center; font-weight: 600; font-size: 13px; text-transform: uppercase; border-right: 1px solid #1e293b; min-width: 0; }
+.calendar-day { min-height: 120px; background: #1e293b; border-right: 1px solid #334155; border-bottom: 1px solid #334155; padding: 8px; cursor: pointer; transition: 0.2s; min-width: 0; }
 .calendar-day:hover { background: #334155; }
 .calendar-day.today { background: #1e3a5f; }
 .calendar-day.other-month { background: #0f172a; opacity: 0.4; }
