@@ -63,6 +63,31 @@ body { background: #0f172a; color: #fff; }
   <div class="stat-card"><h3><%= (meetings||[]).length %></h3><p>Reuniones</p></div>
   <div class="stat-card"><h3><%= (tasks||[]).length %></h3><p>Tareas</p></div>
   <div class="stat-card"><h3><%= ((meetings||[]).length + (tasks||[]).length) %></h3><p>Total Eventos</p></div>
+  <div class="stat-card" style="text-align: left; padding: 16px 20px;">
+    <h4 style="font-size: 13px; font-weight: 700; color: #667eea; margin-bottom: 8px; border-bottom: 1px solid #334155; padding-bottom: 4px; text-transform: uppercase;">🤝 Por Asesor</h4>
+    <div style="max-height: 80px; overflow-y: auto;">
+      <%
+      var counts = {};
+      (meetings || []).forEach(function(m) {
+          if (m.createdBy) {
+              var name = m.createdBy.fullName || m.createdBy.username;
+              counts[name] = (counts[name] || 0) + 1;
+          }
+      });
+      var sorted = Object.keys(counts).sort(function(a,b){ return counts[b] - counts[a]; });
+      if (sorted.length === 0) {
+      %>
+        <p style="color: #94a3b8; font-size: 12px; margin: 0;">Sin reuniones agendadas</p>
+      <% } else { %>
+        <% sorted.forEach(function(name) { %>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+            <span style="font-weight: 600; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;">👤 <%= name %></span>
+            <span style="background: rgba(102,126,234,0.2); color: #818cf8; padding: 1px 6px; border-radius: 10px; font-weight: 700;"><%= counts[name] %></span>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+  </div>
 </div>
 
 <div class="calendar-wrapper">
@@ -92,7 +117,12 @@ body { background: #0f172a; color: #fff; }
     <h3 id="modalTitle" style="margin-bottom:20px; font-size:22px;">📅 Nueva Reunión</h3>
     <form id="eventForm" onsubmit="saveEvent(event)">
       <input type="hidden" id="eventId">
+      <div id="creatorSection" style="margin-bottom:15px; display:none;">
+        <label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Agendado por</label>
+        <div id="eventCreator" style="padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px; font-size:13px; font-weight:600;"></div>
+      </div>
       <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Título *</label><input type="text" id="title" required style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"></div>
+
       <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Fecha *</label><input type="date" id="date" required style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"></div>
       <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Hora</label><input type="time" id="time" style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"></div>
       <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Tipo</label><select id="type" style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"><option value="meeting">Reunión</option><option value="task">Tarea</option></select></div>
@@ -172,6 +202,7 @@ function openModal(date = null) {
   document.getElementById('modalTitle').textContent = '📅 Nueva Reunión';
   document.getElementById('deleteBtn').style.display = 'none';
   document.getElementById('date').value = date || new Date().toISOString().split('T')[0];
+  document.getElementById('creatorSection').style.display = 'none';
 }
 
 function closeModal() { document.getElementById('modal').style.display = 'none'; }
@@ -207,6 +238,16 @@ async function editEvent(id, type) {
     document.getElementById('type').value = type;
     document.getElementById('description').value = ev.description || '';
     document.getElementById('deleteBtn').style.display = 'block';
+    
+    const creatorSec = document.getElementById('creatorSection');
+    const creatorEl = document.getElementById('eventCreator');
+    if (ev.createdBy) {
+      creatorEl.textContent = '👤 ' + (ev.createdBy.fullName || ev.createdBy.username);
+      creatorSec.style.display = 'block';
+    } else {
+      creatorSec.style.display = 'none';
+    }
+    
     document.getElementById('modal').style.display = 'flex';
   } catch(err) { alert('Error cargando: ' + err.message); }
 }

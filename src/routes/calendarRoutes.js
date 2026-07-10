@@ -92,7 +92,7 @@ router.get('/calendar/event/:id', authMiddleware, async (req, res) => {
             const task = await Task.findById(req.params.id);
             res.json(task || {});
         } else {
-            const meeting = await Meeting.findById(req.params.id);
+            const meeting = await Meeting.findById(req.params.id).populate('createdBy', 'username fullName');
             res.json(meeting || {});
         }
     } catch (error) {
