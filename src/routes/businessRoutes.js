@@ -9,7 +9,7 @@ router.get('/pipeline', authMiddleware, async (req, res) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
         const leadFilter = isAdmin ? {} : { assignedTo: req.session.userId };
-        const customerFilter = isAdmin ? {} : { createdBy: req.session.userId };
+        const customerFilter = isAdmin ? {} : { assignedTo: req.session.userId };
         const callFilter = isAdmin ? {} : { calledBy: req.session.userId };
         const customers = await Customer.find(customerFilter).populate('assignedTo', 'username fullName').sort({ createdAt: -1 });
         
@@ -31,7 +31,7 @@ router.get('/pipeline', authMiddleware, async (req, res) => {
     }
 });
 
-router.post('/api/customers', authMiddleware, async (req, res) => {
+router.post('/api/customers', authMiddleware, authMiddleware.adminOnly, async (req, res) => {
     try {
         const customer = await Customer.create({ ...req.body, assignedTo: req.session.userId });
         res.json({ success: true, customer });
@@ -41,7 +41,7 @@ router.post('/api/customers', authMiddleware, async (req, res) => {
     }
 });
 
-router.post('/api/customers/:id/status', authMiddleware, async (req, res) => {
+router.post('/api/customers/:id/status', authMiddleware, authMiddleware.adminOnly, async (req, res) => {
     try {
         const { status } = req.body;
         const customer = await Customer.findByIdAndUpdate(req.params.id, { status }, { new: true });
@@ -54,7 +54,7 @@ router.post('/api/customers/:id/status', authMiddleware, async (req, res) => {
 module.exports = router;
 
 // Eliminar cliente
-router.delete('/api/customers/:id', authMiddleware, async (req, res) => {
+router.delete('/api/customers/:id', authMiddleware, authMiddleware.adminOnly, async (req, res) => {
     try {
         await Customer.findByIdAndDelete(req.params.id);
         res.json({ success: true });

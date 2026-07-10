@@ -55,7 +55,9 @@
   <div class="stat-box"><h3><%= stats.perdidos || 0 %></h3><p>Perdidos</p></div>
 </div>
 
+<% if (isAdmin) { %>
 <button class="btn-new" id="btnNuevoCliente"><i class='bx bx-plus'></i> Nuevo Cliente</button>
+<% } %>
 
 <div class="pipeline-board">
   <% const statuses = [
@@ -79,12 +81,18 @@
       <% } else { %>
         <% items.forEach(c => { %>
           <div class="customer-card <%= status.class %>" data-id="<%= c._id %>">
+            <% if (isAdmin) { %>
             <button class="btn-delete" onclick="deleteCustomer('<%= c._id %>')" title="Eliminar"><i class='bx bx-trash'></i></button>
+            <% } %>
             <div class="customer-name"><%= c.name %></div>
             <% if (c.value) { %><div class="customer-value"><%= c.value.toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0}) %></div><% } %>
             <% if (c.phone) { %><div class="customer-meta"><i class='bx bx-phone'></i> <%= c.phone %></div><% } %>
             <% if (c.company) { %><div class="customer-meta"><i class='bx bx-buildings'></i> <%= c.company %></div><% } %>
             <% if (c.notes) { %><div class="customer-meta" style="font-style:italic;"><i class='bx bx-comment-detail'></i> <%= c.notes.length > 60 ? c.notes.substring(0,60) + '...' : c.notes %></div><% } %>
+            <% if (c.assignedTo) { %>
+              <div class="customer-meta" style="color:#696cff; font-weight: 600; margin-top: 4px;"><i class='bx bx-user'></i> <%= c.assignedTo.fullName || c.assignedTo.username %></div>
+            <% } %>
+            <% if (isAdmin) { %>
             <div class="customer-actions">
               <% if (status.key === 'prospect') { %>
                 <button class="btn-sm btn-qualify" onclick="changeStatus('<%= c._id %>', 'qualified')">✓ Calificar</button>
@@ -102,6 +110,7 @@
                 <button class="btn-sm btn-lost" onclick="changeStatus('<%= c._id %>', 'closed_lost')">✕ Perdido</button>
               <% } %>
             </div>
+            <% } %>
           </div>
         <% }) %>
       <% } %>

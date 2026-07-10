@@ -149,12 +149,14 @@ exports.registrarLlamada = async (req, res) => {
                     status: 'prospect',
                     value: value && !isNaN(parseFloat(value)) ? parseFloat(value) : 0, 
                     notes: notes || lead.notes || '', 
-                    source: 'llamada_agendada'
+                    source: 'llamada_agendada',
+                    assignedTo: userId
                 });
             } else {
                 await Customer.findByIdAndUpdate(customer._id, { 
                     status: 'prospect', 
-                    value: value && !isNaN(parseFloat(value)) ? parseFloat(value) : customer.value 
+                    value: value && !isNaN(parseFloat(value)) ? parseFloat(value) : customer.value,
+                    assignedTo: customer.assignedTo || userId
                 });
             }
             callLog.customerId = customer._id;
