@@ -8,12 +8,13 @@ const customerSchema = new mongoose.Schema({
     status: { 
         type: String, 
         enum: ['prospect', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost'],
-        default: 'prospect'
+        default: 'prospect',
+        index: true
     },
     value: { type: Number, default: 0 },
     source: { type: String, default: 'manual' },
     notes: { type: String },
-    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
     closedDate: { type: Date },
 }, { timestamps: true });
 
