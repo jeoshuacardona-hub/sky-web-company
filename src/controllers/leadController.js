@@ -31,14 +31,29 @@ exports.importLeads = async (req, res) => {
         if (!leads || !leads.length) return res.status(400).json({ success: false, error: 'No hay leads' });
         if (!provider) return res.status(400).json({ success: false, error: 'Falta proveedor' });
 
-        // Mapeo flexible de columnas
+        // Mapeo flexible de columnas robusto para el formato de lead del cliente
         const toInsert = leads.map(l => {
-            const name = l.name || l.Nombre || l.NOMBRE || l['Nombre Completo'] || 'Sin Nombre';
-            const phone = l.phone || l.Phone || l.Telefono || l.TELEFONO || l.WhatsApp || l['WhatsApp_Business'] || '';
+            const name = l.name || l.Nombre || l.NOMBRE || l['Nombre Completo'] || l.Negocio || l.negocio || l.NEGOCIO || 'Sin Nombre';
+            const phone = l.phone || l.Phone || l.Telefono || l.TELEFONO || l.WhatsApp || l['WhatsApp_Business'] || l.Teléfono || l.teléfono || l.telefono || l['Teléfono Confirmado'] || '';
             const email = l.email || l.Email || l.EMAIL || '';
-            const company = l.company || l.Company || l.Empresa || l.EMPRESA || l.Sedes || '';
+            const company = l.company || l.Company || l.Empresa || l.EMPRESA || l.Sedes || l.Nicho || l.nicho || l.NICHO || '';
             const city = l.city || l.City || l.Ciudad || l.CIUDAD || '';
-            const notes = l.notes || l.Notes || l.Notas || '';
+            
+            // Consolidar toda la metadata extra en el campo de Notas para no perder información
+            const notesArray = [];
+            if (l.notes || l.Notes || l.Notas) notesArray.push(l.notes || l.Notes || l.Notas);
+            if (l.Dirección || l.dirección || l.direccion || l.Direccion) notesArray.push('Dirección: ' + (l.Dirección || l.dirección || l.direccion || l.Direccion));
+            if (l.Nicho || l.nicho || l.NICHO) notesArray.push('Nicho: ' + (l.Nicho || l.nicho || l.NICHO));
+            if (l.Website || l.website) notesArray.push('Website: ' + (l.Website || l.website));
+            if (l['Necesidades del Negocio']) notesArray.push('Necesidades: ' + l['Necesidades del Negocio']);
+            if (l['Falencias Detectadas']) notesArray.push('Falencias: ' + l['Falencias Detectadas']);
+            if (l.Instagram) notesArray.push('Instagram: ' + l.Instagram);
+            if (l.Facebook) notesArray.push('Facebook: ' + l.Facebook);
+            if (l.LinkedIn) notesArray.push('LinkedIn: ' + l.LinkedIn);
+            if (l.TikTok) notesArray.push('TikTok: ' + l.TikTok);
+            
+            const notes = notesArray.join(' | ');
+            
             return {
                 name, phone, email, company, city, notes,
                 source: l.source || 'csv', status: 'new',
