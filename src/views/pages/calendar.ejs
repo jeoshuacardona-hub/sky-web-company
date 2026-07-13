@@ -124,7 +124,18 @@ body { background: #0f172a; color: #fff; }
       <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Título *</label><input type="text" id="title" required style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"></div>
 
       <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Fecha *</label><input type="date" id="date" required style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"></div>
-      <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Hora</label><input type="time" id="time" style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"></div>
+      <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+        <div style="flex: 1;">
+          <label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Hora Inicio *</label>
+          <input type="time" id="time" required style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;">
+        </div>
+        <% if (isAdmin) { %>
+        <div style="flex: 1;">
+          <label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Hora Fin (Opcional)</label>
+          <input type="time" id="endTime" style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;">
+        </div>
+        <% } %>
+      </div>
       <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Tipo</label><select id="type" style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"><option value="meeting">Reunión</option><option value="task">Tarea</option></select></div>
       <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Descripción</label><textarea id="description" rows="3" style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"></textarea></div>
       <button type="submit" style="width:100%; padding:12px; background:#667eea; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; margin-bottom:10px;">💾 Guardar</button>
@@ -203,6 +214,9 @@ function openModal(date = null) {
   document.getElementById('deleteBtn').style.display = 'none';
   document.getElementById('date').value = date || new Date().toISOString().split('T')[0];
   document.getElementById('creatorSection').style.display = 'none';
+  
+  const endTimeEl = document.getElementById('endTime');
+  if (endTimeEl) endTimeEl.value = '';
 }
 
 function closeModal() { document.getElementById('modal').style.display = 'none'; }
@@ -210,11 +224,29 @@ function closeModal() { document.getElementById('modal').style.display = 'none';
 async function saveEvent(e) {
   e.preventDefault();
   const id = document.getElementById('eventId').value;
+  
+  let timeVal = document.getElementById('time').value;
+  const typeVal = document.getElementById('type').value;
+  
+  if (typeVal === 'meeting' && timeVal) {
+      const endTimeEl = document.getElementById('endTime');
+      if (endTimeEl && endTimeEl.value) {
+          timeVal = timeVal + ' - ' + endTimeEl.value;
+      } else {
+          const parts = timeVal.split(':');
+          let hour = parseInt(parts[0], 10);
+          let minute = parts[1];
+          let endHour = (hour + 1) % 24;
+          const endHourStr = String(endHour).padStart(2, '0');
+          timeVal = timeVal + ' - ' + endHourStr + ':' + minute;
+      }
+  }
+  
   const data = {
     title: document.getElementById('title').value,
     date: document.getElementById('date').value,
-    time: document.getElementById('time').value,
-    type: document.getElementById('type').value,
+    time: timeVal,
+    type: typeVal,
     description: document.getElementById('description').value
   };
   try {
@@ -234,7 +266,20 @@ async function editEvent(id, type) {
     document.getElementById('eventId').value = ev._id;
     document.getElementById('title').value = ev.title || '';
     document.getElementById('date').value = ev.date ? new Date(ev.date).toISOString().split('T')[0] : '';
-    document.getElementById('time').value = ev.time || '';
+    
+    let startTimeVal = ev.time || '';
+    let endTimeVal = '';
+    if (startTimeVal.includes(' - ')) {
+        const parts = startTimeVal.split(' - ');
+        startTimeVal = parts[0];
+        endTimeVal = parts[1];
+    }
+    document.getElementById('time').value = startTimeVal;
+    const endTimeEl = document.getElementById('endTime');
+    if (endTimeEl) {
+        endTimeEl.value = endTimeVal;
+    }
+    
     document.getElementById('type').value = type;
     document.getElementById('description').value = ev.description || '';
     document.getElementById('deleteBtn').style.display = 'block';
