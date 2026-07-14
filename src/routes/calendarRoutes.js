@@ -5,6 +5,60 @@ const Meeting = require('../models/Meeting');
 const Task = require('../models/Task');
 const User = require('../models/User');
 
+function timeToMinutes(timeStr) {
+    let startStr = timeStr;
+    let endStr = '';
+    if (timeStr.includes(' - ')) {
+        const parts = timeStr.split(' - ');
+        startStr = parts[0];
+        endStr = parts[1];
+    }
+    
+    const parseTime = (str) => {
+        const parts = str.split(':');
+        const h = parseInt(parts[0], 10) || 0;
+        const m = parseInt(parts[1], 10) || 0;
+        return h * 60 + m;
+    };
+    
+    const start = parseTime(startStr);
+    let end = endStr ? parseTime(endStr) : start + 60;
+    
+    if (end <= start) {
+        end += 24 * 60;
+    }
+    
+    return { start, end };
+}
+
+async function checkOverlap(date, timeStr, excludeEventId = null) {
+    const startOfDay = new Date(date);
+    startOfDay.setUTCHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setUTCHours(23, 59, 59, 999);
+    
+    const query = {
+        type: 'reunion',
+        date: { $gte: startOfDay, $lte: endOfDay }
+    };
+    if (excludeEventId) {
+        query._id = { $ne: excludeEventId };
+    }
+    
+    const existingMeetings = await Meeting.find(query);
+    const proposed = timeToMinutes(timeStr);
+    
+    for (const m of existingMeetings) {
+        const existing = timeToMinutes(m.time);
+        if (proposed.start < existing.end && existing.start < proposed.end) {
+            return m;
+        }
+    }
+    
+    return null;
+}
+
+
 router.get('/calendar', authMiddleware, async (req, res) => {
     try {
         const isAdmin = req.session.user.role === 'admin';
@@ -43,17 +97,22 @@ router.post('/calendar/save', authMiddleware, async (req, res) => {
                 status: 'todo' 
             });
         } else {
-            // 2. Crear reunión asegurando vinculación con el usuario (para que Admin la vea)
+            if (!isAdmin) {
+                const overlapping = await checkOverlap(date, time || '09:00');
+                if (overlapping) {
+                    return res.status(400).json({ error: 'El horario seleccionado se cruza con otra reunión ya agendada (' + overlapping.time + ')' });
+                }
+            }
             await Meeting.create({ 
                 title, 
                 date: new Date(date), 
                 time: time || '09:00', 
                 description: description || '', 
-                createdBy: req.session.userId, // El usuario que la creó
+                createdBy: req.session.userId,
                 type: 'reunion' 
             });
         }
-        res.redirect('/calendar');
+        res.json({ success: true });
     } catch (error) {
         console.error('Error guardando:', error);
         res.redirect('/calendar');
@@ -68,6 +127,12 @@ router.post('/calendar/update/:id', authMiddleware, async (req, res) => {
         if (meeting) {
             if (!isAdmin && meeting.createdBy.toString() !== req.session.userId) {
                 return res.status(403).json({ success: false, error: 'No tienes permiso para editar esta reunión' });
+            }
+            if (!isAdmin) {
+                const overlapping = await checkOverlap(date, time || meeting.time, req.params.id);
+                if (overlapping) {
+                    return res.status(400).json({ success: false, error: 'El horario seleccionado se cruza con otra reunión ya agendada (' + overlapping.time + ')' });
+                }
             }
             await Meeting.findByIdAndUpdate(req.params.id, { title, date: new Date(date), time: time || meeting.time, description });
         } else {

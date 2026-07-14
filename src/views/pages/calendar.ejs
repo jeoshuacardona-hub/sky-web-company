@@ -144,10 +144,77 @@ body { background: #0f172a; color: #fff; }
   </div>
 </div>
 
+<!-- Modal de detalles del día -->
+<div id="dayEventsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#1e293b; padding:30px; border-radius:16px; width:90%; max-width:500px; position:relative; box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+    <button onclick="closeDayEventsModal()" style="position:absolute; top:15px; right:15px; background:#334155; border:none; color:#fff; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:18px;">✕</button>
+    <h3 id="dayEventsModalTitle" style="margin-bottom:20px; font-size:20px; color:#fff;">📅 Eventos del día</h3>
+    
+    <div id="dayEventsList" style="max-height:300px; overflow-y:auto; margin-bottom:20px; display:flex; flex-direction:column; gap:10px;">
+        <!-- Se rellena dinámicamente -->
+    </div>
+    
+    <button id="addEventFromDayBtn" style="width:100%; padding:12px; background:#667eea; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">+ Nueva Reunión</button>
+  </div>
+</div>
+
 <script>
 let currentDate = new Date();
 const meetingsData = <%- JSON.stringify((meetings||[]).map(m => ({ _id: m._id, title: m.title + ' (' + (m.createdBy ? (m.createdBy.fullName || m.createdBy.username) : 'Asesor') + ')', date: new Date(m.date).toISOString().split('T')[0], time: m.time, type: 'meeting', description: m.description || '' }))) %>;
 const tasksData = <%- JSON.stringify((tasks||[]).map(t => ({ _id: t._id, title: t.title, date: t.dueDate ? new Date(t.dueDate).toISOString().split('T')[0] : new Date(t.createdAt).toISOString().split('T')[0], type: 'task', description: t.description || '' }))) %>;
+
+function handleDayClick(dateStr) {
+  const dayMeetings = meetingsData.filter(m => m.date === dateStr);
+  const dayTasks = tasksData.filter(t => t.date === dateStr);
+  const dayEvents = [...dayMeetings, ...dayTasks];
+  
+  if (dayEvents.length === 0) {
+    openModal(dateStr);
+  } else {
+    openDayEventsModal(dateStr, dayEvents);
+  }
+}
+
+function openDayEventsModal(dateStr, events) {
+  const list = document.getElementById('dayEventsList');
+  list.innerHTML = '';
+  
+  const dateParts = dateStr.split('-');
+  const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+  const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+  document.getElementById('dayEventsModalTitle').textContent = '📅 ' + dateObj.toLocaleDateString('es-ES', options);
+  
+  events.forEach(e => {
+    const item = document.createElement('div');
+    item.style.cssText = 'background:#0f172a; padding:12px; border-radius:8px; border-left:4px solid ' + (e.type === 'task' ? '#f59e0b' : '#10b981') + '; cursor:pointer; transition:0.2s;';
+    item.onclick = (event) => {
+      event.stopPropagation();
+      closeDayEventsModal();
+      editEvent(e._id, e.type);
+    };
+    item.onmouseover = () => { item.style.background = '#1e293b'; };
+    item.onmouseout = () => { item.style.background = '#0f172a'; };
+    
+    item.innerHTML = `
+      <div style="font-weight:600; font-size:13px; color:#fff; margin-bottom:4px;">${e.title}</div>
+      <div style="font-size:11px; color:#94a3b8;">
+        ${e.time ? '⏰ ' + e.time + ' | ' : ''} ${e.type === 'task' ? '📝 Tarea' : '🤝 Reunión'}
+      </div>
+    `;
+    list.appendChild(item);
+  });
+  
+  document.getElementById('addEventFromDayBtn').onclick = () => {
+    closeDayEventsModal();
+    openModal(dateStr);
+  };
+  
+  document.getElementById('dayEventsModal').style.display = 'flex';
+}
+
+function closeDayEventsModal() {
+  document.getElementById('dayEventsModal').style.display = 'none';
+}
 
 function renderCalendar() {
   const year = currentDate.getFullYear();
@@ -180,7 +247,7 @@ function renderCalendar() {
     
     let eventsHtml = dayEvents.slice(0, 3).map(e => `<div class="event-item ${e.type}" onclick="event.stopPropagation(); editEvent('${e._id}', '${e.type}')">${e.time ? e.time+' ' : ''}${e.title}</div>`).join('');
     if (dayEvents.length > 3) eventsHtml += `<div style="font-size:10px;color:#94a3b8;padding:3px;">+${dayEvents.length-3} más</div>`;
-    grid.innerHTML += `<div class="calendar-day ${isToday ? 'today' : ''}" onclick="openModal('${dateStr}')"><div class="day-number">${day}</div><div>${eventsHtml}</div></div>`;
+    grid.innerHTML += `<div class="calendar-day ${isToday ? 'today' : ''}" onclick="handleDayClick('${dateStr}')"><div class="day-number">${day}</div><div>${eventsHtml}</div></div>`;
   }
   
   // Mobile List
@@ -251,9 +318,13 @@ async function saveEvent(e) {
   };
   try {
     const url = id ? `/calendar/update/${id}` : '/calendar/save';
-    await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+    const response = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+    if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || errData.message || 'Error al guardar');
+    }
     location.reload();
-  } catch(err) { alert('Error: ' + err.message); }
+  } catch(err) { alert(err.message); }
 }
 
 async function editEvent(id, type) {
@@ -304,7 +375,13 @@ async function deleteEvent() {
   window.location.href = `/calendar/delete/${id}?type=${type}`;
 }
 
-document.getElementById('modal').addEventListener('click', e => { if(e.target === this) closeModal(); });
-document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+document.getElementById('modal').addEventListener('click', e => { if(e.target.id === 'modal') closeModal(); });
+document.getElementById('dayEventsModal').addEventListener('click', e => { if(e.target.id === 'dayEventsModal') closeDayEventsModal(); });
+document.addEventListener('keydown', e => { 
+  if(e.key === 'Escape') { 
+    closeModal(); 
+    closeDayEventsModal(); 
+  } 
+});
 document.addEventListener('DOMContentLoaded', renderCalendar);
 </script>
