@@ -65,6 +65,8 @@ app.use(userRoutes);
 app.use(debugRoutes);
 app.use(calendarRoutes);
 app.use(taskRoutes);
+const googleAuthRoutes = require('./routes/googleAuthRoutes');
+app.use(googleAuthRoutes);
 
 
 mongoose.connect(process.env.MONGODB_URI)

@@ -4,6 +4,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 const Meeting = require('../models/Meeting');
 const Task = require('../models/Task');
 const User = require('../models/User');
+const googleCalendar = require('../utils/googleCalendar');
 
 function timeToMinutes(timeStr) {
     let startStr = timeStr;
@@ -69,12 +70,13 @@ router.get('/calendar', authMiddleware, async (req, res) => {
         
         const meetings = await Meeting.find(meetingFilter).populate('createdBy', 'username fullName').populate('assignedTo', 'username fullName').sort({ date: 1, time: 1 });
         const tasks = await Task.find(taskFilter).populate('assignedTo', 'username fullName').populate('customer', 'name').sort({ dueDate: 1 });
-        const users = await User.find({}).select('username fullName email');
+        const user = await User.findById(req.session.userId);
+        const isGoogleConnected = !!user.googleRefreshToken;
         
-        res.render('pages/calendar', { meetings, tasks, users, isAdmin, currentUser: req.session.user });
+        res.render('pages/calendar', { meetings, tasks, users, isAdmin, isGoogleConnected, currentUser: req.session.user });
     } catch (error) {
         console.error('Error en calendar:', error);
-        res.render('pages/calendar', { meetings: [], tasks: [], users: [], isAdmin: false, currentUser: req.session.user });
+        res.render('pages/calendar', { meetings: [], tasks: [], users: [], isAdmin: false, isGoogleConnected: false, currentUser: req.session.user });
     }
 });
 
@@ -103,7 +105,7 @@ router.post('/calendar/save', authMiddleware, async (req, res) => {
                     return res.status(400).json({ error: 'El horario seleccionado se cruza con otra reunión ya agendada (' + overlapping.time + ')' });
                 }
             }
-            await Meeting.create({ 
+            const meeting = await Meeting.create({ 
                 title, 
                 date: new Date(date), 
                 time: time || '09:00', 
@@ -111,6 +113,17 @@ router.post('/calendar/save', authMiddleware, async (req, res) => {
                 createdBy: req.session.userId,
                 type: 'reunion' 
             });
+            
+            // Sincronizar con Google Calendar si hay un administrador vinculado
+            const adminUser = await User.findOne({ role: 'admin', googleRefreshToken: { $exists: true } });
+            if (adminUser) {
+                const syncResult = await googleCalendar.createCalendarEvent(adminUser._id, meeting);
+                if (syncResult) {
+                    meeting.googleEventId = syncResult.eventId;
+                    meeting.meetLink = syncResult.meetLink;
+                    await meeting.save();
+                }
+            }
         }
         res.json({ success: true });
     } catch (error) {
@@ -134,7 +147,18 @@ router.post('/calendar/update/:id', authMiddleware, async (req, res) => {
                     return res.status(400).json({ success: false, error: 'El horario seleccionado se cruza con otra reunión ya agendada (' + overlapping.time + ')' });
                 }
             }
-            await Meeting.findByIdAndUpdate(req.params.id, { title, date: new Date(date), time: time || meeting.time, description });
+            const updatedMeeting = await Meeting.findByIdAndUpdate(req.params.id, { 
+                title, 
+                date: new Date(date), 
+                time: time || meeting.time, 
+                description 
+            }, { new: true });
+            
+            // Sincronizar actualización con Google Calendar
+            const adminUser = await User.findOne({ role: 'admin', googleRefreshToken: { $exists: true } });
+            if (adminUser && updatedMeeting.googleEventId) {
+                await googleCalendar.updateCalendarEvent(adminUser._id, updatedMeeting);
+            }
         } else {
             const task = await Task.findById(req.params.id);
             if (task) {
@@ -184,6 +208,13 @@ router.get('/calendar/delete/:id', authMiddleware, async (req, res) => {
                 if (!isAdmin && meeting.createdBy.toString() !== req.session.userId) {
                     return res.redirect('/calendar');
                 }
+                
+                // Eliminar de Google Calendar
+                const adminUser = await User.findOne({ role: 'admin', googleRefreshToken: { $exists: true } });
+                if (adminUser && meeting.googleEventId) {
+                    await googleCalendar.deleteCalendarEvent(adminUser._id, meeting.googleEventId);
+                }
+                
                 await Meeting.findByIdAndDelete(req.params.id);
             }
         }

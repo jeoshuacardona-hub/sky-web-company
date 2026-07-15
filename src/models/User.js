@@ -9,6 +9,9 @@ const userSchema = new mongoose.Schema({
     bio: { type: String, default: '' },
     phone: { type: String, default: '' },
     department: { type: String, default: '' },
+    googleAccessToken: { type: String },
+    googleRefreshToken: { type: String },
+    googleTokenExpiry: { type: Date },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 }, { timestamps: true });

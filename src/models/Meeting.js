@@ -7,6 +7,8 @@ const meetingSchema = new mongoose.Schema({
     location: String,
     type: { type: String, default: 'reunion' },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    googleEventId: { type: String },
+    meetLink: { type: String }
 }, { timestamps: true });
 module.exports = mongoose.model('Meeting', meetingSchema);
