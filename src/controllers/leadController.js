@@ -19,15 +19,19 @@ exports.getLeads = async (req, res, next) => {
         const isAdmin = req.session.user.role === 'admin';
         const filter = isAdmin ? {} : { assignedTo: req.session.userId };
         const leads = await Lead.find(filter).sort({ createdAt: -1 });
+        let comerciales = [];
+        if (isAdmin) {
+            comerciales = await User.find({ role: 'comercial' }).sort({ username: 1 }).select('username fullName');
+        }
         res.render('pages/leads', { 
-            title: 'Leads', leads, isAdmin, currentUser: req.session.user 
+            title: 'Leads', leads, isAdmin, comerciales, currentUser: req.session.user 
         });
     } catch (error) { next(error); }
 };
 
 exports.importLeads = async (req, res) => {
     try {
-        const { leads, provider } = req.body;
+        const { leads, provider, assignTo } = req.body;
         if (!leads || !leads.length) return res.status(400).json({ success: false, error: 'No hay leads' });
         if (!provider) return res.status(400).json({ success: false, error: 'Falta proveedor' });
 
@@ -63,6 +67,18 @@ exports.importLeads = async (req, res) => {
 
         const validLeads = toInsert.filter(l => l.name && l.name !== 'Sin Nombre');
         if (validLeads.length === 0) return res.status(400).json({ success: false, error: 'No hay leads válidos' });
+
+        // Si se especificó un asesor concreto para asignar
+        if (assignTo && assignTo !== 'round-robin') {
+            const advisor = await User.findById(assignTo);
+            if (advisor) {
+                validLeads.forEach(l => {
+                    l.assignedTo = advisor._id;
+                });
+                await Lead.insertMany(validLeads);
+                return res.json({ success: true, message: `Importados ${validLeads.length} leads asignados a ${advisor.fullName || advisor.username}` });
+            }
+        }
 
         // ✅ ROUND ROBIN: Asignar a comerciales
         const comerciales = await getComerciales();

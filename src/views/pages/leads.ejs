@@ -218,6 +218,17 @@ var contacted = leads.filter(function(l){ return l.status==='contacted'; }).leng
             <option value="Otro">Otro</option>
           </select>
         </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold" style="font-size:13px;">Asignar estos leads a:</label>
+          <select id="assignToSelect" class="form-select">
+            <option value="round-robin">Rotativo (Round Robin)</option>
+            <% if (typeof comerciales !== 'undefined') { %>
+              <% comerciales.forEach(function(c) { %>
+                <option value="<%= c._id %>" <%= c.username === 'richard' ? 'selected' : '' %>><%= c.fullName || c.username %></option>
+              <% }); %>
+            <% } %>
+          </select>
+        </div>
         <div id="dropZone" style="border:2px dashed #d0d0d8;border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all 0.15s;" onclick="document.getElementById('csvInput').click()" ondragover="event.preventDefault();this.style.borderColor='#696cff'" ondragleave="this.style.borderColor='#d0d0d8'" ondrop="handleDrop(event)">
           <i class="bx bx-cloud-upload" style="font-size:36px;color:#696cff;display:block;margin-bottom:8px;"></i>
           <p style="font-weight:600;margin:0;font-size:14px;">Arrastra tu CSV aqui</p>
@@ -265,25 +276,80 @@ function abrirEditar(btn) {
 function handleDrop(e) { e.preventDefault(); document.getElementById('dropZone').style.borderColor = '#d0d0d8'; var file = e.dataTransfer.files[0]; if (file) handleFile(file); }
 
 function parseCSV(text) {
-  var lines = text.trim().split(/\r?\n/);
-  if (lines.length < 2) return [];
-  var delimiter = lines[0].includes(';') ? ';' : ',';
-  var headers = lines[0].split(delimiter).map(function(h){ return h.trim().replace(/^"|"$/g, ''); });
   var rows = [];
-  for (var i = 1; i < lines.length; i++) {
-    var line = lines[i]; if (!line.trim()) continue;
-    var values = [], inQuotes = false, current = '';
-    for (var j = 0; j < line.length; j++) {
-      var char = line[j];
-      if (char === '"') inQuotes = !inQuotes;
-      else if ((char === delimiter) && !inQuotes) { values.push(current.trim().replace(/^"|"$/g, '')); current = ''; }
-      else current += char;
+  var row = [];
+  var current = '';
+  var inQuotes = false;
+  
+  // determine delimiter from first line
+  var headerEndIdx = -1;
+  var headerQuotes = false;
+  for (var i = 0; i < text.length; i++) {
+    var c = text[i];
+    if (c === '"') {
+      headerQuotes = !headerQuotes;
+    } else if ((c === '\n' || c === '\r') && !headerQuotes) {
+      headerEndIdx = i;
+      break;
     }
-    values.push(current.trim().replace(/^"|"$/g, ''));
-    var obj = {}; headers.forEach(function(h, idx){ if (values[idx] !== undefined) obj[h] = values[idx]; });
-    rows.push(obj);
   }
-  return rows;
+  var headerText = headerEndIdx !== -1 ? text.substring(0, headerEndIdx) : text;
+  var delimiter = headerText.includes(';') ? ';' : ',';
+
+  for (var i = 0; i < text.length; i++) {
+    var char = text[i];
+    var nextChar = text[i+1];
+    
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === delimiter && !inQuotes) {
+      row.push(current.trim().replace(/^"|"$/g, ''));
+      current = '';
+    } else if ((char === '\r' || char === '\n') && !inQuotes) {
+      row.push(current.trim().replace(/^"|"$/g, ''));
+      current = '';
+      if (row.length > 0 && row.some(function(val) { return val !== ''; })) {
+        rows.push(row);
+      }
+      row = [];
+      if (char === '\r' && nextChar === '\n') {
+        i++;
+      }
+    } else {
+      current += char;
+    }
+  }
+  if (current !== '' || row.length > 0) {
+    row.push(current.trim().replace(/^"|"$/g, ''));
+    if (row.length > 0 && row.some(function(val) { return val !== ''; })) {
+      rows.push(row);
+    }
+  }
+  
+  if (rows.length < 2) return [];
+  
+  var headers = rows[0].map(function(h) { return h.replace(/^"|"$/g, '').trim(); });
+  var result = [];
+  
+  for (var i = 1; i < rows.length; i++) {
+    var values = rows[i];
+    var obj = {};
+    headers.forEach(function(h, idx) {
+      if (values[idx] !== undefined) {
+        obj[h] = values[idx];
+      } else {
+        obj[h] = '';
+      }
+    });
+    result.push(obj);
+  }
+  
+  return result;
 }
 
 function handleFile(file) {
@@ -308,6 +374,7 @@ async function submitImport() {
   if (!parsedLeads.length) return;
   var provider = document.getElementById('providerSelect').value;
   if (!provider) { alert('Selecciona quién te pasó los leads'); return; }
+  var assignTo = document.getElementById('assignToSelect').value;
   
   var btn = document.getElementById('importBtn');
   btn.disabled = true;
@@ -316,7 +383,7 @@ async function submitImport() {
     var res = await fetch('/leads/import', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ leads: parsedLeads, provider: provider })
+      body: JSON.stringify({ leads: parsedLeads, provider: provider, assignTo: assignTo })
     });
     var data = await res.json();
     var el = document.getElementById('importResult');
