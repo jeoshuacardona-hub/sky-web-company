@@ -283,9 +283,8 @@ function renderCalendar() {
     const dayTasks = tasksData.filter(t => t.date === dateStr);
     const dayEvents = [...dayMeetings, ...dayTasks];
     
-    let eventsHtml = dayEvents.slice(0, 3).map(e => `<div class="event-item ${e.type}" onclick="event.stopPropagation(); editEvent('${e._id}', '${e.type}')">${e.time ? e.time+' ' : ''}${e.title}</div>`).join('');
-    if (dayEvents.length > 3) eventsHtml += `<div style="font-size:10px;color:#94a3b8;padding:3px;">+${dayEvents.length-3} más</div>`;
-    grid.innerHTML += `<div class="calendar-day ${isToday ? 'today' : ''}" onclick="handleDayClick('${dateStr}')"><div class="day-number">${day}</div><div>${eventsHtml}</div></div>`;
+    let eventsHtml = dayEvents.map(e => `<div class="event-item ${e.type}" onclick="event.stopPropagation(); editEvent('${e._id}', '${e.type}')">${e.time ? e.time+' ' : ''}${e.title}</div>`).join('');
+    grid.innerHTML += `<div class="calendar-day ${isToday ? 'today' : ''}" onclick="openModal('${dateStr}')"><div class="day-number">${day}</div><div>${eventsHtml}</div></div>`;
   }
   
   // Mobile List
