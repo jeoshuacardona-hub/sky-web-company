@@ -54,25 +54,9 @@ body { background: #0f172a; color: #fff; }
 }
 </style>
 
-<div class="calendar-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+<div class="calendar-header">
   <h1>📅 Calendario</h1>
-  <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-    <% if (isAdmin) { %>
-      <% if (isGoogleConnected) { %>
-        <div style="display: flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #34d399;">
-          <span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>
-          Google Calendar Sincronizado
-          <a href="/auth/google/disconnect" style="color: #ef4444; margin-left: 8px; text-decoration: none; font-size: 11px; font-weight: 700;" onclick="return confirm('¿Desvincular Google Calendar?')">Desvincular</a>
-        </div>
-      <% } else { %>
-        <a href="/auth/google" style="display: flex; align-items: center; gap: 8px; background: #ea4335; border: none; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #fff; text-decoration: none; cursor: pointer; transition: 0.2s;">
-          <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.513 0-6.36-2.847-6.36-6.36s2.847-6.36 6.36-6.36c1.696 0 3.24.66 4.417 1.748L21.44 4.5A11.9 11.9 0 0 0 12.24 0C5.48 0 0 5.48 0 12.24s5.48 12.24 12.24 12.24c6.76 0 11.76-4.75 11.76-11.96 0-.756-.07-1.488-.22-2.235H12.24z"/></svg>
-          Vincular Google Calendar
-        </a>
-      <% } %>
-    <% } %>
-    <button class="btn-primary" onclick="openModal()">+ Nueva Reunión</button>
-  </div>
+  <button class="btn-primary" onclick="openModal()">+ Nueva Reunión</button>
 </div>
 
 <div class="stats">
@@ -137,13 +121,6 @@ body { background: #0f172a; color: #fff; }
         <label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Agendado por</label>
         <div id="eventCreator" style="padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px; font-size:13px; font-weight:600;"></div>
       </div>
-      <div id="meetSection" style="margin-bottom:15px; display:none;">
-        <label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Google Meet</label>
-        <a id="eventMeetLink" href="#" target="_blank" style="display:inline-flex; align-items:center; gap:8px; color:#34d399; font-weight:600; font-size:13px; text-decoration:none; background:rgba(16,185,129,0.15); padding:10px; border-radius:8px; border:1px dashed #10b981; width:100%;">
-          <svg style="width:18px; height:18px; fill:currentColor;" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4zM14 16H5V8h9v8z"/></svg>
-          Entrar a la videollamada de Meet
-        </a>
-      </div>
       <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Título *</label><input type="text" id="title" required style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"></div>
 
       <div style="margin-bottom:15px;"><label style="display:block; margin-bottom:5px; color:#94a3b8; font-size:13px;">Fecha *</label><input type="date" id="date" required style="width:100%; padding:10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:8px;"></div>
@@ -181,22 +158,10 @@ body { background: #0f172a; color: #fff; }
   </div>
 </div>
 
-<%
-function safeDateStr(d) {
-    if (!d) return '';
-    try {
-        const dateObj = new Date(d);
-        if (isNaN(dateObj.getTime())) return '';
-        return dateObj.toISOString().split('T')[0];
-    } catch(e) {
-        return '';
-    }
-}
-%>
 <script>
 let currentDate = new Date();
-const meetingsData = <%- JSON.stringify((meetings||[]).map(m => ({ _id: m._id, title: m.title + ' (' + (m.createdBy ? (m.createdBy.fullName || m.createdBy.username) : 'Asesor') + ')', date: safeDateStr(m.date), time: m.time, type: 'meeting', description: m.description || '', meetLink: m.meetLink || '' }))) %>;
-const tasksData = <%- JSON.stringify((tasks||[]).map(t => ({ _id: t._id, title: t.title, date: safeDateStr(t.dueDate || t.createdAt), type: 'task', description: t.description || '' }))) %>;
+const meetingsData = <%- JSON.stringify((meetings||[]).map(m => ({ _id: m._id, title: m.title + ' (' + (m.createdBy ? (m.createdBy.fullName || m.createdBy.username) : 'Asesor') + ')', date: new Date(m.date).toISOString().split('T')[0], time: m.time, type: 'meeting', description: m.description || '' }))) %>;
+const tasksData = <%- JSON.stringify((tasks||[]).map(t => ({ _id: t._id, title: t.title, date: t.dueDate ? new Date(t.dueDate).toISOString().split('T')[0] : new Date(t.createdAt).toISOString().split('T')[0], type: 'task', description: t.description || '' }))) %>;
 
 function handleDayClick(dateStr) {
   const dayMeetings = meetingsData.filter(m => m.date === dateStr);
@@ -230,14 +195,11 @@ function openDayEventsModal(dateStr, events) {
     item.onmouseover = () => { item.style.background = '#1e293b'; };
     item.onmouseout = () => { item.style.background = '#0f172a'; };
     
-    const meetButton = e.meetLink ? `<a href="${e.meetLink}" target="_blank" onclick="event.stopPropagation();" style="display:inline-flex; align-items:center; gap:6px; background:#10b981; color:#fff; padding:6px 12px; border-radius:6px; font-size:11px; text-decoration:none; font-weight:700; margin-top:8px; width:fit-content;">🎥 Unirse a Google Meet</a>` : '';
-    
     item.innerHTML = `
       <div style="font-weight:600; font-size:13px; color:#fff; margin-bottom:4px;">${e.title}</div>
       <div style="font-size:11px; color:#94a3b8;">
         ${e.time ? '⏰ ' + e.time + ' | ' : ''} ${e.type === 'task' ? '📝 Tarea' : '🤝 Reunión'}
       </div>
-      ${meetButton}
     `;
     list.appendChild(item);
   });
@@ -283,8 +245,9 @@ function renderCalendar() {
     const dayTasks = tasksData.filter(t => t.date === dateStr);
     const dayEvents = [...dayMeetings, ...dayTasks];
     
-    let eventsHtml = dayEvents.map(e => `<div class="event-item ${e.type}" onclick="event.stopPropagation(); editEvent('${e._id}', '${e.type}')">${e.time ? e.time+' ' : ''}${e.title}</div>`).join('');
-    grid.innerHTML += `<div class="calendar-day ${isToday ? 'today' : ''}" onclick="openModal('${dateStr}')"><div class="day-number">${day}</div><div>${eventsHtml}</div></div>`;
+    let eventsHtml = dayEvents.slice(0, 3).map(e => `<div class="event-item ${e.type}" onclick="event.stopPropagation(); editEvent('${e._id}', '${e.type}')">${e.time ? e.time+' ' : ''}${e.title}</div>`).join('');
+    if (dayEvents.length > 3) eventsHtml += `<div style="font-size:10px;color:#94a3b8;padding:3px;">+${dayEvents.length-3} más</div>`;
+    grid.innerHTML += `<div class="calendar-day ${isToday ? 'today' : ''}" onclick="handleDayClick('${dateStr}')"><div class="day-number">${day}</div><div>${eventsHtml}</div></div>`;
   }
   
   // Mobile List
@@ -318,8 +281,6 @@ function openModal(date = null) {
   document.getElementById('deleteBtn').style.display = 'none';
   document.getElementById('date').value = date || new Date().toISOString().split('T')[0];
   document.getElementById('creatorSection').style.display = 'none';
-  const meetSec = document.getElementById('meetSection');
-  if (meetSec) meetSec.style.display = 'none';
   
   const endTimeEl = document.getElementById('endTime');
   if (endTimeEl) endTimeEl.value = '';
@@ -401,15 +362,6 @@ async function editEvent(id, type) {
       creatorSec.style.display = 'block';
     } else {
       creatorSec.style.display = 'none';
-    }
-    
-    const meetSec = document.getElementById('meetSection');
-    const meetEl = document.getElementById('eventMeetLink');
-    if (ev.meetLink && meetSec && meetEl) {
-      meetEl.href = ev.meetLink;
-      meetSec.style.display = 'block';
-    } else if (meetSec) {
-      meetSec.style.display = 'none';
     }
     
     document.getElementById('modal').style.display = 'flex';
